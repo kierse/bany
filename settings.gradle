@@ -1,2 +1,4 @@
 rootProject.name = 'bany'
 
+include 'domain'
+project(':domain').buildFileName = 'domain.gradle.kts'

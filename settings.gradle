@@ -1,6 +1,6 @@
 rootProject.name = 'bany'
 
 include 'domain', 'adapter', 'driver'
-project(':domain').buildFileName = 'domain.gradle.kts'
-project(':adapter').buildFileName = 'adapter.gradle.kts'
-project(':driver').buildFileName = 'driver.gradle.kts'
+//project(':domain').buildFileName = 'domain.gradle.kts'
+//project(':adapter').buildFileName = 'adapter.gradle.kts'
+//project(':driver').buildFileName = 'driver.gradle.kts'

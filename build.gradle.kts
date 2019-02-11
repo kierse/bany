@@ -1,9 +1,7 @@
-// Based on:
-// https://github.com/gradle/kotlin-dsl/blob/master/samples/multi-kotlin-project/build.gradle.kts
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.3.21" apply false
+    kotlin("jvm") version "1.3.21"
 }
 
 allprojects {
@@ -19,8 +17,7 @@ allprojects {
     }
 }
 
-//dependencies {
-//    subprojects.forEach {
-//        archives(it)
-//    }
-//}
+dependencies {
+    implementation(kotlin("stdlib-jdk8"))
+}
+

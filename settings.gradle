@@ -1,4 +1,6 @@
 rootProject.name = 'bany'
 
-include 'domain'
+include 'domain', 'adapter'
 project(':domain').buildFileName = 'domain.gradle.kts'
+project(':adapter').buildFileName = 'adapter.gradle.kts'
+

@@ -4,5 +4,5 @@ import com.pissiphany.bany.domain.dataStructure.Account
 import com.pissiphany.bany.domain.dataStructure.Budget
 
 interface YnabAccountGateway {
-    fun getBudgetAccount(budget: Budget): List<Account>
+    fun getAccounts(budget: Budget): List<Account>
 }

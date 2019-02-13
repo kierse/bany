@@ -1,27 +1,39 @@
 package com.pissiphany.bany.adapter.controller
 
-import com.pissiphany.bany.domain.dataStructure.Transaction
-import com.pissiphany.bany.domain.useCase.MonitoredYnabAccountsUseCase
-import com.pissiphany.bany.domain.useCase.GetMostRecentYnabTransactionUseCase
-import com.pissiphany.bany.domain.useCase.GetNewThirdPartyTransactionsUseCase
-import com.pissiphany.bany.domain.useCase.SaveTransactionsToYnabUseCase
+import com.pissiphany.bany.adapter.boundary.*
+import com.pissiphany.bany.domain.useCase.linkedAccounts.GetLinkedAccountsUseCase
+import com.pissiphany.bany.domain.useCase.ynabTransactions.GetMostRecentUseCase
+import com.pissiphany.bany.domain.useCase.thirdPartyTransactions.GetNewTransactionsUseCase
+import com.pissiphany.bany.domain.useCase.ynabTransactions.SaveTransactionsUseCase
 import java.time.LocalTime
 
 class SyncTransactionsWithYnabController(
-    private val monitoredAccountsUseCase: MonitoredYnabAccountsUseCase,
-    private val recentTransactionUseCase: GetMostRecentYnabTransactionUseCase,
-    private val newTransactionsUseCase: GetNewThirdPartyTransactionsUseCase,
-    private val saveTransactionsToYnabUseCase: SaveTransactionsToYnabUseCase
+    private val linkedAccountsUseCase: GetLinkedAccountsUseCase,
+    private val recentTransactionUseCase: GetMostRecentUseCase,
+    private val newTransactionsUseCase: GetNewTransactionsUseCase,
+    private val saveTransactionsUseCase: SaveTransactionsUseCase
 ) {
     fun sync() {
-        for ((budget, account) in monitoredAccountsUseCase.getAccountsToQuery()) {
-            val lastTransaction: Transaction? = recentTransactionUseCase.getMostRecentTransaction(budget, account)
-            val date: LocalTime? = lastTransaction?.date
+        val linkedAccountsOutput = GetLinkedAccountsOutputBoundaryImpl()
+        linkedAccountsUseCase.run(linkedAccountsOutput)
 
-            val newTransactions = newTransactionsUseCase.getNewTransactions(account, date)
-            if (newTransactions.isEmpty()) continue
+        for ((budget, account) in linkedAccountsOutput.linkedAccounts) {
+            val recentTransactionsInput = GetMostRecentInputBoundaryImpl(budget, account)
+            val recentTransactionsOutput = GetMostRecentOutputBoundaryImpl()
 
-            saveTransactionsToYnabUseCase.saveTransactions(budget, account, newTransactions)
+            recentTransactionUseCase.run(recentTransactionsInput, recentTransactionsOutput)
+            val date: LocalTime? = recentTransactionsOutput.transaction?.date
+
+            val newTransactionsInputBoundary = GetNewTransactionsInputBoundarImpl(account, date)
+            val newTransactionsOutputBoundary = GetNewTransactionsOutputBoundaryImpl()
+
+            newTransactionsUseCase.run(newTransactionsInputBoundary, newTransactionsOutputBoundary)
+            if (newTransactionsOutputBoundary.transactions.isEmpty()) continue
+
+            val saveTransactionsInputBoundary = SaveTransactionsInputBoundaryImpl(
+                budget, account, newTransactionsOutputBoundary.transactions
+            )
+            saveTransactionsUseCase.run(saveTransactionsInputBoundary)
         }
     }
 }

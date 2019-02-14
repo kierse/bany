@@ -9,4 +9,4 @@ import com.squareup.moshi.JsonQualifier
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
 @JsonQualifier
-internal annotation class Envelope
+internal annotation class DataEnvelope

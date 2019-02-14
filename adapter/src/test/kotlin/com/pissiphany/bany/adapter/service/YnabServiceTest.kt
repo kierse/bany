@@ -1,8 +1,11 @@
 package com.pissiphany.bany.adapter.service
 
+import com.pissiphany.bany.adapter.dataStructure.YnabBudget
+import com.pissiphany.bany.adapter.json.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.json.LocalDateTimeAdapter
 import com.squareup.moshi.Moshi
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -19,6 +22,7 @@ class YnabServiceTest {
         internal fun setup() {
             val key = File(YNAB_API_KEY_LOCATION).readLines().first()
             val moshi = Moshi.Builder()
+                .add(DataEnvelopeFactory())
                 .add(LocalDateTimeAdapter())
                 .build()
             val retrofit = RetrofitFactory.create("https://api.youneedabudget.com/", key, moshi)
@@ -32,9 +36,23 @@ class YnabServiceTest {
     fun getBudgets() {
         val call = service.getBudgets()
         val response = call.execute()
-//        val body = response.body()
+        val body = response.body()
 
         assertTrue(response.isSuccessful)
-//        assertTrue(body?.isNotEmpty() ?: false)
+        assertTrue(body?.budgets?.isNotEmpty() ?: false)
+    }
+
+    @Test
+    fun getAccounts() {
+        val budgetsCall = service.getBudgets()
+        val budgetsResponse = budgetsCall.execute()
+        val budget = budgetsResponse.body()?.budgets?.first() ?: fail("Unable to retrieve budgets")
+
+        val accountsCall = service.getAccounts(budget.id)
+        val accountsResponse = accountsCall.execute()
+        val body = accountsResponse.body()
+
+        assertTrue(accountsResponse.isSuccessful)
+        assertTrue(body?.accounts?.isNotEmpty() ?: false)
     }
 }

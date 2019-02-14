@@ -9,10 +9,17 @@ import java.time.LocalDate
 
 class YnabMostRecentTransactionGatewayImpl(private val ynabService: YnabService) : YnabMostRecentTransactionGateway {
     override fun getTransactionsSince(budget: Budget, account: Account, since: LocalDate): List<Transaction> {
-        return ynabService.getTransactionsSince(budget, account, since)
+        val call = ynabService.getTransactionsSince(budget.id, account.id, since)
+        val response = call.execute()
+
+        // TODO("error handling")
+        return response.body().orEmpty()
     }
 
     override fun getTransactions(budget: Budget, account: Account): List<Transaction> {
-        return ynabService.getTransaction(budget, account)
+        val call = ynabService.getTransaction(budget.id, account.id)
+        val response = call.execute()
+
+        return response.body().orEmpty()
     }
 }

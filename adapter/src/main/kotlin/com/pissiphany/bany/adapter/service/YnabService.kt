@@ -19,9 +19,11 @@ interface YnabService {
     @GET("/v1/budgets/{budget_id}/accounts")
     fun getAccounts(@Path("budget_id") budgetId: String): Call<YnabAccounts>
 
-    @GET("/v1/budgets/{budgetId}/accounts/{accountId}/transactions")
-    fun getTransactionsSince(budgetId: String, accountId: String, @Query("since_date") since: LocalDate): Call<List<Transaction>>
+    @GET("/v1/budgets/{budget_id}/accounts/{account_id}/transactions")
+    fun getTransactionsSince(
+        @Path("budget_id") budgetId: String, @Path("account_id") accountId: String, @Query("since_date") since: LocalDate
+    ): Call<List<Transaction>>
 
-    @GET("/v1/budgets/{budgetId}/accounts/{accountId}/transactions")
-    fun getTransaction(budgetId: String, accountId: String): Call<List<Transaction>>
+    @GET("/v1/budgets/{budget_id}/accounts/{account_id}/transactions")
+    fun getTransaction(@Path("budget_id") budgetId: String, @Path("account_id") accountId: String): Call<List<Transaction>>
 }

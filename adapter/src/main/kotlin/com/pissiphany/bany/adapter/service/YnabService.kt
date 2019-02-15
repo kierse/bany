@@ -3,7 +3,7 @@ package com.pissiphany.bany.adapter.service
 import com.pissiphany.bany.adapter.annotation.DataEnvelope
 import com.pissiphany.bany.adapter.dataStructure.YnabAccounts
 import com.pissiphany.bany.adapter.dataStructure.YnabBudgets
-import com.pissiphany.bany.domain.dataStructure.Transaction
+import com.pissiphany.bany.adapter.dataStructure.YnabTransactions
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path

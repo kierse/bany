@@ -1,6 +1,5 @@
 package com.pissiphany.bany.adapter.service
 
-import com.pissiphany.bany.adapter.dataStructure.YnabBudget
 import com.pissiphany.bany.adapter.json.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.json.LocalDateTimeAdapter
 import com.squareup.moshi.Moshi

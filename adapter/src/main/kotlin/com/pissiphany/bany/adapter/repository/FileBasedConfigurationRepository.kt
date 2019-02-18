@@ -1,4 +1,4 @@
-package com.pissiphany.bany.adapter.gateway
+package com.pissiphany.bany.adapter.repository
 
 import com.pissiphany.bany.adapter.config.BanyConfig
 import com.pissiphany.bany.adapter.mapper.BudgetAccountIdsMapper

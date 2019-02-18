@@ -13,5 +13,7 @@ class FileBasedConfigurationRepository(private val config: BanyConfig) : Configu
                 budgetAccountIds.add(BudgetAccountIds(connection.ynabBudgetId, connection.ynabAccountId))
             }
         }
+
+        return budgetAccountIds
     }
 }

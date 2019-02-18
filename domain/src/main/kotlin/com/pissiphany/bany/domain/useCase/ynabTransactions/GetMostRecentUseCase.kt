@@ -1,25 +1,20 @@
 package com.pissiphany.bany.domain.useCase.ynabTransactions
 
 import com.pissiphany.bany.domain.gateway.YnabMostRecentTransactionGateway
-import java.time.LocalDate
+import com.pissiphany.bany.domain.repository.YnabLastKnowledgeOfServerRepository
 
-class GetMostRecentUseCase(private val ynabGateway: YnabMostRecentTransactionGateway) {
+class GetMostRecentUseCase(
+    private val ynabCache: YnabLastKnowledgeOfServerRepository,
+    private val ynabGateway: YnabMostRecentTransactionGateway
+) {
     fun run(input: GetMostRecentInputBoundary, output: GetMostRecentOutputBoundary) {
-        val threeDaysAgo = LocalDate.now().minusDays(3)
-        var transactions = ynabGateway.getTransactionsSince(input.budget, input.account, threeDaysAgo)
-        if (transactions.isNotEmpty()) {
-            output.transaction = transactions.first()
-            return
-        }
+        val cachedLastKnowledge = ynabCache.getLastKnowledgeOfServer(input.account)
+        val (transactions, newLastKnowledge) = ynabGateway.getUpdatedTransactions(cachedLastKnowledge)
 
-        val sevenDaysAgo = threeDaysAgo.minusDays(4)
-        transactions = ynabGateway.getTransactionsSince(input.budget, input.account, sevenDaysAgo)
-        if (transactions.isNotEmpty()) {
-            output.transaction = transactions.first()
-            return
-        }
+        ynabCache.saveLastKnowledgeOfServer(newLastKnowledge)
 
-        // finally, try and get whatever we can
-        output.transaction = ynabGateway.getTransactions(input.budget, input.account).firstOrNull()
+        // TODO may have to filter / ignore certain transactions here
+        // TODO make sure #first is returning the correct transaction
+        output.transaction = transactions.first()
     }
 }

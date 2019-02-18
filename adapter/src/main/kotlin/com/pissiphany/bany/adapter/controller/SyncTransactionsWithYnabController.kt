@@ -26,7 +26,7 @@ class SyncTransactionsWithYnabController(
     }
 
     private fun syncNewAccountTransactions(budget: Budget, account: Account) {
-        val date = fetchDateOfMostRecentTransaction(budget, account)
+        val date = fetchDateOfMostRecentTransaction(account)
 
         val newTransactions = fetchNewTransactions(account, date)
         if (newTransactions.isEmpty()) return
@@ -34,8 +34,8 @@ class SyncTransactionsWithYnabController(
         saveNewTransactions(budget, account, newTransactions)
     }
 
-    private fun fetchDateOfMostRecentTransaction(budget: Budget, account: Account): LocalTime? {
-        val recentTransactionsInput = GetMostRecentInputBoundaryImpl(budget, account)
+    private fun fetchDateOfMostRecentTransaction(account: Account): LocalTime? {
+        val recentTransactionsInput = GetMostRecentInputBoundaryImpl(account)
         val recentTransactionsOutput = GetMostRecentOutputBoundaryImpl()
 
         recentTransactionUseCase.run(recentTransactionsInput, recentTransactionsOutput)

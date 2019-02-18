@@ -26,15 +26,15 @@ class SyncTransactionsWithYnabController(
     }
 
     private fun syncNewAccountTransactions(budget: Budget, account: Account) {
-        val date = fetchDateOfMostRecentTransaction(account)
+        val date = fetchDateOfMostRecentYnabTransaction(account)
 
-        val newTransactions = fetchNewTransactions(account, date)
+        val newTransactions = fetchNewThirdPartyTransactions(account, date)
         if (newTransactions.isEmpty()) return
 
-        saveNewTransactions(budget, account, newTransactions)
+        saveNewTransactionsToYnab(budget, account, newTransactions)
     }
 
-    private fun fetchDateOfMostRecentTransaction(account: Account): LocalTime? {
+    private fun fetchDateOfMostRecentYnabTransaction(account: Account): LocalTime? {
         val recentTransactionsInput = GetMostRecentInputBoundaryImpl(account)
         val recentTransactionsOutput = GetMostRecentOutputBoundaryImpl()
 
@@ -42,7 +42,7 @@ class SyncTransactionsWithYnabController(
         return recentTransactionsOutput.transaction?.date
     }
 
-    private fun fetchNewTransactions(account: Account, date: LocalTime?): List<Transaction> {
+    private fun fetchNewThirdPartyTransactions(account: Account, date: LocalTime?): List<Transaction> {
         val newTransactionsInputBoundary = GetNewTransactionsInputBoundarImpl(account, date)
         val newTransactionsOutputBoundary = GetNewTransactionsOutputBoundaryImpl()
 
@@ -50,7 +50,7 @@ class SyncTransactionsWithYnabController(
         return newTransactionsOutputBoundary.transactions
     }
 
-    private fun saveNewTransactions(budget: Budget, account: Account, newTransactions: List<Transaction>) {
+    private fun saveNewTransactionsToYnab(budget: Budget, account: Account, newTransactions: List<Transaction>) {
         val saveTransactionsInputBoundary = SaveTransactionsInputBoundaryImpl(
             budget, account, newTransactions
         )

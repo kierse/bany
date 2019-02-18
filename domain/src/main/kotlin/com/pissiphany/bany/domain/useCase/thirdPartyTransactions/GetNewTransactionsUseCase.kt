@@ -8,8 +8,7 @@ class GetNewTransactionsUseCase(transactionGateways: List<ThirdPartyTransactionG
         transactionGateways.associateBy { it.account }
 
     fun run(input: GetNewTransactionsInputBoundary, output: GetNewTransactionsOutputBoundary) {
-        if (input.account !in gatewayByAccount) return
-
-        output.transactions = gatewayByAccount.getValue(input.account).getNewTransactionSince(input.date)
+        val gateway = gatewayByAccount[input.account] ?: return
+        output.transactions = gateway.getNewTransactionSince(input.date)
     }
 }

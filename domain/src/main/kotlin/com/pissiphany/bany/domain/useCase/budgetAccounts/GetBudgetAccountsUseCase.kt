@@ -1,4 +1,4 @@
-package com.pissiphany.bany.domain.useCase.linkedAccounts
+package com.pissiphany.bany.domain.useCase.budgetAccounts
 
 import com.pissiphany.bany.domain.dataStructure.Budget
 import com.pissiphany.bany.domain.dataStructure.BudgetAccount

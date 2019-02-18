@@ -4,7 +4,7 @@ import com.pissiphany.bany.adapter.boundary.*
 import com.pissiphany.bany.domain.dataStructure.Account
 import com.pissiphany.bany.domain.dataStructure.Budget
 import com.pissiphany.bany.domain.dataStructure.Transaction
-import com.pissiphany.bany.domain.useCase.linkedAccounts.GetBudgetAccountsUseCase
+import com.pissiphany.bany.domain.useCase.budgetAccounts.GetBudgetAccountsUseCase
 import com.pissiphany.bany.domain.useCase.ynabTransactions.GetMostRecentUseCase
 import com.pissiphany.bany.domain.useCase.thirdPartyTransactions.GetNewTransactionsUseCase
 import com.pissiphany.bany.domain.useCase.ynabTransactions.SaveTransactionsUseCase

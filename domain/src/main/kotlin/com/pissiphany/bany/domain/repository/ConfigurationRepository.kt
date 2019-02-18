@@ -1,4 +1,4 @@
-package com.pissiphany.bany.domain.gateway
+package com.pissiphany.bany.domain.repository
 
 import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 

@@ -2,7 +2,7 @@ package com.pissiphany.bany.domain.useCase.budgetAccounts
 
 import com.pissiphany.bany.domain.dataStructure.Budget
 import com.pissiphany.bany.domain.dataStructure.BudgetAccount
-import com.pissiphany.bany.domain.gateway.ConfigurationRepository
+import com.pissiphany.bany.domain.repository.ConfigurationRepository
 import com.pissiphany.bany.domain.gateway.YnabBudgetAccountsGateway
 import java.lang.IllegalArgumentException
 

@@ -4,7 +4,7 @@ import com.pissiphany.bany.domain.dataStructure.Account
 import com.pissiphany.bany.domain.dataStructure.Budget
 import com.pissiphany.bany.domain.dataStructure.BudgetAccount
 import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
-import com.pissiphany.bany.domain.gateway.ConfigurationRepository
+import com.pissiphany.bany.domain.repository.ConfigurationRepository
 import com.pissiphany.bany.domain.gateway.YnabBudgetAccountsGateway
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

@@ -2,7 +2,7 @@ package com.pissiphany.bany.adapter.gateway
 
 import com.pissiphany.bany.adapter.config.BanyConfig
 import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
-import com.pissiphany.bany.domain.gateway.ConfigurationRepository
+import com.pissiphany.bany.domain.repository.ConfigurationRepository
 
 class FileBasedConfigurationRepository(private val config: BanyConfig) : ConfigurationRepository {
     // TODO replace with a mapper

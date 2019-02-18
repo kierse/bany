@@ -4,23 +4,23 @@ import com.pissiphany.bany.adapter.boundary.*
 import com.pissiphany.bany.domain.dataStructure.Account
 import com.pissiphany.bany.domain.dataStructure.Budget
 import com.pissiphany.bany.domain.dataStructure.Transaction
-import com.pissiphany.bany.domain.useCase.linkedAccounts.GetLinkedAccountsUseCase
+import com.pissiphany.bany.domain.useCase.linkedAccounts.GetBudgetAccountsUseCase
 import com.pissiphany.bany.domain.useCase.ynabTransactions.GetMostRecentUseCase
 import com.pissiphany.bany.domain.useCase.thirdPartyTransactions.GetNewTransactionsUseCase
 import com.pissiphany.bany.domain.useCase.ynabTransactions.SaveTransactionsUseCase
 import java.time.LocalTime
 
 class SyncTransactionsWithYnabController(
-    private val linkedAccountsUseCase: GetLinkedAccountsUseCase,
+    private val budgetAccountsUseCase: GetBudgetAccountsUseCase,
     private val recentTransactionUseCase: GetMostRecentUseCase,
     private val newTransactionsUseCase: GetNewTransactionsUseCase,
     private val saveTransactionsUseCase: SaveTransactionsUseCase
 ) {
     fun sync() {
-        val linkedAccountsOutput = GetLinkedAccountsOutputBoundaryImpl()
-        linkedAccountsUseCase.run(linkedAccountsOutput)
+        val budgetAccountsOutput = GetBudgetAccountsOutputBoundaryImpl()
+        budgetAccountsUseCase.run(budgetAccountsOutput)
 
-        for ((budget, account) in linkedAccountsOutput.linkedAccounts) {
+        for ((budget, account) in budgetAccountsOutput.budgetAccounts) {
             syncNewAccountTransactions(budget, account)
         }
     }

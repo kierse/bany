@@ -5,6 +5,10 @@ import com.squareup.moshi.*
 import java.lang.UnsupportedOperationException
 import java.lang.reflect.Type
 
+/**
+ * Based on process described here: https://medium.com/@naturalwarren/moshi-made-simple-jsonqualifier-b99559c826ad
+ */
+
 class DataEnvelopeFactory : JsonAdapter.Factory {
     override fun create(type: Type, annotations: MutableSet<out Annotation>, moshi: Moshi): JsonAdapter<*>? {
         val delegateAnnotations = Types.nextAnnotations(annotations, DataEnvelope::class.java) ?: return null

@@ -4,6 +4,7 @@ import com.pissiphany.bany.domain.dataStructure.Budget
 import com.pissiphany.bany.domain.dataStructure.BudgetAccount
 import com.pissiphany.bany.domain.gateway.ConfigurationRepository
 import com.pissiphany.bany.domain.gateway.YnabBudgetAccountsGateway
+import java.lang.IllegalArgumentException
 
 class GetBudgetAccountsUseCase(private val repo: ConfigurationRepository, private val service: YnabBudgetAccountsGateway) {
     fun run(output: GetBudgetAccountsOutputBoundary) {
@@ -12,7 +13,7 @@ class GetBudgetAccountsUseCase(private val repo: ConfigurationRepository, privat
 
         for ((budgetId, accountId) in repo.getBudgetAccountIds()) {
             val budget = getBudget(budgetId, budgets)
-            val account = service.getAccount(accountId)
+            val account = service.getAccount(accountId) ?: throw IllegalArgumentException("unable to find account $accountId")
 
             budgetAccounts.add(BudgetAccount(budget, account))
         }
@@ -23,7 +24,9 @@ class GetBudgetAccountsUseCase(private val repo: ConfigurationRepository, privat
     private fun getBudget(budgetId: String, cache: MutableMap<String, Budget>): Budget {
         var budget = cache[budgetId]
         if (budget == null) {
-            budget = service.getBudget(budgetId)
+            budget = service.getBudget(budgetId) ?:
+                    throw IllegalArgumentException("unable to find budget $budgetId")
+            cache[budgetId] = budget
         }
 
         return budget

@@ -5,5 +5,5 @@ import com.pissiphany.bany.domain.dataStructure.Budget
 import com.pissiphany.bany.domain.dataStructure.Transaction
 
 interface YnabSaveTransactionsGateway {
-    fun saveTransactions(budget: Budget, account: Account, transactions: List<Transaction>)
+    fun saveTransactions(budget: Budget, account: Account, domainTransactions: List<Transaction>): Boolean
 }

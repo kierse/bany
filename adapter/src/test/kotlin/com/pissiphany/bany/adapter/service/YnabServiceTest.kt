@@ -1,38 +1,35 @@
 package com.pissiphany.bany.adapter.service
 
+import com.pissiphany.bany.adapter.Constants
 import com.pissiphany.bany.adapter.INTEGRATION_TEST
 import com.pissiphany.bany.adapter.SLOW
+import com.pissiphany.bany.adapter.config.BanyConfig
 import com.pissiphany.bany.adapter.json.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.json.LocalDateTimeAdapter
 import com.squareup.moshi.Moshi
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Tag
-import org.junit.jupiter.api.Tags
-import org.junit.jupiter.api.Test
-import java.io.File
 
 // See https://spin.atomicobject.com/2018/07/18/gradle-integration-tests/
 class YnabServiceTest {
     companion object {
-        private val YNAB_API_KEY_LOCATION = System.getProperty("user.dir") + "/../.ynab_api_key"
-
         private lateinit var service: YnabService
 
         @BeforeAll
         @JvmStatic
         internal fun setup() {
-            val key = File(YNAB_API_KEY_LOCATION).readLines().first()
             val moshi = Moshi.Builder()
                 .add(DataEnvelopeFactory())
                 .add(LocalDateTimeAdapter())
                 .build()
-            val retrofit = RetrofitFactory.create("https://api.youneedabudget.com/", key, moshi)
+            val adapter = moshi.adapter(BanyConfig::class.java)
+            val config = adapter.fromJson(Constants.CONFIG_FILE.readText()) ?: throw UnknownError("unable to create config file!")
+
+            val retrofit = RetrofitFactory.create("https://api.youneedabudget.com/", config.ynabApiToken, moshi)
 
             service = retrofit.create(YnabService::class.java)
         }
-
     }
 
     @Tags(Tag(SLOW), Tag(INTEGRATION_TEST))

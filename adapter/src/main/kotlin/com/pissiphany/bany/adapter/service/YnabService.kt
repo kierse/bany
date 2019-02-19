@@ -1,14 +1,10 @@
 package com.pissiphany.bany.adapter.service
 
 import com.pissiphany.bany.adapter.annotation.DataEnvelope
-import com.pissiphany.bany.adapter.dataStructure.YnabAccounts
-import com.pissiphany.bany.adapter.dataStructure.YnabBudgets
-import com.pissiphany.bany.adapter.dataStructure.YnabTransactions
+import com.pissiphany.bany.adapter.dataStructure.*
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
-import retrofit2.http.Query
-import java.time.LocalDate
 
 interface YnabService {
     @DataEnvelope
@@ -16,14 +12,14 @@ interface YnabService {
     fun getBudgets(): Call<YnabBudgets>
 
     @DataEnvelope
+    @GET("/v1/budgets/{budget_id}")
+    fun getBudget(@Path("budget_id") budgetId: String): Call<YnabBudget>
+
+    @DataEnvelope
     @GET("/v1/budgets/{budget_id}/accounts")
     fun getAccounts(@Path("budget_id") budgetId: String): Call<YnabAccounts>
 
-    @GET("/v1/budgets/{budget_id}/accounts/{account_id}/transactions")
-    fun getTransactionsSince(
-        @Path("budget_id") budgetId: String, @Path("account_id") accountId: String, @Query("since_date") since: LocalDate
-    ): Call<YnabTransactions>
-
-    @GET("/v1/budgets/{budget_id}/accounts/{account_id}/transactions")
-    fun getTransaction(@Path("budget_id") budgetId: String, @Path("account_id") accountId: String): Call<YnabTransactions>
+    @DataEnvelope
+    @GET("/v1/budgets/{budget_id}/accounts/{account_id}")
+    fun getAccount(@Path("account_id") accountId: String): Call<YnabAccount>
 }

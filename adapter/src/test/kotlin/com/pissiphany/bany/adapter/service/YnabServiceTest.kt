@@ -1,11 +1,15 @@
 package com.pissiphany.bany.adapter.service
 
+import com.pissiphany.bany.adapter.INTEGRATION_TEST
+import com.pissiphany.bany.adapter.SLOW
 import com.pissiphany.bany.adapter.json.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.json.LocalDateTimeAdapter
 import com.squareup.moshi.Moshi
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.Tags
 import org.junit.jupiter.api.Test
 import java.io.File
 
@@ -31,6 +35,7 @@ class YnabServiceTest {
 
     }
 
+    @Tags(Tag(SLOW), Tag(INTEGRATION_TEST))
     @Test
     fun getBudgets() {
         val call = service.getBudgets()
@@ -41,6 +46,7 @@ class YnabServiceTest {
         assertTrue(body?.budgets?.isNotEmpty() ?: false)
     }
 
+    @Tags(Tag(SLOW), Tag(INTEGRATION_TEST))
     @Test
     fun getAccounts() {
         val budgetsCall = service.getBudgets()

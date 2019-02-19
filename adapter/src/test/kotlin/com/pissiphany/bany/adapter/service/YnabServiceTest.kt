@@ -8,8 +8,7 @@ import com.pissiphany.bany.adapter.json.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.json.LocalDateTimeAdapter
 import com.squareup.moshi.Moshi
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Assertions.fail
+import org.junit.jupiter.api.Assertions.*
 
 // See https://spin.atomicobject.com/2018/07/18/gradle-integration-tests/
 class YnabServiceTest {
@@ -56,5 +55,15 @@ class YnabServiceTest {
 
         assertTrue(accountsResponse.isSuccessful)
         assertTrue(body?.accounts?.isNotEmpty() ?: false)
+    }
+
+    @Tags(Tag(SLOW), Tag(INTEGRATION_TEST))
+    @Test
+    fun getAccounts__unknown_budget() {
+        val accountsCall = service.getAccounts("fake-budget-id")
+        val accountsResponse = accountsCall.execute()
+
+        assertFalse(accountsResponse.isSuccessful)
+        assertEquals(404, accountsResponse.code())
     }
 }

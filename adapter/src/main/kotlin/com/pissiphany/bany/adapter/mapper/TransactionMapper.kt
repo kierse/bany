@@ -13,4 +13,12 @@ class TransactionMapper {
             date = transaction.date
         )
     }
+
+    fun toTransaction(ynabTransaction: YnabTransaction): Transaction {
+        return Transaction(
+            id = ynabTransaction.id,
+            amount = ynabTransaction.amount,
+            date = ynabTransaction.date
+        )
+    }
 }

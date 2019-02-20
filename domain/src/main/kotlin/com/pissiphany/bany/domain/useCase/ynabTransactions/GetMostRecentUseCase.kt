@@ -11,7 +11,7 @@ class GetMostRecentUseCase(
         val cachedLastKnowledge = ynabCache.getLastKnowledgeOfServer(input.account)
         val (transactions, newLastKnowledge) = ynabGateway.getUpdatedTransactions(cachedLastKnowledge)
 
-        ynabCache.saveLastKnowledgeOfServer(newLastKnowledge)
+        ynabCache.saveLastKnowledgeOfServer(input.account, newLastKnowledge)
 
         // TODO may have to filter / ignore certain transactions here
         // TODO make sure #first is returning the correct transaction

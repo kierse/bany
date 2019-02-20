@@ -41,7 +41,7 @@ internal class GetMostRecentUseCaseTest {
             return if (account.id == "accountId") lastKnowledge else 0
         }
 
-        override fun saveLastKnowledgeOfServer(lastKnowledgeOfServer: Int) {
+        override fun saveLastKnowledgeOfServer(account: Account, lastKnowledgeOfServer: Int) {
             lastKnowledge = lastKnowledgeOfServer
         }
     }

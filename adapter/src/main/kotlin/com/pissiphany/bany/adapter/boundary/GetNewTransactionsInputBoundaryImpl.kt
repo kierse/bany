@@ -2,6 +2,6 @@ package com.pissiphany.bany.adapter.boundary
 
 import com.pissiphany.bany.domain.dataStructure.Account
 import com.pissiphany.bany.domain.useCase.thirdPartyTransactions.GetNewTransactionsInputBoundary
-import java.time.LocalTime
+import java.time.LocalDate
 
-class GetNewTransactionsInputBoundarImpl(override val account: Account, override val date: LocalTime?) : GetNewTransactionsInputBoundary
+class GetNewTransactionsInputBoundaryImpl(override val account: Account, override val date: LocalDate?) : GetNewTransactionsInputBoundary

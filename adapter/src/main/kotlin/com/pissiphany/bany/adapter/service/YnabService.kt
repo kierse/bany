@@ -3,10 +3,7 @@ package com.pissiphany.bany.adapter.service
 import com.pissiphany.bany.adapter.annotation.DataEnvelope
 import com.pissiphany.bany.adapter.dataStructure.*
 import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Path
+import retrofit2.http.*
 
 interface YnabService {
     @DataEnvelope
@@ -24,6 +21,14 @@ interface YnabService {
     @DataEnvelope(wrappers = 2)
     @GET("/v1/budgets/{budget_id}/accounts/{account_id}")
     fun getAccount(@Path("budget_id") budgetId: String, @Path("account_id") accountId: String): Call<YnabAccount>
+
+    @DataEnvelope
+    @GET("/v1/budgets/{budget_id}/accounts/{account_id}/transactions")
+    fun getTransactions(
+        @Path("budget_id") budgetId: String,
+        @Path("account_id") accountId: String,
+        @Query("last_knowledge_of_server") serverKnowledge: Int? = null
+    ): Call<YnabTransactionsWrapper>
 
     @POST("/v1/budgets/{budget_id}/transactions")
     fun saveTransactions(@Path("budget_id") budgetId: String, @Body transactions: YnabTransactions): Call<Unit>

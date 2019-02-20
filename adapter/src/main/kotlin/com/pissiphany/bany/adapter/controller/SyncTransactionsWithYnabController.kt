@@ -8,7 +8,7 @@ import com.pissiphany.bany.domain.useCase.budgetAccounts.GetBudgetAccountsUseCas
 import com.pissiphany.bany.domain.useCase.ynabTransactions.GetMostRecentUseCase
 import com.pissiphany.bany.domain.useCase.thirdPartyTransactions.GetNewTransactionsUseCase
 import com.pissiphany.bany.domain.useCase.ynabTransactions.SaveTransactionsUseCase
-import java.time.LocalTime
+import java.time.LocalDate
 
 class SyncTransactionsWithYnabController(
     private val budgetAccountsUseCase: GetBudgetAccountsUseCase,
@@ -26,7 +26,7 @@ class SyncTransactionsWithYnabController(
     }
 
     private fun syncNewAccountTransactions(budget: Budget, account: Account) {
-        val date = fetchDateOfMostRecentYnabTransaction(account)
+        val date = fetchDateOfMostRecentYnabTransaction(budget, account)
 
         val newTransactions = fetchNewThirdPartyTransactions(account, date)
         if (newTransactions.isEmpty()) return
@@ -34,16 +34,16 @@ class SyncTransactionsWithYnabController(
         saveNewTransactionsToYnab(budget, account, newTransactions)
     }
 
-    private fun fetchDateOfMostRecentYnabTransaction(account: Account): LocalTime? {
-        val recentTransactionsInput = GetMostRecentInputBoundaryImpl(account)
+    private fun fetchDateOfMostRecentYnabTransaction(budget: Budget, account: Account): LocalDate? {
+        val recentTransactionsInput = GetMostRecentInputBoundaryImpl(budget, account)
         val recentTransactionsOutput = GetMostRecentOutputBoundaryImpl()
 
         recentTransactionUseCase.run(recentTransactionsInput, recentTransactionsOutput)
         return recentTransactionsOutput.transaction?.date
     }
 
-    private fun fetchNewThirdPartyTransactions(account: Account, date: LocalTime?): List<Transaction> {
-        val newTransactionsInputBoundary = GetNewTransactionsInputBoundarImpl(account, date)
+    private fun fetchNewThirdPartyTransactions(account: Account, date: LocalDate?): List<Transaction> {
+        val newTransactionsInputBoundary = GetNewTransactionsInputBoundaryImpl(account, date)
         val newTransactionsOutputBoundary = GetNewTransactionsOutputBoundaryImpl()
 
         newTransactionsUseCase.run(newTransactionsInputBoundary, newTransactionsOutputBoundary)

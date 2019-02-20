@@ -13,14 +13,14 @@ import org.junit.jupiter.api.Assertions.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.time.LocalTime
+import java.time.LocalDate
 
 internal class YnabSaveTransactionsGatewayImplTest {
     @Test
     fun saveTransactions() {
         val budget = Budget("budgetId", "budgetName")
         val account = Account("accountId", "accountName", 3L, false, Account.Type.CHECKING)
-        val date = LocalTime.now()
+        val date = LocalDate.now()
         val transactions = listOf(
             Transaction("transactionId", date, 10L)
         )
@@ -49,10 +49,12 @@ internal class YnabSaveTransactionsGatewayImplTest {
             return TestCall()
         }
 
+        /** NOT NEEDED **/
         override fun getBudgets(): Call<YnabBudgets> { TODO("not implemented") }
         override fun getBudget(budgetId: String): Call<YnabBudgetWrapper> { TODO("not implemented") }
         override fun getAccounts(budgetId: String): Call<YnabAccounts> { TODO("not implemented") }
         override fun getAccount(budgetId: String, accountId: String): Call<YnabAccount> { TODO("not implemented") }
+        override fun getTransactions(budgetId: String,accountId: String, serverKnowledge: Int? ): Call<YnabTransactionsWrapper> { TODO("not implemented") }
     }
 
     private class TestCall : Call<Unit> {
@@ -60,6 +62,7 @@ internal class YnabSaveTransactionsGatewayImplTest {
             return Response.success(Unit)
         }
 
+        /** NOT NEEDED **/
         override fun enqueue(callback: Callback<Unit>) { TODO("not implemented") }
         override fun isExecuted(): Boolean { TODO("not implemented") }
         override fun clone(): Call<Unit> { TODO("not implemented") }

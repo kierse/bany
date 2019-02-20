@@ -9,6 +9,7 @@ import com.pissiphany.bany.adapter.gateway.YnabBudgetAccountsGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabMostRecentTransactionGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabSaveTransactionsGatewayImpl
 import com.pissiphany.bany.adapter.json.DataEnvelopeFactory
+import com.pissiphany.bany.adapter.json.LocalDateAdapter
 import com.pissiphany.bany.adapter.json.LocalDateTimeAdapter
 import com.pissiphany.bany.adapter.mapper.AccountMapper
 import com.pissiphany.bany.adapter.mapper.BudgetAccountIdsMapper
@@ -26,12 +27,14 @@ import com.pissiphany.bany.domain.useCase.thirdPartyTransactions.GetNewTransacti
 import com.pissiphany.bany.domain.useCase.ynabTransactions.GetMostRecentUseCase
 import com.pissiphany.bany.domain.useCase.ynabTransactions.SaveTransactionsUseCase
 import com.squareup.moshi.Moshi
+import java.time.LocalDate
 import java.time.LocalTime
 
 fun main(args: Array<String>) {
     val moshi = Moshi.Builder()
         .add(DataEnvelopeFactory())
         .add(LocalDateTimeAdapter())
+        .add(LocalDateAdapter())
         .build()
 
     val adapter = moshi.adapter(BanyConfig::class.java)
@@ -46,7 +49,7 @@ fun main(args: Array<String>) {
     val budgetAccountsUseCase = GetBudgetAccountsUseCase(configurationRepository, ynabBudgetAccountsGateway)
 
     val lastKnowledgeOfServerRepository = FileBasedLastKnowledgeOfServerRepository(LAST_KNOWLEDGE_OF_SERVER_FILE)
-    val mostRecentTransactionGateway = YnabMostRecentTransactionGatewayImpl(ynabService)
+    val mostRecentTransactionGateway = YnabMostRecentTransactionGatewayImpl(ynabService, TransactionMapper())
     val recentTransactionsUseCase = GetMostRecentUseCase(lastKnowledgeOfServerRepository, mostRecentTransactionGateway)
 
     val newTransactionsWithYnabController = GetNewTransactionsUseCase(
@@ -67,7 +70,7 @@ fun main(args: Array<String>) {
 private class DummyThirdPartyTransactionGateway(accountId: String) : ThirdPartyTransactionGateway {
     override val account = Account(accountId, "name", 10L, false, Account.Type.CHECKING)
 
-    override fun getNewTransactionSince(date: LocalTime?): List<Transaction> {
+    override fun getNewTransactionSince(date: LocalDate?): List<Transaction> {
         return emptyList()
     }
 }

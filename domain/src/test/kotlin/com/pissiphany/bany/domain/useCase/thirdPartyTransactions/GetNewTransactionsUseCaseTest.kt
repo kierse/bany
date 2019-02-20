@@ -6,12 +6,13 @@ import com.pissiphany.bany.domain.gateway.ThirdPartyTransactionGateway
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
+import java.time.LocalDate
 import java.time.LocalTime
 
 internal class GetNewTransactionsUseCaseTest {
     @Test
     fun run__success() {
-        val date = LocalTime.now()
+        val date = LocalDate.now()
         val account = Account("accountId", "name", 1L, false, Account.Type.CHECKING)
         val transactions = listOf(Transaction("transactionId", date, 2L))
         val transactionGateways = listOf(TestGateway(account, transactions, date))
@@ -28,7 +29,7 @@ internal class GetNewTransactionsUseCaseTest {
 
     @Test
     fun run__account_not_found() {
-        val date = LocalTime.now()
+        val date = LocalDate.now()
         val account = Account("accountId", "name", 1L, false, Account.Type.CHECKING)
         val transactions = listOf(Transaction("transactionId", date, 2L))
         val transactionGateways = listOf(TestGateway(account, transactions, date))
@@ -44,16 +45,16 @@ internal class GetNewTransactionsUseCaseTest {
     }
 
     private class InputBoundary(
-        override val account: Account, override val date: LocalTime?
+        override val account: Account, override val date: LocalDate?
     ) : GetNewTransactionsInputBoundary
     private class OutputBoundary(
         override var transactions: List<Transaction> = emptyList()
     ) : GetNewTransactionsOutputBoundary
 
     private class TestGateway(
-        override val account: Account, private val transactions: List<Transaction>, private val date: LocalTime
+        override val account: Account, private val transactions: List<Transaction>, private val date: LocalDate
     ) : ThirdPartyTransactionGateway {
-        override fun getNewTransactionSince(date: LocalTime?): List<Transaction> {
+        override fun getNewTransactionSince(date: LocalDate?): List<Transaction> {
             return if (this.date == date) transactions else emptyList()
         }
     }

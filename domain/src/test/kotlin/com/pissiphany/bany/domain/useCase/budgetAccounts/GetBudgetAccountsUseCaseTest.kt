@@ -88,7 +88,7 @@ internal class GetBudgetAccountsUseCaseTest {
             return null
         }
 
-        override fun getAccount(accountId: String): Account? {
+        override fun getAccount(budgetId: String, accountId: String): Account? {
             if (this.accountId == accountId) return account
             return null
         }

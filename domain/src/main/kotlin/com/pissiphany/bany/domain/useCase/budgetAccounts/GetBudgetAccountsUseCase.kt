@@ -13,7 +13,7 @@ class GetBudgetAccountsUseCase(private val repo: ConfigurationRepository, privat
 
         for ((budgetId, accountId) in repo.getBudgetAccountIds()) {
             val budget = getBudget(budgetId, budgets)
-            val account = service.getAccount(accountId) ?: throw IllegalArgumentException("unable to find account $accountId")
+            val account = service.getAccount(budgetId, accountId) ?: throw IllegalArgumentException("unable to find account $accountId")
 
             budgetAccounts.add(BudgetAccount(budget, account))
         }

@@ -5,5 +5,5 @@ import com.pissiphany.bany.domain.dataStructure.Budget
 
 interface YnabBudgetAccountsGateway {
     fun getBudget(budgetId: String): Budget?
-    fun getAccount(accountId: String): Account?
+    fun getAccount(budgetId: String, accountId: String): Account?
 }

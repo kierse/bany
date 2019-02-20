@@ -18,7 +18,8 @@ import java.time.LocalDateTime
 internal class YnabBudgetAccountsGatewayImplTest {
     @Test
     fun getBudget() {
-        val service = TestService(key = "budgetId", budget = YnabBudget("budgetId", "name", LocalDateTime.now()))
+        val budgetWrapper = YnabBudgetWrapper(YnabBudget("budgetId", "name", LocalDateTime.now()), 10)
+        val service = TestService(key = "budgetId", budgetWrapper = budgetWrapper)
         val gateway = YnabBudgetAccountsGatewayImpl(service, BudgetMapper(), AccountMapper())
 
         assertEquals(Budget("budgetId", "name"), gateway.getBudget("budgetId"))
@@ -26,21 +27,24 @@ internal class YnabBudgetAccountsGatewayImplTest {
 
     @Test
     fun getAccount() {
-        val service = TestService(key = "accountId", account = YnabAccount("accountId", "name", false, 5L, "checking"))
+        val accountWrapper = YnabAccountWrapper(YnabAccount("accountId", "name", false, 5L, "checking"), 15)
+        val service = TestService(key = "accountId", accountWrapper = accountWrapper)
         val gateway = YnabBudgetAccountsGatewayImpl(service, BudgetMapper(), AccountMapper())
 
-        assertEquals(Account("accountId", "name", 5L, false, Account.Type.CHECKING), gateway.getAccount("accountId"))
+        assertEquals(Account("accountId", "name", 5L, false, Account.Type.CHECKING), gateway.getAccount("budgetId", "accountId"))
     }
 
     private class TestService(
-        private val key: String, private val budget: YnabBudget? = null, private val account: YnabAccount? = null
+        private val key: String,
+        private val budgetWrapper: YnabBudgetWrapper? = null,
+        private val accountWrapper: YnabAccountWrapper? = null
     ) : YnabService {
-        override fun getBudget(budgetId: String): Call<YnabBudget> {
-            return TestCall(if (budgetId == key) budget else null)
+        override fun getBudget(budgetId: String): Call<YnabBudgetWrapper> {
+            return TestCall(if (budgetId == key) budgetWrapper else null)
         }
 
-        override fun getAccount(accountId: String): Call<YnabAccount> {
-            return TestCall(if (accountId == key) account else null)
+        override fun getAccount(budgetId: String, accountId: String): Call<YnabAccountWrapper> {
+            return TestCall(if (accountId == key) accountWrapper else null)
         }
 
         /** NOT NEEDED **/

@@ -15,16 +15,16 @@ class YnabBudgetAccountsGatewayImpl(
     override fun getBudget(budgetId: String): Budget? {
         val call = ynabService.getBudget(budgetId)
         val response = call.execute()
-        val ynabBudget = response.body() ?: return null
+        val ynabBudgetWrapper = response.body() ?: return null
 
-        return budgetMapper.toBudget(ynabBudget)
+        return budgetMapper.toBudget(ynabBudgetWrapper.ynabBudget)
     }
 
-    override fun getAccount(accountId: String): Account? {
-        val call = ynabService.getAccount(accountId)
+    override fun getAccount(budgetId: String, accountId: String): Account? {
+        val call = ynabService.getAccount(budgetId, accountId)
         val response = call.execute()
-        val ynabAccount = response.body() ?: return null
+        val ynabAccountWrapper = response.body() ?: return null
 
-        return accountMapper.toAccount(ynabAccount)
+        return accountMapper.toAccount(ynabAccountWrapper.ynabAccount)
     }
 }

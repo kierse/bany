@@ -26,7 +26,6 @@ import com.pissiphany.bany.domain.useCase.thirdPartyTransactions.GetNewTransacti
 import com.pissiphany.bany.domain.useCase.ynabTransactions.GetMostRecentUseCase
 import com.pissiphany.bany.domain.useCase.ynabTransactions.SaveTransactionsUseCase
 import com.squareup.moshi.Moshi
-import java.rmi.UnexpectedException
 import java.time.LocalTime
 
 fun main(args: Array<String>) {
@@ -34,9 +33,10 @@ fun main(args: Array<String>) {
         .add(DataEnvelopeFactory())
         .add(LocalDateTimeAdapter())
         .build()
+
     val adapter = moshi.adapter(BanyConfig::class.java)
     val config = adapter.fromJson(CONFIG_FILE.readText()) ?:
-        throw UnexpectedException("Unable to parse and instantiate application config!")
+            throw UnknownError("Unable to parse and instantiate application config!")
 
     val serviceBuilder = RetrofitFactory.create(BASE_URL, config.ynabApiToken, moshi)
     val ynabService = serviceBuilder.create(YnabService::class.java)

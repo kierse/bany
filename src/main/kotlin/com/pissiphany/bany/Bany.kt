@@ -6,7 +6,7 @@ import com.pissiphany.bany.adapter.Constants.LAST_KNOWLEDGE_OF_SERVER_FILE
 import com.pissiphany.bany.adapter.config.BanyConfig
 import com.pissiphany.bany.adapter.controller.SyncTransactionsWithYnabController
 import com.pissiphany.bany.adapter.gateway.YnabBudgetAccountsGatewayImpl
-import com.pissiphany.bany.adapter.gateway.YnabMostRecentTransactionGatewayImpl
+import com.pissiphany.bany.adapter.gateway.YnabMostRecentTransactionsGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabSaveTransactionsGatewayImpl
 import com.pissiphany.bany.adapter.json.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.json.LocalDateAdapter
@@ -28,7 +28,6 @@ import com.pissiphany.bany.domain.useCase.ynabTransactions.GetMostRecentUseCase
 import com.pissiphany.bany.domain.useCase.ynabTransactions.SaveTransactionsUseCase
 import com.squareup.moshi.Moshi
 import java.time.LocalDate
-import java.time.LocalTime
 
 fun main(args: Array<String>) {
     val moshi = Moshi.Builder()
@@ -49,8 +48,8 @@ fun main(args: Array<String>) {
     val budgetAccountsUseCase = GetBudgetAccountsUseCase(configurationRepository, ynabBudgetAccountsGateway)
 
     val lastKnowledgeOfServerRepository = FileBasedLastKnowledgeOfServerRepository(LAST_KNOWLEDGE_OF_SERVER_FILE)
-    val mostRecentTransactionGateway = YnabMostRecentTransactionGatewayImpl(ynabService, TransactionMapper())
-    val recentTransactionsUseCase = GetMostRecentUseCase(lastKnowledgeOfServerRepository, mostRecentTransactionGateway)
+    val mostRecentTransactionsGateway = YnabMostRecentTransactionsGatewayImpl(ynabService, TransactionMapper())
+    val recentTransactionsUseCase = GetMostRecentUseCase(lastKnowledgeOfServerRepository, mostRecentTransactionsGateway)
 
     val newTransactionsWithYnabController = GetNewTransactionsUseCase(
         listOf(DummyThirdPartyTransactionGateway(config.plugins[0].connections[0].ynabAccountId))

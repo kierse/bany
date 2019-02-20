@@ -5,11 +5,11 @@ import com.pissiphany.bany.adapter.service.YnabService
 import com.pissiphany.bany.domain.dataStructure.Account
 import com.pissiphany.bany.domain.dataStructure.Budget
 import com.pissiphany.bany.domain.dataStructure.UpdatedTransactions
-import com.pissiphany.bany.domain.gateway.YnabMostRecentTransactionGateway
+import com.pissiphany.bany.domain.gateway.YnabMostRecentTransactionsGateway
 
-class YnabMostRecentTransactionGatewayImpl(
+class YnabMostRecentTransactionsGatewayImpl(
     private val ynabService: YnabService, private val mapper: TransactionMapper
-) : YnabMostRecentTransactionGateway {
+) : YnabMostRecentTransactionsGateway {
     override fun getUpdatedTransactions(
         budget: Budget, account: Account, lastKnowledgeOfServer: Int
     ): UpdatedTransactions? {

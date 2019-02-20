@@ -1,12 +1,12 @@
 package com.pissiphany.bany.domain.useCase.ynabTransactions
 
-import com.pissiphany.bany.domain.gateway.YnabMostRecentTransactionGateway
+import com.pissiphany.bany.domain.gateway.YnabMostRecentTransactionsGateway
 import com.pissiphany.bany.domain.repository.YnabLastKnowledgeOfServerRepository
 import java.lang.IllegalArgumentException
 
 class GetMostRecentUseCase(
     private val ynabCache: YnabLastKnowledgeOfServerRepository,
-    private val ynabGateway: YnabMostRecentTransactionGateway
+    private val ynabGateway: YnabMostRecentTransactionsGateway
 ) {
     fun run(input: GetMostRecentInputBoundary, output: GetMostRecentOutputBoundary) {
         val cachedLastKnowledge = ynabCache.getLastKnowledgeOfServer(input.account)

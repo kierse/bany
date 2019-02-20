@@ -4,7 +4,7 @@ import com.pissiphany.bany.domain.dataStructure.Account
 import com.pissiphany.bany.domain.dataStructure.Budget
 import com.pissiphany.bany.domain.dataStructure.Transaction
 import com.pissiphany.bany.domain.dataStructure.UpdatedTransactions
-import com.pissiphany.bany.domain.gateway.YnabMostRecentTransactionGateway
+import com.pissiphany.bany.domain.gateway.YnabMostRecentTransactionsGateway
 import com.pissiphany.bany.domain.repository.YnabLastKnowledgeOfServerRepository
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -47,7 +47,7 @@ internal class GetMostRecentUseCaseTest {
         }
     }
 
-    private class TestGateway(private val transactions: List<Transaction>) : YnabMostRecentTransactionGateway {
+    private class TestGateway(private val transactions: List<Transaction>) : YnabMostRecentTransactionsGateway {
         override fun getUpdatedTransactions(
             budget: Budget, account: Account, lastKnowledgeOfServer: Int
         ): UpdatedTransactions {

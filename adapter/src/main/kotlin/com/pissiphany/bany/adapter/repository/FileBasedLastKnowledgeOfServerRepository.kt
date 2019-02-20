@@ -28,7 +28,7 @@ class FileBasedLastKnowledgeOfServerRepository(private val pathToProperties: Fil
         properties.setProperty(account.id, lastKnowledgeOfServer.toString())
     }
 
-    internal fun saveChanges() {
+    fun saveChanges() {
         FileOutputStream(pathToProperties).use { writer ->
             properties.store(writer, null)
         }

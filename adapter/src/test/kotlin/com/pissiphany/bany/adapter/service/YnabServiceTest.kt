@@ -1,6 +1,7 @@
 package com.pissiphany.bany.adapter.service
 
-import com.pissiphany.bany.adapter.Constants
+import com.pissiphany.bany.adapter.BASE_URL
+import com.pissiphany.bany.adapter.Constants.CONFIG_FILE
 import com.pissiphany.bany.adapter.INTEGRATION_TEST
 import com.pissiphany.bany.adapter.SLOW
 import com.pissiphany.bany.adapter.config.BanyConfig
@@ -23,9 +24,9 @@ class YnabServiceTest {
                 .add(LocalDateTimeAdapter())
                 .build()
             val adapter = moshi.adapter(BanyConfig::class.java)
-            val config = adapter.fromJson(Constants.CONFIG_FILE.readText()) ?: throw UnknownError("unable to create config file!")
+            val config = adapter.fromJson(CONFIG_FILE.readText()) ?: throw UnknownError("unable to create config file!")
 
-            val retrofit = RetrofitFactory.create("https://api.youneedabudget.com/", config.ynabApiToken, moshi)
+            val retrofit = RetrofitFactory.create(BASE_URL, config.ynabApiToken, moshi)
 
             service = retrofit.create(YnabService::class.java)
         }

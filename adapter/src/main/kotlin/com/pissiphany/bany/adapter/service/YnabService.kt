@@ -21,9 +21,9 @@ interface YnabService {
     @GET("/v1/budgets/{budget_id}/accounts")
     fun getAccounts(@Path("budget_id") budgetId: String): Call<YnabAccounts>
 
-    @DataEnvelope
+    @DataEnvelope(wrappers = 2)
     @GET("/v1/budgets/{budget_id}/accounts/{account_id}")
-    fun getAccount(@Path("budget_id") budgetId: String, @Path("account_id") accountId: String): Call<YnabAccountWrapper>
+    fun getAccount(@Path("budget_id") budgetId: String, @Path("account_id") accountId: String): Call<YnabAccount>
 
     @POST("/v1/budgets/{budget_id}/transactions")
     fun saveTransactions(@Path("budget_id") budgetId: String, @Body transactions: YnabTransactions): Call<Unit>

@@ -13,15 +13,28 @@ class DataEnvelopeFactory : JsonAdapter.Factory {
     override fun create(type: Type, annotations: MutableSet<out Annotation>, moshi: Moshi): JsonAdapter<*>? {
         val delegateAnnotations = Types.nextAnnotations(annotations, DataEnvelope::class.java) ?: return null
         val delegate = moshi.nextAdapter<Any>(this, type, delegateAnnotations)
-        return DataEnvelopeJsonAdapter(delegate)
+
+        val annotation = annotations.find { it is DataEnvelope } as? DataEnvelope
+
+        return DataEnvelopeJsonAdapter(delegate, annotation?.wrappers ?: 1)
     }
 
-    private class DataEnvelopeJsonAdapter(private val delegate: JsonAdapter<*>): JsonAdapter<Any>() {
+    private class DataEnvelopeJsonAdapter(private val delegate: JsonAdapter<*>, private val wrappers: Int): JsonAdapter<Any>() {
         override fun fromJson(reader: JsonReader): Any? {
-            reader.beginObject()
-            reader.nextName()
+            // iterating {level} times allows me to eat up level numbers of wrappers in the
+            // response json
+            for (i in 0 until wrappers) {
+                reader.beginObject()
+                reader.nextName()
+            }
+
             val envelope = delegate.fromJson(reader)
-            reader.endObject()
+
+            // Note: be sure to end {level} objects as well!
+            for (i in 0 until wrappers) {
+                reader.endObject()
+            }
+
             return envelope
         }
 

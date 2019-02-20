@@ -23,8 +23,8 @@ class YnabBudgetAccountsGatewayImpl(
     override fun getAccount(budgetId: String, accountId: String): Account? {
         val call = ynabService.getAccount(budgetId, accountId)
         val response = call.execute()
-        val ynabAccountWrapper = response.body() ?: return null
+        val ynabAccount = response.body() ?: return null
 
-        return accountMapper.toAccount(ynabAccountWrapper.ynabAccount)
+        return accountMapper.toAccount(ynabAccount)
     }
 }

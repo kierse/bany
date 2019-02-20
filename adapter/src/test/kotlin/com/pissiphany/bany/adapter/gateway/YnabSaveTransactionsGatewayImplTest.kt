@@ -52,7 +52,7 @@ internal class YnabSaveTransactionsGatewayImplTest {
         override fun getBudgets(): Call<YnabBudgets> { TODO("not implemented") }
         override fun getBudget(budgetId: String): Call<YnabBudgetWrapper> { TODO("not implemented") }
         override fun getAccounts(budgetId: String): Call<YnabAccounts> { TODO("not implemented") }
-        override fun getAccount(budgetId: String, accountId: String): Call<YnabAccountWrapper> { TODO("not implemented") }
+        override fun getAccount(budgetId: String, accountId: String): Call<YnabAccount> { TODO("not implemented") }
     }
 
     private class TestCall : Call<Unit> {

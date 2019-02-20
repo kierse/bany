@@ -27,8 +27,7 @@ internal class YnabBudgetAccountsGatewayImplTest {
 
     @Test
     fun getAccount() {
-        val accountWrapper = YnabAccountWrapper(YnabAccount("accountId", "name", false, 5L, "checking"), 15)
-        val service = TestService(key = "accountId", accountWrapper = accountWrapper)
+        val service = TestService(key = "accountId", account = YnabAccount("accountId", "name", false, 5L, "checking"))
         val gateway = YnabBudgetAccountsGatewayImpl(service, BudgetMapper(), AccountMapper())
 
         assertEquals(Account("accountId", "name", 5L, false, Account.Type.CHECKING), gateway.getAccount("budgetId", "accountId"))
@@ -37,14 +36,14 @@ internal class YnabBudgetAccountsGatewayImplTest {
     private class TestService(
         private val key: String,
         private val budgetWrapper: YnabBudgetWrapper? = null,
-        private val accountWrapper: YnabAccountWrapper? = null
+        private val account: YnabAccount? = null
     ) : YnabService {
         override fun getBudget(budgetId: String): Call<YnabBudgetWrapper> {
             return TestCall(if (budgetId == key) budgetWrapper else null)
         }
 
-        override fun getAccount(budgetId: String, accountId: String): Call<YnabAccountWrapper> {
-            return TestCall(if (accountId == key) accountWrapper else null)
+        override fun getAccount(budgetId: String, accountId: String): Call<YnabAccount> {
+            return TestCall(if (accountId == key) account else null)
         }
 
         /** NOT NEEDED **/

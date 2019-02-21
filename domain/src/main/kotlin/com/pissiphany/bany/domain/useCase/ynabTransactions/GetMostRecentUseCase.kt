@@ -18,6 +18,6 @@ class GetMostRecentUseCase(
 
         // TODO may have to filter / ignore certain transactions here
         // TODO make sure #first is returning the correct transaction
-        output.transaction = transactions.first()
+        output.transaction = transactions.firstOrNull()
     }
 }

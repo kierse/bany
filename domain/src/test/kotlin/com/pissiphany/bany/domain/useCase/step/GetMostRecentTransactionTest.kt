@@ -1,4 +1,4 @@
-package com.pissiphany.bany.domain.useCase.ynabTransactions
+package com.pissiphany.bany.domain.useCase.step
 
 import com.pissiphany.bany.domain.dataStructure.Account
 import com.pissiphany.bany.domain.dataStructure.Budget
@@ -6,15 +6,17 @@ import com.pissiphany.bany.domain.dataStructure.Transaction
 import com.pissiphany.bany.domain.dataStructure.UpdatedTransactions
 import com.pissiphany.bany.domain.gateway.YnabMostRecentTransactionsGateway
 import com.pissiphany.bany.domain.repository.YnabLastKnowledgeOfServerRepository
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+
+import org.junit.jupiter.api.Assertions.*
 import java.time.LocalDate
 
-internal class GetMostRecentUseCaseTest {
+internal class GetMostRecentTransactionTest {
+
     @Test
-    fun run__success() {
-        val input = InputBoundary(Budget("budgetId", "name"), Account("accountId", "name", 1L, false, Account.Type.CHECKING))
-        val output = OutputBoundary()
+    fun getTransaction() {
+        val budget = Budget("budgetId", "name")
+        val account = Account("accountId", "name", 1L, false, Account.Type.CHECKING)
 
         val transactions = listOf(
             Transaction("transactionId1", LocalDate.now(), 10L),
@@ -23,16 +25,10 @@ internal class GetMostRecentUseCaseTest {
 
         val cache = TestRepo()
         val gateway = TestGateway(transactions)
+        val step = GetMostRecentTransaction(cache, gateway)
 
-        val uc = GetMostRecentUseCase(cache, gateway)
-
-        uc.run(input, output)
-
-        assertEquals(transactions.first(), output.transaction)
+        assertEquals(transactions.first(), step.getTransaction(budget, account))
     }
-
-    private class InputBoundary(override val budget: Budget, override val account: Account) : GetMostRecentInputBoundary
-    private class OutputBoundary(override var transaction: Transaction? = null) : GetMostRecentOutputBoundary
 
     private class TestRepo : YnabLastKnowledgeOfServerRepository {
         var lastKnowledge = 1

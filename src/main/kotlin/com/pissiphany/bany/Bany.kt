@@ -15,21 +15,24 @@ import com.pissiphany.bany.adapter.mapper.AccountMapper
 import com.pissiphany.bany.adapter.mapper.BudgetAccountIdsMapper
 import com.pissiphany.bany.adapter.mapper.BudgetMapper
 import com.pissiphany.bany.adapter.mapper.TransactionMapper
+import com.pissiphany.bany.adapter.presenter.Presenter
 import com.pissiphany.bany.adapter.repository.FileBasedConfigurationRepository
 import com.pissiphany.bany.adapter.repository.FileBasedLastKnowledgeOfServerRepository
 import com.pissiphany.bany.adapter.service.RetrofitFactory
 import com.pissiphany.bany.adapter.service.YnabService
+import com.pissiphany.bany.adapter.view.ConsoleView
 import com.pissiphany.bany.domain.dataStructure.Account
 import com.pissiphany.bany.domain.dataStructure.Transaction
 import com.pissiphany.bany.domain.gateway.ThirdPartyTransactionGateway
-import com.pissiphany.bany.domain.useCase.budgetAccounts.GetBudgetAccountsUseCase
-import com.pissiphany.bany.domain.useCase.thirdPartyTransactions.GetNewTransactionsUseCase
-import com.pissiphany.bany.domain.useCase.ynabTransactions.GetMostRecentUseCase
-import com.pissiphany.bany.domain.useCase.ynabTransactions.SaveTransactionsUseCase
+import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase
+import com.pissiphany.bany.domain.useCase.step.GetBudgetAccounts
+import com.pissiphany.bany.domain.useCase.step.GetMostRecentTransaction
+import com.pissiphany.bany.domain.useCase.step.GetNewTransactions
+import com.pissiphany.bany.domain.useCase.step.SaveNewTransactions
 import com.squareup.moshi.Moshi
 import java.time.LocalDate
 
-fun main(args: Array<String>) {
+fun main() {
     val moshi = Moshi.Builder()
         .add(DataEnvelopeFactory())
         .add(LocalDateTimeAdapter())
@@ -45,22 +48,26 @@ fun main(args: Array<String>) {
 
     val configurationRepository = FileBasedConfigurationRepository(config, BudgetAccountIdsMapper())
     val ynabBudgetAccountsGateway = YnabBudgetAccountsGatewayImpl(ynabService, BudgetMapper(), AccountMapper())
-    val budgetAccountsUseCase = GetBudgetAccountsUseCase(configurationRepository, ynabBudgetAccountsGateway)
+    val getBudgetAccounts = GetBudgetAccounts(configurationRepository, ynabBudgetAccountsGateway)
 
     val lastKnowledgeOfServerRepository = FileBasedLastKnowledgeOfServerRepository(LAST_KNOWLEDGE_OF_SERVER_FILE)
     val mostRecentTransactionsGateway = YnabMostRecentTransactionsGatewayImpl(ynabService, TransactionMapper())
-    val recentTransactionsUseCase = GetMostRecentUseCase(lastKnowledgeOfServerRepository, mostRecentTransactionsGateway)
+    val getMostRecentTransaction = GetMostRecentTransaction(lastKnowledgeOfServerRepository, mostRecentTransactionsGateway)
 
-    val newTransactionsWithYnabController = GetNewTransactionsUseCase(
+    val getNewTransactions = GetNewTransactions(
         listOf(DummyThirdPartyTransactionGateway(config.plugins[0].connections[0].ynabAccountId))
     )
 
     val saveTransactionsGateway = YnabSaveTransactionsGatewayImpl(ynabService, TransactionMapper())
-    val saveTransactionsUseCase = SaveTransactionsUseCase(saveTransactionsGateway)
+    val saveNewTransactions = SaveNewTransactions(saveTransactionsGateway)
 
-    SyncTransactionsWithYnabController(
-        budgetAccountsUseCase, recentTransactionsUseCase, newTransactionsWithYnabController, saveTransactionsUseCase
-    ).sync()
+    val presenter = Presenter(ConsoleView())
+
+    val syncThirdPartyTransactionsUseCase = SyncThirdPartyTransactionsUseCase(
+        getBudgetAccounts, getMostRecentTransaction, getNewTransactions, saveNewTransactions, presenter
+    )
+
+    SyncTransactionsWithYnabController(syncThirdPartyTransactionsUseCase).sync()
 
     // persist any changes to disk
     lastKnowledgeOfServerRepository.saveChanges()

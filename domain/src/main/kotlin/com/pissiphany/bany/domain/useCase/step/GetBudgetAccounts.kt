@@ -1,13 +1,16 @@
-package com.pissiphany.bany.domain.useCase.budgetAccounts
+package com.pissiphany.bany.domain.useCase.step
 
 import com.pissiphany.bany.domain.dataStructure.Budget
 import com.pissiphany.bany.domain.dataStructure.BudgetAccount
 import com.pissiphany.bany.domain.repository.ConfigurationRepository
 import com.pissiphany.bany.domain.gateway.YnabBudgetAccountsGateway
+import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase
 import java.lang.IllegalArgumentException
 
-class GetBudgetAccountsUseCase(private val repo: ConfigurationRepository, private val service: YnabBudgetAccountsGateway) {
-    fun run(output: GetBudgetAccountsOutputBoundary) {
+class GetBudgetAccounts(
+    private val repo: ConfigurationRepository, private val service: YnabBudgetAccountsGateway
+) : SyncThirdPartyTransactionsUseCase.Step1GetBudgetAccounts {
+    override fun getBudgetAccounts(): List<BudgetAccount> {
         val budgets = mutableMapOf<String, Budget>()
         val budgetAccounts = mutableListOf<BudgetAccount>()
 
@@ -18,7 +21,7 @@ class GetBudgetAccountsUseCase(private val repo: ConfigurationRepository, privat
             budgetAccounts.add(BudgetAccount(budget, account))
         }
 
-        output.budgetAccounts = budgetAccounts
+        return budgetAccounts
     }
 
     private fun getBudget(budgetId: String, cache: MutableMap<String, Budget>): Budget {

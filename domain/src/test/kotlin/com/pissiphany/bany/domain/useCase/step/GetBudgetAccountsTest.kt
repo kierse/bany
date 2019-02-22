@@ -1,18 +1,19 @@
-package com.pissiphany.bany.domain.useCase.budgetAccounts
+package com.pissiphany.bany.domain.useCase.step
 
 import com.pissiphany.bany.domain.dataStructure.Account
 import com.pissiphany.bany.domain.dataStructure.Budget
 import com.pissiphany.bany.domain.dataStructure.BudgetAccount
 import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
-import com.pissiphany.bany.domain.repository.ConfigurationRepository
 import com.pissiphany.bany.domain.gateway.YnabBudgetAccountsGateway
-import org.junit.jupiter.api.Assertions.*
+import com.pissiphany.bany.domain.repository.ConfigurationRepository
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.lang.IllegalArgumentException
 
-internal class GetBudgetAccountsUseCaseTest {
-    companion object {
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.assertThrows
+
+internal class GetBudgetAccountsTest {
+    private companion object {
         const val budgetId = "budgetId"
         const val accountId = "accountId"
     }
@@ -21,22 +22,19 @@ internal class GetBudgetAccountsUseCaseTest {
     private val account = Account(id = "id", name = "name", balance = 1L, closed = false, type = Account.Type.CHECKING)
 
     @Test
-    fun run__success() {
-        val boundary = TestBoundary()
+    fun getBudgetAccounts__success() {
         val gateway = TestGateway(budget, account)
         val repo = TestRepo(listOf(
             BudgetAccountIds(budgetId = budgetId, accountId = accountId)
         ))
 
-        val uc = GetBudgetAccountsUseCase(repo, gateway)
+        val step = GetBudgetAccounts(repo, gateway)
 
-        uc.run(boundary)
-
-        assertIterableEquals(listOf(BudgetAccount(budget, account)), boundary.budgetAccounts)
+        assertIterableEquals(listOf(BudgetAccount(budget, account)), step.getBudgetAccounts())
     }
 
     @Test
-    fun run__cache_hit() {
+    fun getBudgetAccounts__cache_hit() {
         val gateway = TestGateway(budget, account)
 
         // note: requesting the same budget / account twice to trigger a cache lookup
@@ -45,40 +43,39 @@ internal class GetBudgetAccountsUseCaseTest {
             BudgetAccountIds(budgetId = budgetId, accountId = accountId)
         ))
 
-        val uc = GetBudgetAccountsUseCase(repo, gateway)
-
-        uc.run(TestBoundary()) // makes service call
+        val step = GetBudgetAccounts(repo, gateway)
+        step.getBudgetAccounts() // makes service call
 
         assertEquals(gateway.getBudgetCallCount, 1)
     }
 
     @Test
-    fun run__budget_not_found() {
+    fun getBudgetAccounts__budget_not_found() {
         val gateway = TestGateway(budget, account)
         val repo = TestRepo(listOf(
             BudgetAccountIds(budgetId = "foo", accountId = accountId)
         ))
 
         assertThrows<IllegalArgumentException> {
-            GetBudgetAccountsUseCase(repo, gateway).run(TestBoundary())
+            GetBudgetAccounts(repo, gateway).getBudgetAccounts()
         }
     }
 
     @Test
-    fun run__account_not_found() {
+    fun getBudgetAccounts__account_not_found() {
         val gateway = TestGateway(budget, account)
         val repo = TestRepo(listOf(
             BudgetAccountIds(budgetId = budgetId, accountId = "bar")
         ))
 
         assertThrows<IllegalArgumentException> {
-            GetBudgetAccountsUseCase(repo, gateway).run(TestBoundary())
+            GetBudgetAccounts(repo, gateway).getBudgetAccounts()
         }
     }
 
     private class TestGateway(private val budget: Budget, private val account: Account) : YnabBudgetAccountsGateway {
-        private val budgetId = GetBudgetAccountsUseCaseTest.budgetId
-        private val accountId = GetBudgetAccountsUseCaseTest.accountId
+        private val budgetId = GetBudgetAccountsTest.budgetId
+        private val accountId = GetBudgetAccountsTest.accountId
         var getBudgetCallCount = 0
             private set
 
@@ -96,9 +93,5 @@ internal class GetBudgetAccountsUseCaseTest {
 
     private class TestRepo(private val budgetAccountIds: List<BudgetAccountIds>) : ConfigurationRepository {
         override fun getBudgetAccountIds(): List<BudgetAccountIds> = budgetAccountIds
-    }
-
-    private class TestBoundary : GetBudgetAccountsOutputBoundary {
-        override var budgetAccounts: List<BudgetAccount> = emptyList()
     }
 }

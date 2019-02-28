@@ -1,25 +1,30 @@
 package com.pissiphany.bany.adapter.plugin
 
+import com.pissiphany.bany.adapter.Constants.CONFIG_FILE
+import com.pissiphany.bany.adapter.config.BanyConfig
 import com.squareup.moshi.Moshi
 import okhttp3.*
 import org.junit.jupiter.api.Test
+import java.net.CookieManager
+import java.net.CookiePolicy
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 internal class SimpliiTest {
     private val BASE_URL = "https://online.simplii.com"
-    private val SEED_URL = "$BASE_URL/static/3a60cf428e5192970126258a37cefd2"
+    private val STATIC_URL = "$BASE_URL/static/3a60cf428e5192970126258a37cefd2"
     private val LOGIN_URL = "$BASE_URL/ebm-resources/public/client/web/index.html"
     private val AUTH_URL = "$BASE_URL/ebm-anp/api/v1/json/sessions"
     private val ACCOUNTS_URL = "$BASE_URL/ebm-ai/api/v1/json/accounts"
     private val TRANSACTIONS_URL = "$BASE_URL/ebm-ai/api/v1/json/transactions"
 
-// TODO DO NOT COMMIT THIS!!! --------------------------------------------------------------------------------------- //
-// TODO load these values from disk
-    private val cardNumber = ""
-    private val password = ""
-    private val accountId = ""
-// TODO DO NOT COMMIT THIS!!! --------------------------------------------------------------------------------------- //
+    private val static_1_body = """
+        // REDACTED
+    """.trimIndent()
+
+    private val static_2_body = """
+        // REDACTED
+    """.trimIndent()
 
     private data class AuthRequest(val card: Card, val password: String) {
         data class Card(val value: String, val description: String, val encrypted: Boolean, val encrypt: Boolean)
@@ -27,21 +32,27 @@ internal class SimpliiTest {
 
     @Test
     fun test() {
+        val moshi = Moshi.Builder().build()
+        val configAdapter = moshi.adapter(BanyConfig::class.java)
+        val config = configAdapter.fromJson(CONFIG_FILE.readText())
+            ?: throw Exception("unable to load config!")
+
+        val plugin = config.plugins["simplii"] ?: return // no simplii data, terminate
+
         val client = OkHttpClient
             .Builder()
-//            .cookieJar(QuotePreservingCookieJar(CookieManager(null, CookiePolicy.ACCEPT_ALL)))
+            .cookieJar(QuotePreservingCookieJar(CookieManager(null, CookiePolicy.ACCEPT_ALL)))
             .build()
-        val moshi = Moshi.Builder().build()
 
-        // seedCookieJar(client)
+         seedCookieJar(client)
 
-        var token: String = ""
+        var token = ""
         val code: Int
         val message: String
 
         try {
             // authenticate
-            token = authenticate(client, moshi) ?: throw Exception("no token found!")
+            token = authenticate(client, moshi, plugin.username, plugin.password) ?: throw Exception("no token found!")
 
             // get accounts
             val accounts = getAccounts(client, moshi, token)
@@ -51,7 +62,7 @@ internal class SimpliiTest {
                     }
                 }
 
-            val account = accounts[accountId] ?: return
+            val account = accounts[plugin.connections.first().thirdPartyAccountId] ?: return
             getTransactions(client, moshi, token, account)
                 .also {
                     println("found ${it.size} transaction(s)")
@@ -76,11 +87,19 @@ internal class SimpliiTest {
         }
     }
 
-    private fun seedCookieJar(client: OkHttpClient) {
+    private fun seedCookieJar(client: OkHttpClient, payload: String = static_1_body, count: Int = 2) {
+        if (count <= 0) return
+
+        val mediaType = MediaType.parse("text/plain;charset=UTF-8")
+        val body1 = RequestBody.create(mediaType, payload)
+
         val request = Request.Builder()
-            .url(LOGIN_URL)
-            .addHeader("user-agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Mobile Safari/537.36")
-            .get()
+            .url(STATIC_URL)
+            .post(body1)
+            .addHeader("accept", "*/*")
+            .addHeader("accept-language", "en-US,en;q=0.9")
+            .addHeader("content-type", "text/plain;charset=UTF-8")
+            .addHeader("user-agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0")
             .build()
 
         println()
@@ -92,12 +111,14 @@ internal class SimpliiTest {
         println("seed cookie jar response")
 
         client.newCall(request).execute().use { response ->
-            println("code: ${response.code()}")
-            printHeaders(response.headers())
+            if (response.code() != 201) throw Exception("error!")
         }
+
+        // Note: must call it a second time for some reason
+        seedCookieJar(client, static_2_body, count - 1)
     }
 
-    private fun authenticate(client: OkHttpClient, moshi: Moshi): String? {
+    private fun authenticate(client: OkHttpClient, moshi: Moshi, cardNumber: String, password: String): String? {
         val authAdapter = moshi.adapter(AuthRequest::class.java)
         val json = authAdapter.toJson(
             AuthRequest(

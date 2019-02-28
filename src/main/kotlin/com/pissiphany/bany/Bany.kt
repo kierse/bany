@@ -30,6 +30,7 @@ import com.pissiphany.bany.domain.useCase.step.GetMostRecentTransaction
 import com.pissiphany.bany.domain.useCase.step.GetNewTransactions
 import com.pissiphany.bany.domain.useCase.step.SaveNewTransactions
 import com.squareup.moshi.Moshi
+import java.rmi.UnexpectedException
 import java.time.LocalDate
 
 fun main() {
@@ -41,7 +42,7 @@ fun main() {
 
     val adapter = moshi.adapter(BanyConfig::class.java)
     val config = adapter.fromJson(CONFIG_FILE.readText()) ?:
-            throw UnknownError("Unable to parse and instantiate application config!")
+            throw UnexpectedException("Unable to parse and instantiate application config!")
 
     val serviceBuilder = RetrofitFactory.create(BASE_URL, config.ynabApiToken, moshi)
     val ynabService = serviceBuilder.create(YnabService::class.java)
@@ -55,7 +56,7 @@ fun main() {
     val getMostRecentTransaction = GetMostRecentTransaction(lastKnowledgeOfServerRepository, mostRecentTransactionsGateway)
 
     val getNewTransactions = GetNewTransactions(
-        listOf(DummyThirdPartyTransactionGateway(config.plugins[0].connections[0].ynabAccountId))
+        listOf(DummyThirdPartyTransactionGateway(config.plugins.getValue("dummy").connections[0].ynabAccountId))
     )
 
     val saveTransactionsGateway = YnabSaveTransactionsGatewayImpl(ynabService, TransactionMapper())

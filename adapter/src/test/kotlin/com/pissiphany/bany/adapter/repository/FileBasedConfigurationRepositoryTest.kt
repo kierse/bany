@@ -14,9 +14,9 @@ internal class FileBasedConfigurationRepositoryTest {
     fun getBudgetAccountIds() {
         val budgetAccountId1 = BudgetAccountIds("ynabBudgetId1", "ynabAccountId1")
         val budgetAccountId2 = BudgetAccountIds("ynabBudgetId2", "ynabAccountId2")
-        val plugins = listOf(
-            BanyPlugin("type1", "username1", "password1", listOf(Connection("name1", "ynabBudgetId1", "ynabAccountId1", "accountId1"))),
-            BanyPlugin("type2", "username2", "password2", listOf(Connection("name2", "ynabBudgetId2", "ynabAccountId2", "accountId2")))
+        val plugins = mapOf(
+            "type1" to BanyPlugin("username1", "password1", listOf(BanyConnection("name1", "ynabBudgetId1", "ynabAccountId1", "accountId1"))),
+            "type2" to BanyPlugin("username2", "password2", listOf(BanyConnection("name2", "ynabBudgetId2", "ynabAccountId2", "accountId2")))
         )
         val config = BanyConfig("token", plugins)
         val mapper = BudgetAccountIdsMapper()

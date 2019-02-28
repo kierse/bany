@@ -6,7 +6,9 @@ import com.pissiphany.bany.domain.gateway.ThirdPartyTransactionGateway
 import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase
 import java.time.LocalDate
 
-class GetNewTransactions(transactionGateways: List<ThirdPartyTransactionGateway>) : SyncThirdPartyTransactionsUseCase.Step3GetNewTransactions {
+class GetNewTransactions(
+    transactionGateways: List<ThirdPartyTransactionGateway>
+) : SyncThirdPartyTransactionsUseCase.Step3GetNewTransactions {
     private val gatewayByAccount: Map<Account, ThirdPartyTransactionGateway> =
         transactionGateways.associateBy { it.account }
 

@@ -11,9 +11,8 @@ internal class BanyConfigTest {
     private val json = """
         {
             "ynab_api_token": "token",
-            "plugins": [
-                {
-                    "type": "type",
+            "plugins": {
+                "type": {
                     "username": "username",
                     "password": "password",
                     "connections": [
@@ -25,7 +24,7 @@ internal class BanyConfigTest {
                         }
                     ]
                 }
-            ]
+            }
         }
     """
 
@@ -49,12 +48,12 @@ internal class BanyConfigTest {
         val config = adapter.fromJson(json) ?: fail("Unable to load config file!")
 
         assertEquals(config.ynabApiToken, "token")
-        assertEquals(config.plugins[0].type, "type")
-        assertEquals(config.plugins[0].username, "username")
-        assertEquals(config.plugins[0].password, "password")
-        assertEquals(config.plugins[0].connections[0].name, "name")
-        assertEquals(config.plugins[0].connections[0].thirdPartyAccountId, "third_party_account_id")
-        assertEquals(config.plugins[0].connections[0].ynabAccountId, "ynab_account_id")
-        assertEquals(config.plugins[0].connections[0].ynabBudgetId, "ynab_budget_id")
+        assertNotNull(config.plugins.getValue("type"))
+        assertEquals(config.plugins.getValue("type").username, "username")
+        assertEquals(config.plugins.getValue("type").password, "password")
+        assertEquals(config.plugins.getValue("type").connections[0].name, "name")
+        assertEquals(config.plugins.getValue("type").connections[0].thirdPartyAccountId, "third_party_account_id")
+        assertEquals(config.plugins.getValue("type").connections[0].ynabAccountId, "ynab_account_id")
+        assertEquals(config.plugins.getValue("type").connections[0].ynabBudgetId, "ynab_budget_id")
     }
 }

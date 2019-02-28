@@ -1,6 +1,6 @@
 package com.pissiphany.bany.adapter.mapper
 
-import com.pissiphany.bany.adapter.config.Connection
+import com.pissiphany.bany.adapter.config.BanyConnection
 import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 import org.junit.jupiter.api.Test
 
@@ -11,7 +11,7 @@ internal class BudgetAccountIdsMapperTest {
     fun toBudgetAccountIds() {
         val budgetId = "ynabBudgetId"
         val accountId = "ynabAccountId"
-        val connection = Connection(
+        val connection = BanyConnection(
             name = "name", ynabBudgetId = budgetId, ynabAccountId = accountId, thirdPartyAccountId = "accountId"
         )
         val budgetAccountIds = BudgetAccountIds(budgetId = budgetId, accountId = accountId)

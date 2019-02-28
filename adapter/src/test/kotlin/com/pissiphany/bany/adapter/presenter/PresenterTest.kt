@@ -27,7 +27,10 @@ internal class PresenterTest {
     fun setup() {
         budget = Budget(id = "budgetId", name = "budgetName")
         account = Account(id = "accountId", name = "name", balance = 2L, type = Account.Type.CHECKING, closed = false)
-        date = LocalDate.EPOCH
+
+        // Note: using LocalDate.EPOCH here fails when running tests with gradle on the command line. No idea why
+        date = LocalDate.of(1970, 1, 1)
+
         transaction = Transaction(id = "transactionId", date = date.plusDays(1), amount = 3L)
         results = listOf(SyncTransactionsResult(
             budget, account, date, listOf(transaction)

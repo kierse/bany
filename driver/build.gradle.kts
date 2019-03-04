@@ -2,6 +2,9 @@ plugins {
     kotlin("jvm")
 }
 
+group = "com.pissiphany.bany.driver"
+version = "1.0-SNAPSHOT"
+
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 

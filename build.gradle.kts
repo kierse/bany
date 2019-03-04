@@ -5,10 +5,10 @@ plugins {
     kotlin("kapt") version "1.3.21"
 }
 
-allprojects {
-    group = "com.pissiphany.bany"
-    version = "1.0-SNAPSHOT"
+group = "com.pissiphany.bany"
+version = "1.0-SNAPSHOT"
 
+allprojects {
     repositories {
         mavenCentral()
     }

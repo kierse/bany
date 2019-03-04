@@ -3,6 +3,9 @@ plugins {
     kotlin("kapt") //version "1.3.21"
 }
 
+group = "com.pissiphany.bany.adapter"
+version = "1.0-SNAPSHOT"
+
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 

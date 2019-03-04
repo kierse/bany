@@ -10,13 +10,15 @@ import java.net.CookiePolicy
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-internal class SimpliiTest {
-    private val BASE_URL = "https://online.simplii.com"
-    private val STATIC_URL = "$BASE_URL/static/3a60cf428e5192970126258a37cefd2"
-    private val LOGIN_URL = "$BASE_URL/ebm-resources/public/client/web/index.html"
+internal class CibcTest {
+    private val BASE_URL = "https://www.cibconline.cibc.com"
+    private val STATIC_URL = "$BASE_URL/public/66b6b4bfb218b5ab63ab8a0b4633c"
     private val AUTH_URL = "$BASE_URL/ebm-anp/api/v1/json/sessions"
-    private val ACCOUNTS_URL = "$BASE_URL/ebm-ai/api/v1/json/accounts"
+    private val ACCOUNTS_URL = "$BASE_URL/ebm-ai/api/v2/json/accounts"
     private val TRANSACTIONS_URL = "$BASE_URL/ebm-ai/api/v1/json/transactions"
+
+    private val userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36"
+    private val contentType = "application/vnd.api+json"
 
     private val static_1_body = """
         // REDACTED
@@ -37,14 +39,14 @@ internal class SimpliiTest {
         val config = configAdapter.fromJson(CONFIG_FILE.readText())
             ?: throw Exception("unable to load config!")
 
-        val plugin = config.plugins["simplii"] ?: return // no simplii data, terminate
+        val plugin = config.plugins["cibc"] ?: return
 
         val client = OkHttpClient
             .Builder()
             .cookieJar(QuotePreservingCookieJar(CookieManager(null, CookiePolicy.ACCEPT_ALL)))
             .build()
 
-         seedCookieJar(client)
+        seedCookieJar(client)
 
         var token = ""
         val code: Int
@@ -54,22 +56,22 @@ internal class SimpliiTest {
             // authenticate
             token = authenticate(client, moshi, plugin.username, plugin.password) ?: throw Exception("no token found!")
 
-            // get accounts
-            val accounts = getAccounts(client, moshi, token)
-                .also {
-                    for ((number, account) in it) {
-                        println("$number => ${account.id}")
-                    }
-                }
-
-            val account = accounts[plugin.connections.first().thirdPartyAccountId] ?: return
-            getTransactions(client, moshi, token, account)
-                .also {
-                    println("found ${it.size} transaction(s)")
-                    for (t in it) {
-                        println("${t.id} => ${t.date}, ${t.date}, ${t.descriptionLine1}, ${t.transactionDescription}")
-                    }
-                }
+//            // get accounts
+//            val accounts = getAccounts(client, moshi, token)
+//                .also {
+//                    for ((number, account) in it) {
+//                        println("$number => ${account.id}")
+//                    }
+//                }
+//
+//            val account = accounts[plugin.connections.first().thirdPartyAccountId] ?: return
+//            getTransactions(client, moshi, token, account)
+//                .also {
+//                    println("found ${it.size} transaction(s)")
+//                    for (t in it) {
+//                        println("${t.id} => ${t.date}, ${t.date}, ${t.descriptionLine1}, ${t.transactionDescription}")
+//                    }
+//                }
         } finally {
             // terminate session
             if (token.isNotBlank()) {
@@ -99,7 +101,8 @@ internal class SimpliiTest {
             .addHeader("accept", "*/*")
             .addHeader("accept-language", "en-US,en;q=0.9")
             .addHeader("content-type", "text/plain;charset=UTF-8")
-            .addHeader("user-agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0")
+//            .addHeader("user-agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0")
+            .addHeader("user-agent", userAgent)
             .build()
 
         println()
@@ -117,6 +120,27 @@ internal class SimpliiTest {
         // Note: must call it a second time for some reason
         seedCookieJar(client, static_2_body, count - 1)
     }
+
+//    private fun seedCookieJar2() {
+//        WebClient(BrowserVersion.BEST_SUPPORTED).use { client ->
+//            client.options.isThrowExceptionOnScriptError = false
+//            val page: HtmlPage = client.getPage("https://www.cibconline.cibc.com/ebm-resources/public/banking/cibc/client/web/index.html")
+//
+////            val foo = page.getByXPath<HtmlInput>("//div[@class='row card-entry']")
+////            val foo = page.getByXPath<HtmlInput>("//div[contains(@class, 'card-entry')]")
+////            println(foo.size)
+//
+//
+////            val cardNumberField = page.getByXPath<HtmlInput>("//div[@class='card-entry']/descendant::input[@name='cardNumber']").first()
+////            println(cardNumberField.nameAttribute)
+//
+////            for (form in page.forms) {
+////                println("in")
+////                val cardNumberField: HtmlInput = form.getInputByName("cardNumber")
+////                println(cardNumberField.nameAttribute)
+////            }
+//        }
+//    }
 
     private fun authenticate(client: OkHttpClient, moshi: Moshi, cardNumber: String, password: String): String? {
         val authAdapter = moshi.adapter(AuthRequest::class.java)
@@ -138,24 +162,32 @@ internal class SimpliiTest {
         val request = Request.Builder()
             .url(AUTH_URL)
             .post(body)
-//            .addHeader("Cookie", "bm_sz=1C94067C461C54DF09CB8D55956F46B6~YAAQ15o7F61B5J9oAQAAUVIfMQJjy+no0hYzkgCB8jKuyleE8Uk2Lr+PmMUMdPRts6iKpbcto2L3DFgbCsdc7ehpzm2zItTd/6GxlMHlOekiMeCVStl6gt9qzR0QD073A9DNnh6wUYf7L3B7Bt6ZnU/wBu8DvKQMutxi40KOz138Z0pnwkTiJrtKq+OhOWeW")
+//            .addHeader("Cookie", "bm_sz=921D8FBCD959733158A30BB94E285968~YAAQxtTCF9aWjq9oAQAAsrs9RQLUs2Jsulp2gTuKQX1R3qo8NkiHmNntUBIEZCDnWhrp6s7R+bYgrqLmQjXhWbzya1wEF7+v/uphl24jCPiIzyPpvV/+FUn0ZeJC5ziCPNFm28ipmuc8wdRTOe+hTQkm/ODhsoPl2BNSEftbHIfkdbb1CV+MBffq+cnnpg==")
+//            .addHeader("Cookie", "_abck=98217E04D5008702B6277B27B2B3C62317C2D4C6E0310000C3387C5C9A2F9B07~0~Je+CCELbqLUGP6RiGNJ8HKCxlmTPo4cjcpWTwQ+ASdo=~-1~-1")
+//            .addHeader("Cookie", "ak_bmsc=7007316E9AB7E7491D2B59E25CE97E8A17C2D4C6E0310000C3387C5CD6578941~plRhwbXD15lHZeiVivnuEMCQsft1hb5ZAVIqCqSOTdtOK7LlYgkpgg8/roIvGxL+zJGzGX77ImCIMYHNtThUDKQYHBP/EMJmo6sx3Qce9zdZBEKkt4zCYoLphoNdn3hAyQMisq5AQuWZOVyDIut++h3WhA/sYl8NpD3qu9qtz8RFPtlVEcdlC0OM2YiudWVPFGcah58XtGCRGO6kaO4+4Vl0DZ1H0xLN5CkQ0oIgV5FgY=")
+//            .addHeader("Cookie", "s_gpv_pn=cibc%3Epb%3Epersonal-banking")
+//            .addHeader("Cookie", "s_ppv=cibc%253Epb%253Epersonal-banking%2C30%2C30%2C1066%2C1071%2C1066%2C1920%2C1200%2C2%2CP")
+//            .addHeader("Cookie", "s_ppvl=%5B%5BB%5D%5D")
 
-            .addHeader("host", "online.simplii.com")
-            .addHeader("user-agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0")
-            .addHeader("accept", "application/vnd.api+json")
-            .addHeader("accept-language", "en")
+            .addHeader("host", "www.cibconline.cibc.com")
+//            .addHeader("user-agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0")
+//            .addHeader("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36")
+            .addHeader("accept", contentType)
             .addHeader("accept-encoding", "gzip, deflate, br")
-            .addHeader("referer", "https://online.simplii.com/ebm-resources/public/client/web/index.html")
+            .addHeader("accept-language", "en")
+            .addHeader("brand", "cibc")
+//            .addHeader("cache-control", "no-cache")
             .addHeader("client-type", "default_web")
-            .addHeader("brand", "pcf")
-            .addHeader("X-Requested-With", "XMLHttpRequest")
-            .addHeader("connection", "keep-alive")
-            .addHeader("pragma", "no-cache")
-            .addHeader("cache-control", "no-cache")
-
-            .addHeader("Content-Type", "application/vnd.api+json")
+            .addHeader("content-type", contentType)
+//            .addHeader("connection", "keep-alive")
+            .addHeader("dnt", "1")
+//            .addHeader("pragma", "no-cache")
+            .addHeader("origin", BASE_URL)
+            .addHeader("referer", "https://www.cibconline.cibc.com/ebm-resources/public/banking/cibc/client/web/index.html")
+            .addHeader("user-agent", userAgent)
             .addHeader("www-authenticate", "CardAndPassword")
             .addHeader("x-auth-token", "")
+            .addHeader("x-requested-with", "XMLHttpRequest")
             .build()
 
         println()

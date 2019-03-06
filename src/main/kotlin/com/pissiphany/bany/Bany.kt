@@ -5,16 +5,15 @@ import com.pissiphany.bany.adapter.Constants.CONFIG_FILE
 import com.pissiphany.bany.adapter.Constants.LAST_KNOWLEDGE_OF_SERVER_FILE
 import com.pissiphany.bany.adapter.config.BanyConfig
 import com.pissiphany.bany.adapter.controller.SyncTransactionsWithYnabController
+import com.pissiphany.bany.adapter.gateway.ThirdPartyTransactionGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabBudgetAccountsGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabMostRecentTransactionsGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabSaveTransactionsGatewayImpl
 import com.pissiphany.bany.adapter.json.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.json.LocalDateAdapter
 import com.pissiphany.bany.adapter.json.LocalDateTimeAdapter
-import com.pissiphany.bany.adapter.mapper.AccountMapper
-import com.pissiphany.bany.adapter.mapper.BudgetAccountIdsMapper
-import com.pissiphany.bany.adapter.mapper.BudgetMapper
-import com.pissiphany.bany.adapter.mapper.TransactionMapper
+import com.pissiphany.bany.adapter.mapper.*
+import com.pissiphany.bany.adapter.plugin.BanyPlugin
 import com.pissiphany.bany.adapter.presenter.Presenter
 import com.pissiphany.bany.adapter.repository.FileBasedConfigurationRepository
 import com.pissiphany.bany.adapter.repository.FileBasedLastKnowledgeOfServerRepository
@@ -30,6 +29,7 @@ import com.pissiphany.bany.domain.useCase.step.GetMostRecentTransaction
 import com.pissiphany.bany.domain.useCase.step.GetNewTransactions
 import com.pissiphany.bany.domain.useCase.step.SaveNewTransactions
 import com.squareup.moshi.Moshi
+import org.pf4j.DefaultPluginManager
 import java.time.LocalDate
 
 fun main() {
@@ -54,28 +54,50 @@ fun main() {
     val mostRecentTransactionsGateway = YnabMostRecentTransactionsGatewayImpl(ynabService, TransactionMapper())
     val getMostRecentTransaction = GetMostRecentTransaction(lastKnowledgeOfServerRepository, mostRecentTransactionsGateway)
 
-    val getNewTransactions = GetNewTransactions(
-        listOf(DummyThirdPartyTransactionGateway(config.plugins.getValue("dummy").connections[0].ynabAccountId))
-    )
-
     val saveTransactionsGateway = YnabSaveTransactionsGatewayImpl(ynabService, TransactionMapper())
     val saveNewTransactions = SaveNewTransactions(saveTransactionsGateway)
 
     val presenter = Presenter(ConsoleView())
 
-    val syncThirdPartyTransactionsUseCase = SyncThirdPartyTransactionsUseCase(
-        getBudgetAccounts, getMostRecentTransaction, getNewTransactions, saveNewTransactions, presenter
-    )
+    val pluginTransactionMapper = BanyPluginTransactionMapper()
 
-    SyncTransactionsWithYnabController(syncThirdPartyTransactionsUseCase).sync()
+    // plugins
+    val pluginManager = DefaultPluginManager()
+    pluginManager.loadPlugins()
+    pluginManager.startPlugins()
+    val plugins = pluginManager.getExtensions(BanyPlugin::class.java)
 
-    // persist any changes to disk
-    lastKnowledgeOfServerRepository.saveChanges()
+    var initializedPlugins: List<BanyPlugin>? = null
+    try {
+        initializedPlugins = plugins
+            .filter { plugin ->
+                plugin.name in config.plugins
+                        && plugin.setup(config.plugins.getValue(plugin.name))
+            }
+
+        // TODO listOf(DummyThirdPartyTransactionGateway(config.plugins.getValue("dummy").connections[0].ynabAccountId))
+        val thirdPartyTransactionGateways = plugins.map { ThirdPartyTransactionGatewayImpl(it, pluginTransactionMapper) }
+        val getNewTransactions = GetNewTransactions(thirdPartyTransactionGateways)
+
+        val syncThirdPartyTransactionsUseCase = SyncThirdPartyTransactionsUseCase(
+            getBudgetAccounts, getMostRecentTransaction, getNewTransactions, saveNewTransactions, presenter
+        )
+
+        SyncTransactionsWithYnabController(syncThirdPartyTransactionsUseCase).sync()
+
+        // persist any changes to disk
+        lastKnowledgeOfServerRepository.saveChanges()
+    } finally {
+        initializedPlugins?.forEach { plugin ->
+            plugin.tearDown()
+        }
+    }
+
+    // stop all active plugins
+    pluginManager.stopPlugins()
 }
 
-private class DummyThirdPartyTransactionGateway(accountId: String) : ThirdPartyTransactionGateway {
-    override val account = Account(accountId, "name", 10L, false, Account.Type.CHECKING)
-
+private class DummyThirdPartyTransactionGateway(override val accountId: String) : ThirdPartyTransactionGateway {
     override fun getNewTransactionSince(date: LocalDate?): List<Transaction> {
         return emptyList()
     }

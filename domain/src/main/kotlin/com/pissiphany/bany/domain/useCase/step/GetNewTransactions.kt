@@ -9,11 +9,11 @@ import java.time.LocalDate
 class GetNewTransactions(
     transactionGateways: List<ThirdPartyTransactionGateway>
 ) : SyncThirdPartyTransactionsUseCase.Step3GetNewTransactions {
-    private val gatewayByAccount: Map<Account, ThirdPartyTransactionGateway> =
-        transactionGateways.associateBy { it.account }
+    private val gatewayByAccount: Map<String, ThirdPartyTransactionGateway> =
+        transactionGateways.associateBy { it.accountId }
 
     override fun getTransactions(account: Account, date: LocalDate?): List<Transaction> {
-        val gateway = gatewayByAccount[account] ?: return emptyList()
+        val gateway = gatewayByAccount[account.id] ?: return emptyList()
         return gateway.getNewTransactionSince(date)
     }
 }

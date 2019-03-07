@@ -96,8 +96,3 @@ fun main() {
     pluginManager.stopPlugins()
 }
 
-private class DummyThirdPartyTransactionGateway(override val accountId: String) : ThirdPartyTransactionGateway {
-    override fun getNewTransactionSince(date: LocalDate?): List<Transaction> {
-        return emptyList()
-    }
-}

@@ -1,9 +1,9 @@
 rootProject.name = 'bany'
 
 include 'domain', 'adapter'
-//project(':domain').buildFileName = 'domain.gradle.kts'
-//project(':adapter').buildFileName = 'adapter.gradle.kts'
-//project(':driver').buildFileName = 'driver.gradle.kts'
-//findProject(':plugins:sample')?.name = 'bany-sample-plugin'
 
 include 'plugins:sample'
+findProject(':plugins:sample')?.name = 'sample-plugin'
+
+include 'plugins:simplii'
+findProject(':plugins:simplii')?.name = 'simplii-plugin'

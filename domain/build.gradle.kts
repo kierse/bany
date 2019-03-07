@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm")
 }
 
-group = "com.pissiphany.bany.domain"
+group = "com.pissiphany.bany"
 version = "1.0-SNAPSHOT"
 
 dependencies {

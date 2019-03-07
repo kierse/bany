@@ -3,7 +3,7 @@ plugins {
     kotlin("kapt") //version "1.3.21"
 }
 
-group = "com.pissiphany.bany.adapter"
+group = "com.pissiphany.bany"
 version = "1.0-SNAPSHOT"
 
 dependencies {

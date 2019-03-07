@@ -4,3 +4,6 @@ include 'domain', 'adapter'
 //project(':domain').buildFileName = 'domain.gradle.kts'
 //project(':adapter').buildFileName = 'adapter.gradle.kts'
 //project(':driver').buildFileName = 'driver.gradle.kts'
+//findProject(':plugins:sample')?.name = 'bany-sample-plugin'
+
+include 'plugins:sample'

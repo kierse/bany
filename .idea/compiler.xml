@@ -2,10 +2,14 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
-      <module name="com.pissiphany.bany.adapter.main" target="1.9" />
-      <module name="com.pissiphany.bany.adapter.test" target="1.9" />
-      <module name="com.pissiphany.bany.domain.main" target="1.9" />
-      <module name="com.pissiphany.bany.domain.test" target="1.9" />
+      <module name="com.pissiphany.bany.adapter.adapter.main" target="1.9" />
+      <module name="com.pissiphany.bany.adapter.adapter.test" target="1.9" />
+      <module name="com.pissiphany.bany.domain.domain.main" target="1.9" />
+      <module name="com.pissiphany.bany.domain.domain.test" target="1.9" />
+      <module name="com.pissiphany.bany.driver.driver.main" target="1.9" />
+      <module name="com.pissiphany.bany.driver.driver.test" target="1.9" />
+      <module name="com.pissiphany.bany.plugin-api.main" target="1.9" />
+      <module name="com.pissiphany.bany.plugin-api.test" target="1.9" />
       <module name="com.pissiphany.bany.plugin.sample.main" target="1.9" />
       <module name="com.pissiphany.bany.plugin.sample.test" target="1.9" />
     </bytecodeTargetLevel>

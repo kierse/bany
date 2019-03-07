@@ -13,14 +13,13 @@ import com.pissiphany.bany.adapter.json.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.json.LocalDateAdapter
 import com.pissiphany.bany.adapter.json.LocalDateTimeAdapter
 import com.pissiphany.bany.adapter.mapper.*
-import com.pissiphany.bany.adapter.plugin.BanyPlugin
+import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.adapter.presenter.Presenter
 import com.pissiphany.bany.adapter.repository.FileBasedConfigurationRepository
 import com.pissiphany.bany.adapter.repository.FileBasedLastKnowledgeOfServerRepository
 import com.pissiphany.bany.adapter.service.RetrofitFactory
 import com.pissiphany.bany.adapter.service.YnabService
 import com.pissiphany.bany.adapter.view.ConsoleView
-import com.pissiphany.bany.domain.dataStructure.Account
 import com.pissiphany.bany.domain.dataStructure.Transaction
 import com.pissiphany.bany.domain.gateway.ThirdPartyTransactionGateway
 import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase

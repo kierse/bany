@@ -1,7 +1,7 @@
 package com.pissiphany.bany.adapter.gateway
 
 import com.pissiphany.bany.adapter.mapper.BanyPluginTransactionMapper
-import com.pissiphany.bany.adapter.plugin.BanyPlugin
+import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.domain.dataStructure.Transaction
 import com.pissiphany.bany.domain.gateway.ThirdPartyTransactionGateway
 import java.time.LocalDate

@@ -2,8 +2,12 @@ rootProject.name = 'bany'
 
 include 'domain', 'adapter'
 
+include 'plugins:api'
+//findProject(':plugins:api')?.name = 'plugin-api'
+
 include 'plugins:sample'
 findProject(':plugins:sample')?.name = 'sample-plugin'
 
 include 'plugins:simplii'
 findProject(':plugins:simplii')?.name = 'simplii-plugin'
+

@@ -26,6 +26,7 @@ allprojects {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
+    implementation(project(":plugins:api"))
     implementation(project(":domain"))
     implementation(project(":adapter"))
 
@@ -36,7 +37,6 @@ dependencies {
 
     // pf4j
     implementation("org.pf4j:pf4j:2.6.0")
-    implementation("com.pissiphany.bany.adapter.plugin:bany-plugin:1.0-SNAPSHOT")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.0")

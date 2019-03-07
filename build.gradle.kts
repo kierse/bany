@@ -26,7 +26,7 @@ allprojects {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
-    implementation(project(":plugins:api"))
+    implementation(project(":plugins:bany-plugin-api"))
     implementation(project(":domain"))
     implementation(project(":adapter"))
 

@@ -20,8 +20,6 @@ import com.pissiphany.bany.adapter.repository.FileBasedLastKnowledgeOfServerRepo
 import com.pissiphany.bany.adapter.service.RetrofitFactory
 import com.pissiphany.bany.adapter.service.YnabService
 import com.pissiphany.bany.adapter.view.ConsoleView
-import com.pissiphany.bany.domain.dataStructure.Transaction
-import com.pissiphany.bany.domain.gateway.ThirdPartyTransactionGateway
 import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase
 import com.pissiphany.bany.domain.useCase.step.GetBudgetAccounts
 import com.pissiphany.bany.domain.useCase.step.GetMostRecentTransaction
@@ -29,7 +27,7 @@ import com.pissiphany.bany.domain.useCase.step.GetNewTransactions
 import com.pissiphany.bany.domain.useCase.step.SaveNewTransactions
 import com.squareup.moshi.Moshi
 import org.pf4j.DefaultPluginManager
-import java.time.LocalDate
+import java.lang.IllegalStateException
 
 fun main() {
     val moshi = Moshi.Builder()
@@ -73,6 +71,8 @@ fun main() {
                 plugin.name in config.plugins
                         && plugin.setup(config.plugins.getValue(plugin.name))
             }
+
+        if (initializedPlugins.isEmpty()) throw IllegalStateException("No enabled plugins found!")
 
         // TODO listOf(DummyThirdPartyTransactionGateway(config.plugins.getValue("dummy").connections[0].ynabAccountId))
         val thirdPartyTransactionGateways = plugins.map { ThirdPartyTransactionGatewayImpl(it, pluginTransactionMapper) }

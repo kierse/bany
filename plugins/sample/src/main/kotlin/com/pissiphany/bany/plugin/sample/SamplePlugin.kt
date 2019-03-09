@@ -9,7 +9,9 @@ import java.time.LocalDate
 
 class SamplePlugin(wrapper: PluginWrapper) : Plugin(wrapper) {
     @Extension
-    class Dummy(override val name: String) : BanyPlugin {
+    class Sample : BanyPlugin {
+        override val name: String = "sample"
+
         override fun setup(configuration: BanyPlugin.Configuration): Boolean {
             println("dummy plugin setup")
             return true

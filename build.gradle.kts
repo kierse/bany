@@ -42,6 +42,7 @@ dependencies {
 
     // pf4j
     implementation("org.pf4j:pf4j:2.6.0")
+    implementation("org.slf4j:slf4j-simple:1.7.26")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.0")

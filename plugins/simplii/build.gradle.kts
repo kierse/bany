@@ -2,8 +2,9 @@ plugins {
     kotlin("jvm")
 }
 
+val pluginVersion: String by project
+version = pluginVersion
 group = "com.pissiphany.bany"
-version = "1.0-SNAPSHOT"
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))

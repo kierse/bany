@@ -9,19 +9,24 @@ group = "com.pissiphany.bany"
 version = "1.0-SNAPSHOT"
 
 allprojects {
+    apply(plugin = "kotlin")
+
     repositories {
         mavenCentral()
 
-        flatDir {
-            // so all projects can find bany-plugin jar
-            dirs(rootProject.file("lib").absolutePath)
-        }
+//        flatDir {
+//            // so all projects can find bany-plugin jar
+//            dirs(rootProject.file("lib").absolutePath)
+//        }
     }
 
     tasks.withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
     }
 }
+
+// plugin location
+rootProject.extra["pluginsDir"] = "${rootProject.buildDir.path}/plugins"
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))

@@ -31,7 +31,7 @@ rootProject.extra["pluginsDir"] = "${rootProject.buildDir.path}/plugins"
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
-    implementation(project(":plugins:bany-plugin-api"))
+    implementation(project(":bany-plugin-api"))
     implementation(project(":domain"))
     implementation(project(":adapter"))
 

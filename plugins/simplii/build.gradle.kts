@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    kotlin("kapt")
 }
 
 val pluginVersion: String by project
@@ -13,5 +14,6 @@ dependencies {
 
     // pf4j
     implementation("org.pf4j:pf4j:2.6.0")
+    kapt("org.pf4j:pf4j:2.6.0")
 }
 

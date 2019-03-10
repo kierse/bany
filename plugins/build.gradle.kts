@@ -1,5 +1,10 @@
 // based on: https://github.com/pf4j/pf4j/blob/master/demo_gradle/plugins/build.gradle
+plugins {
+    kotlin("jvm")
+}
+
 subprojects {
+    // Note: need to apply the plugin here so we have (and can use) the Jar task
     apply(plugin = "kotlin")
 
     val jar by tasks.existing(Jar::class) {

@@ -9,8 +9,6 @@ group = "com.pissiphany.bany"
 version = "1.0-SNAPSHOT"
 
 allprojects {
-    apply(plugin = "kotlin")
-
     repositories {
         mavenCentral()
 

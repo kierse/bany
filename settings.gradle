@@ -5,10 +5,10 @@ include 'domain', 'adapter'
 
 // PLUGIN MODULES
 include ':api'
+include 'plugins:cibc'
 include 'plugins:sample'
-include 'plugins:simplii'
 
 findProject(':api')?.name = 'bany-plugin-api'
+findProject(':plugins:cibc')?.name = 'cibc-plugin'
 findProject(':plugins:sample')?.name = 'sample-plugin'
-findProject(':plugins:simplii')?.name = 'simplii-plugin'
 

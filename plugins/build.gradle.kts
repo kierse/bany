@@ -3,34 +3,36 @@ plugins {
     kotlin("jvm")
 }
 
-subprojects {
-    // Note: need to apply the plugin here so we have (and can use) the Jar task
-    apply(plugin = "kotlin")
+subprojects
+    .filter { it.hasProperty("pluginId") }
+    .forEach { project ->
+        // Note: need to apply the plugin here so we have (and can use) the Jar task
+        project.apply(plugin = "kotlin")
 
-    val jar by tasks.existing(Jar::class) {
-        manifest {
-            val pluginClass: String by project
-            val pluginId: String by project
-            val pluginVersion: String by project
-            val pluginProvider: String by project
+        val jar by project.tasks.existing(Jar::class) {
+            manifest {
+                val pluginClass: String by project
+                val pluginId: String by project
+                val pluginVersion: String by project
+                val pluginProvider: String by project
 
-            attributes(
-                mapOf(
-                    "Plugin-Class" to pluginClass,
-                    "Plugin-Id" to pluginId,
-                    "Plugin-Version" to pluginVersion,
-                    "Plugin-Provider" to pluginProvider
+                attributes(
+                    mapOf(
+                        "Plugin-Class" to pluginClass,
+                        "Plugin-Id" to pluginId,
+                        "Plugin-Version" to pluginVersion,
+                        "Plugin-Provider" to pluginProvider
+                    )
                 )
-            )
+            }
+        }
+
+        project.tasks.register<Copy>("assemblePlugin") {
+            val pluginsDir: String by rootProject.extra
+            from(jar)
+            into(pluginsDir)
         }
     }
-
-    tasks.register<Copy>("assemblePlugin") {
-        val pluginsDir: String by rootProject.extra
-        from(jar)
-        into(pluginsDir)
-    }
-}
 
 tasks.register<Copy>("pluginConfiguration") {
     val pluginsDir: String by rootProject.extra

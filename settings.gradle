@@ -1,13 +1,14 @@
 rootProject.name = 'bany'
 
+// BANY MODULES
 include 'domain', 'adapter'
 
+// PLUGIN MODULES
 include ':api'
-findProject(':api')?.name = 'bany-plugin-api'
-
 include 'plugins:sample'
-findProject(':plugins:sample')?.name = 'sample-plugin'
-
 include 'plugins:simplii'
+
+findProject(':api')?.name = 'bany-plugin-api'
+findProject(':plugins:sample')?.name = 'sample-plugin'
 findProject(':plugins:simplii')?.name = 'simplii-plugin'
 

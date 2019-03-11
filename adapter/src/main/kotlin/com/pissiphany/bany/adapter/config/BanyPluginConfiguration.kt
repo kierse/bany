@@ -8,5 +8,5 @@ class BanyPluginConfiguration(
     override val username: String,
     override val password: String,
     override val connections: List<BanyConnection>,
-    override val enabled: Boolean = true
+    val enabled: Boolean = true
 ) : BanyPlugin.Configuration

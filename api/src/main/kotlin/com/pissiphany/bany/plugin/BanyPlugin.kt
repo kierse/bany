@@ -16,7 +16,6 @@ interface BanyPlugin : ExtensionPoint {
         val username: String
         val password: String
         val connections: List<Connection>
-        val enabled: Boolean
     }
 
     interface Connection {

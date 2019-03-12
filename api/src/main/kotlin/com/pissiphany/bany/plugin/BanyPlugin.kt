@@ -1,5 +1,6 @@
 package com.pissiphany.bany.plugin
 
+import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
 import org.pf4j.ExtensionPoint
 import java.time.LocalDate
 

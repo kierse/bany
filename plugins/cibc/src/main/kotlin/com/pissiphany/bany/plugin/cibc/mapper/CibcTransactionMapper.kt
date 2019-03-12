@@ -1,6 +1,6 @@
 package com.pissiphany.bany.plugin.cibc.mapper
 
-import com.pissiphany.bany.plugin.BanyPluginTransaction
+import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
 import com.pissiphany.bany.plugin.cibc.dataStructure.CibcTransactionWrapper
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

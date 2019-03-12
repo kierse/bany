@@ -1,7 +1,7 @@
 package com.pissiphany.bany.plugin.sample
 
 import com.pissiphany.bany.plugin.BanyPlugin
-import com.pissiphany.bany.plugin.BanyPluginTransaction
+import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
 import org.pf4j.Extension
 import org.pf4j.Plugin
 import org.pf4j.PluginWrapper

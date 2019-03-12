@@ -1,4 +1,4 @@
-package com.pissiphany.bany.plugin
+package com.pissiphany.bany.plugin.dataStructure
 
 import java.time.LocalDate
 

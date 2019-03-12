@@ -1,7 +1,7 @@
 package com.pissiphany.bany.plugin.cibc
 
 import com.pissiphany.bany.plugin.BanyPlugin
-import com.pissiphany.bany.plugin.BanyPluginTransaction
+import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
 import com.pissiphany.bany.plugin.cibc.dataStructure.AuthRequest
 import com.pissiphany.bany.plugin.cibc.dataStructure.CibcAccountsWrapper
 import com.pissiphany.bany.plugin.cibc.dataStructure.CibcTransactionWrapper

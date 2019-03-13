@@ -1,7 +1,5 @@
-package com.pissiphany.bany.adapter.config
+package com.pissiphany.bany.config
 
-import com.pissiphany.bany.adapter.json.DataEnvelopeFactory
-import com.pissiphany.bany.adapter.json.LocalDateTimeAdapter
 import com.squareup.moshi.Moshi
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
@@ -34,10 +32,7 @@ internal class BanyConfigTest {
         @BeforeAll
         @JvmStatic
         internal fun setup() {
-            moshi = Moshi.Builder()
-                .add(DataEnvelopeFactory())
-                .add(LocalDateTimeAdapter())
-                .build()
+            moshi = Moshi.Builder().build()
         }
     }
 

@@ -4,7 +4,7 @@ import com.pissiphany.bany.adapter.BASE_URL
 import com.pissiphany.bany.adapter.Constants.CONFIG_FILE
 import com.pissiphany.bany.adapter.INTEGRATION_TEST
 import com.pissiphany.bany.adapter.SLOW
-import com.pissiphany.bany.adapter.config.BanyConfig
+import com.pissiphany.bany.config.BanyConfig
 import com.pissiphany.bany.adapter.json.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.json.LocalDateTimeAdapter
 import com.squareup.moshi.Moshi

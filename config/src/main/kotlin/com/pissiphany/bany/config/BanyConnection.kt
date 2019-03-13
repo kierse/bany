@@ -1,4 +1,4 @@
-package com.pissiphany.bany.adapter.config
+package com.pissiphany.bany.config
 
 import com.pissiphany.bany.plugin.BanyPlugin
 import com.squareup.moshi.Json

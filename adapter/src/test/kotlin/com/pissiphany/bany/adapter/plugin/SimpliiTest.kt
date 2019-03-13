@@ -1,7 +1,7 @@
 package com.pissiphany.bany.adapter.plugin
 
 import com.pissiphany.bany.adapter.Constants.CONFIG_FILE
-import com.pissiphany.bany.adapter.config.BanyConfig
+import com.pissiphany.bany.config.BanyConfig
 import com.squareup.moshi.Moshi
 import okhttp3.*
 import org.junit.jupiter.api.Test

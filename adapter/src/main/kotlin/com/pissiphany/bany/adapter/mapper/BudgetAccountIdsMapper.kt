@@ -1,6 +1,6 @@
 package com.pissiphany.bany.adapter.mapper
 
-import com.pissiphany.bany.adapter.config.BanyConnection
+import com.pissiphany.bany.config.BanyConnection
 import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 
 class BudgetAccountIdsMapper {

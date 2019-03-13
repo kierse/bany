@@ -11,11 +11,6 @@ version = "1.0-SNAPSHOT"
 allprojects {
     repositories {
         mavenCentral()
-
-//        flatDir {
-//            // so all projects can find bany-plugin jar
-//            dirs(rootProject.file("lib").absolutePath)
-//        }
     }
 
     tasks.withType<KotlinCompile> {

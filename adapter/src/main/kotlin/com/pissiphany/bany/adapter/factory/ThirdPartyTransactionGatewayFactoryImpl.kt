@@ -28,9 +28,7 @@ class ThirdPartyTransactionGatewayFactoryImpl(
     override fun getGateway(budget: Budget, account: Account): ThirdPartyTransactionGateway {
         val budgetAccountIds = YnabBudgetAccountIds(ynabBudgetId = budget.id, ynabAccountId = account.id)
         val plugin = idsToPlugin[budgetAccountIds]
-            ?: throw NoSuitableTransactionGatewayException(
-                "unable to find gateway for: budgetId=${budget.id}, accountId=${account.id}"
-            )
+            ?: throw NoSuitableTransactionGatewayException("unable to find gateway for: $budgetAccountIds")
 
         return ThirdPartyTransactionGatewayImpl(plugin, budgetAccountIds, transactionMapper)
     }

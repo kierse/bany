@@ -50,3 +50,9 @@ dependencies {
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
+
+tasks.register("run-in-ide") {
+    dependencies {
+        runtime(fileTree("build/plugins").include("*.jar"))
+    }
+}

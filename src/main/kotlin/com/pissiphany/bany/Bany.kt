@@ -60,6 +60,8 @@ fun main() {
 
     // plugins
     val pluginManager = DefaultPluginManager()
+//    pluginManager.loadPlugins()
+//    pluginManager.startPlugins()
     val plugins = pluginManager.getExtensions(BanyPlugin::class.java)
 
     var initializedPlugins: List<BanyPlugin>? = null

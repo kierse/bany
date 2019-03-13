@@ -5,7 +5,7 @@ import com.pissiphany.bany.adapter.Constants.CONFIG_FILE
 import com.pissiphany.bany.adapter.Constants.LAST_KNOWLEDGE_OF_SERVER_FILE
 import com.pissiphany.bany.adapter.config.BanyConfig
 import com.pissiphany.bany.adapter.controller.SyncTransactionsWithYnabController
-import com.pissiphany.bany.adapter.gateway.ThirdPartyTransactionGatewayImpl
+import com.pissiphany.bany.adapter.factory.ThirdPartyTransactionGatewayFactoryImpl
 import com.pissiphany.bany.adapter.gateway.YnabBudgetAccountsGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabMostRecentTransactionsGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabSaveTransactionsGatewayImpl
@@ -60,8 +60,6 @@ fun main() {
 
     // plugins
     val pluginManager = DefaultPluginManager()
-    pluginManager.loadPlugins()
-    pluginManager.startPlugins()
     val plugins = pluginManager.getExtensions(BanyPlugin::class.java)
 
     var initializedPlugins: List<BanyPlugin>? = null
@@ -74,9 +72,8 @@ fun main() {
 
         if (initializedPlugins.isEmpty()) throw IllegalStateException("No enabled plugins found!")
 
-        // TODO listOf(DummyThirdPartyTransactionGateway(config.plugins.getValue("dummy").connections[0].ynabAccountId))
-        val thirdPartyTransactionGateways = plugins.map { ThirdPartyTransactionGatewayImpl(it, pluginTransactionMapper) }
-        val getNewTransactions = GetNewTransactions(thirdPartyTransactionGateways)
+        val gatewayFactory = ThirdPartyTransactionGatewayFactoryImpl(initializedPlugins, pluginTransactionMapper)
+        val getNewTransactions = GetNewTransactions(gatewayFactory)
 
         val syncThirdPartyTransactionsUseCase = SyncThirdPartyTransactionsUseCase(
             getBudgetAccounts, getMostRecentTransaction, getNewTransactions, saveNewTransactions, presenter

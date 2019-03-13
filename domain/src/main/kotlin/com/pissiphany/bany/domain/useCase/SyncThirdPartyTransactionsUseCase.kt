@@ -19,7 +19,7 @@ class SyncThirdPartyTransactionsUseCase(
     }
 
     interface Step3GetNewTransactions {
-        fun getTransactions(account: Account, date: LocalDate?): List<Transaction>
+        fun getTransactions(budget: Budget, account: Account, date: LocalDate?): List<Transaction>
     }
 
     interface Step4SaveNewTransactions {
@@ -43,7 +43,7 @@ class SyncThirdPartyTransactionsUseCase(
         val transaction = mostRecentTransaction.getTransaction(budget, account)
 
         val date = transaction?.date
-        val newTransactions = newTransactions.getTransactions(account, date)
+        val newTransactions = newTransactions.getTransactions(budget, account, date)
 
         saveTransactions.saveTransactions(budget, account, newTransactions)
 

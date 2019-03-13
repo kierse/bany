@@ -1,5 +1,6 @@
 package com.pissiphany.bany.plugin
 
+import com.pissiphany.bany.plugin.dataStructure.YnabBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
 import org.pf4j.ExtensionPoint
 import java.time.LocalDate
@@ -10,8 +11,10 @@ interface BanyPlugin : ExtensionPoint {
     fun setup(configuration: Configuration): Boolean
     fun tearDown()
 
-    fun getYnabAccountId(): String
-    fun getNewTransactionsSince(date: LocalDate?): List<BanyPluginTransaction>
+    fun getYnabBudgetIdAccountIds(): List<YnabBudgetAccountIds>
+    fun getNewBanyPluginTransactionsSince(
+        ynabBudgetAccountIds: YnabBudgetAccountIds, date: LocalDate?
+    ): List<BanyPluginTransaction>
 
     interface Configuration {
         val username: String

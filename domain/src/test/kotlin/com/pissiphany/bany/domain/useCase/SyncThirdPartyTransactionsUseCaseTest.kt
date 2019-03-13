@@ -40,7 +40,7 @@ internal class SyncThirdPartyTransactionsUseCaseTest {
     }
 
     private class Step3Test(private val transactions: List<Transaction>) : SyncThirdPartyTransactionsUseCase.Step3GetNewTransactions {
-        override fun getTransactions(account: Account, date: LocalDate?): List<Transaction> = transactions
+        override fun getTransactions(budget: Budget, account: Account, date: LocalDate?): List<Transaction> = transactions
     }
 
     private class Step4Test: SyncThirdPartyTransactionsUseCase.Step4SaveNewTransactions {

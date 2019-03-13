@@ -1,8 +1,8 @@
 package com.pissiphany.bany.adapter.repository
 
 import com.pissiphany.bany.config.BanyConfig
-import com.pissiphany.bany.config.BanyConnection
-import com.pissiphany.bany.config.BanyPluginConfiguration
+import com.pissiphany.bany.config.BanyConfigConnection
+import com.pissiphany.bany.config.BanyConfigCredentials
 import com.pissiphany.bany.adapter.mapper.BudgetAccountIdsMapper
 import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 import org.junit.jupiter.api.Test
@@ -15,11 +15,11 @@ internal class FileBasedConfigurationRepositoryTest {
         val budgetAccountId1 = BudgetAccountIds("ynabBudgetId1", "ynabAccountId1")
         val budgetAccountId2 = BudgetAccountIds("ynabBudgetId2", "ynabAccountId2")
         val plugins = mapOf(
-            "type1" to BanyPluginConfiguration(
+            "type1" to BanyConfigCredentials(
                 "username1",
                 "password1",
                 listOf(
-                    BanyConnection(
+                    BanyConfigConnection(
                         "name1",
                         "ynabBudgetId1",
                         "ynabAccountId1",
@@ -27,11 +27,11 @@ internal class FileBasedConfigurationRepositoryTest {
                     )
                 )
             ),
-            "type2" to BanyPluginConfiguration(
+            "type2" to BanyConfigCredentials(
                 "username2",
                 "password2",
                 listOf(
-                    BanyConnection(
+                    BanyConfigConnection(
                         "name2",
                         "ynabBudgetId2",
                         "ynabAccountId2",

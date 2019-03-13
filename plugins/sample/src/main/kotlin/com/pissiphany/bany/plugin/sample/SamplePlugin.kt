@@ -10,7 +10,7 @@ import java.time.LocalDate
 class SamplePlugin : BanyPlugin {
     override val name: String = "sample"
 
-    override fun setup(configuration: BanyPlugin.Configuration): Boolean {
+    override fun setup(credentials: BanyPlugin.Credentials): Boolean {
         println("dummy plugin setup")
         return true
     }

@@ -8,7 +8,7 @@ import java.time.LocalDate
 interface BanyPlugin : ExtensionPoint {
     val name: String
 
-    fun setup(configuration: Configuration): Boolean
+    fun setup(credentials: Credentials): Boolean
     fun tearDown()
 
     fun getYnabBudgetAccountIds(): List<YnabBudgetAccountIds>
@@ -16,7 +16,7 @@ interface BanyPlugin : ExtensionPoint {
         ynabBudgetAccountIds: YnabBudgetAccountIds, date: LocalDate?
     ): List<BanyPluginTransaction>
 
-    interface Configuration {
+    interface Credentials {
         val username: String
         val password: String
         val connections: List<Connection>

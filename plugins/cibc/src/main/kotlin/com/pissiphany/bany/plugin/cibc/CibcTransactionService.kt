@@ -28,7 +28,7 @@ typealias XAuthToken = String
 // TODO create transaction gateways that accept all dependencies via the constructor
 // TOOD making them far more testable
 class CibcTransactionService(
-    private val configuration: BanyPlugin.Configuration,
+    private val credentials: BanyPlugin.Credentials,
     private val env: Environment,
     private val moshi: Moshi,
     private val client: OkHttpClient,
@@ -40,7 +40,7 @@ class CibcTransactionService(
 
     override val name = env.name
 
-    override fun setup(configuration: BanyPlugin.Configuration): Boolean {
+    override fun setup(credentials: BanyPlugin.Credentials): Boolean {
         seedCookieJar("foo") // TODO load static payload from disk
         seedCookieJar("bar")
 
@@ -75,12 +75,12 @@ class CibcTransactionService(
         val json = authAdapter.toJson(
             AuthRequest(
                 card = AuthRequest.Card(
-                    value = configuration.username,
+                    value = credentials.username,
                     description = "",
                     encrypted = false,
                     encrypt = true
                 ),
-                password = configuration.password
+                password = credentials.password
             )
         )
 
@@ -155,7 +155,7 @@ class CibcTransactionService(
     }
 
     override fun getYnabBudgetAccountIds(): List<YnabBudgetAccountIds> {
-        return configuration.connections
+        return credentials.connections
             .map { YnabBudgetAccountIds(
                 ynabBudgetId = it.ynabBudgetId, ynabAccountId = it.ynabAccountId
             ) }
@@ -207,14 +207,14 @@ class CibcTransactionService(
     }
 
     private fun getAccountId(ynabBudgetAccountIds: YnabBudgetAccountIds): AccountId {
-        for (connection in configuration.connections) {
+        for (connection in credentials.connections) {
             if (connection.ynabBudgetId == ynabBudgetAccountIds.ynabBudgetId
                 && connection.ynabAccountId == ynabBudgetAccountIds.ynabAccountId) {
                 return connection.thirdPartyAccountId
             }
         }
 
-        throw UnknownYnabBudgetAndAccountException("no configuration found for: $ynabBudgetAccountIds")
+        throw UnknownYnabBudgetAndAccountException("no credentials found for: $ynabBudgetAccountIds")
     }
 
     class UnexpectedResponseException(message: String, cause: Throwable? = null) : Throwable(message, cause)

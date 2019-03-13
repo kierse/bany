@@ -4,9 +4,10 @@ import com.pissiphany.bany.plugin.BanyPlugin
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-class BanyPluginConfiguration(
+class BanyConfigCredentials(
     override val username: String,
     override val password: String,
-    override val connections: List<BanyConnection>,
-    val enabled: Boolean = true
-) : BanyPlugin.Configuration
+    override val connections: List<BanyConfigConnection>,
+    val enabled: Boolean = true,
+    val description: String = ""
+) : BanyPlugin.Credentials

@@ -5,7 +5,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-class BanyConnection(
+class BanyConfigConnection(
     val name: String,
     @Json(name = "ynab_budget_id") override val ynabBudgetId: String,
     @Json(name = "ynab_account_id") override val ynabAccountId: String,

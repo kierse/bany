@@ -37,7 +37,7 @@ internal class SimpliiTest {
         val config = configAdapter.fromJson(CONFIG_FILE.readText())
             ?: throw Exception("unable to load config!")
 
-        val plugin = config.plugins["simplii"] ?: return // no simplii data, terminate
+        val credentials = config.plugins["simplii"]?.first() ?: return // no simplii data, terminate
 
         val client = OkHttpClient
             .Builder()
@@ -52,7 +52,7 @@ internal class SimpliiTest {
 
         try {
             // authenticate
-            token = authenticate(client, moshi, plugin.username, plugin.password) ?: throw Exception("no token found!")
+            token = authenticate(client, moshi, credentials.username, credentials.password) ?: throw Exception("no token found!")
 
             // get accounts
             val accounts = getAccounts(client, moshi, token)
@@ -62,7 +62,7 @@ internal class SimpliiTest {
                     }
                 }
 
-            val account = accounts[plugin.connections.first().thirdPartyAccountId] ?: return
+            val account = accounts[credentials.connections.first().thirdPartyAccountId] ?: return
             getTransactions(client, moshi, token, account)
                 .also {
                     println("found ${it.size} transaction(s)")

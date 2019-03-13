@@ -11,9 +11,11 @@ class FileBasedConfigurationRepository(
     override fun getBudgetAccountIds(): List<BudgetAccountIds> {
         val budgetAccountIds = mutableListOf<BudgetAccountIds>()
         config.plugins
-            .filterValues { it.enabled }
-            .forEach { (_, plugin) ->
-                for(connection in plugin.connections) {
+            .values
+            .flatten() // flatten into one big List<BanyConfigCredentials>
+            .filter { it.enabled }
+            .forEach { credentials ->
+                for (connection in credentials.connections) {
                     budgetAccountIds.add(mapper.toBudgetAccountIds(connection))
                 }
             }

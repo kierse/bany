@@ -39,7 +39,7 @@ internal class CibcTest {
         val config = configAdapter.fromJson(CONFIG_FILE.readText())
             ?: throw Exception("unable to load config!")
 
-        val plugin = config.plugins["cibc"] ?: return
+        val credentials = config.plugins["cibc"]?.first() ?: return
 
         val client = OkHttpClient
             .Builder()
@@ -54,7 +54,7 @@ internal class CibcTest {
 
         try {
             // authenticate
-            token = authenticate(client, moshi, plugin.username, plugin.password) ?: throw Exception("no token found!")
+            token = authenticate(client, moshi, credentials.username, credentials.password) ?: throw Exception("no token found!")
 
 //            // get accounts
 //            val accounts = getAccounts(client, moshi, token)

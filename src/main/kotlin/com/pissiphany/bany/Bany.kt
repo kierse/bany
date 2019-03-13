@@ -25,6 +25,7 @@ import com.pissiphany.bany.domain.useCase.step.GetBudgetAccounts
 import com.pissiphany.bany.domain.useCase.step.GetMostRecentTransaction
 import com.pissiphany.bany.domain.useCase.step.GetNewTransactions
 import com.pissiphany.bany.domain.useCase.step.SaveNewTransactions
+import com.pissiphany.bany.plugin.BanyPluginFactory
 import com.squareup.moshi.Moshi
 import org.pf4j.DefaultPluginManager
 import java.lang.IllegalStateException
@@ -60,17 +61,28 @@ fun main() {
 
     // plugins
     val pluginManager = DefaultPluginManager()
-//    pluginManager.loadPlugins()
-//    pluginManager.startPlugins()
-    val plugins = pluginManager.getExtensions(BanyPlugin::class.java)
+    val factoryMap = buildFactoryMap(pluginManager.getExtensions(BanyPluginFactory::class.java))
 
-    var initializedPlugins: List<BanyPlugin>? = null
+    val enabledPlugins = config.plugins
+        .mapValues { (_, credentialList) ->
+            credentialList.filter { it.enabled }
+        }
+
+    val initializedPlugins = mutableListOf<BanyPlugin>()
     try {
-        initializedPlugins = plugins
-            .filter { plugin ->
-                plugin.name in config.plugins
-                        && plugin.setup(config.plugins.getValue(plugin.name))
+        enabledPlugins.forEach(
+            fun(pluginName, credentialList) {
+                // Note: above #mapValues call can lead to keys that point to empty lists
+                if (credentialList.isEmpty()) return
+
+                val factory = factoryMap[pluginName] ?: return // TODO log skipping this set of credentials
+
+                for (credentials in credentialList) {
+                    val plugin = factory.createPlugin(pluginName, credentials)
+                    if (plugin.setup()) initializedPlugins.add(plugin)
+                }
             }
+        )
 
         if (initializedPlugins.isEmpty()) throw IllegalStateException("No enabled plugins found!")
 
@@ -86,12 +98,26 @@ fun main() {
         // persist any changes to disk
         lastKnowledgeOfServerRepository.saveChanges()
     } finally {
-        initializedPlugins?.forEach { plugin ->
-            plugin.tearDown()
-        }
+        initializedPlugins.forEach { it.tearDown() }
     }
 
     // stop all active plugins
     pluginManager.stopPlugins()
 }
 
+private fun buildFactoryMap(factories: List<BanyPluginFactory>): Map<String, BanyPluginFactory> {
+    val map = mutableMapOf<String, BanyPluginFactory>()
+    for (factory in factories) {
+        for (pluginName in factory.pluginNames) {
+            if (pluginName in map) {
+                throw DuplicatePluginConfigurationException("multiple factories report a plugin named of '$pluginName'")
+            }
+
+            map[pluginName] = factory
+        }
+    }
+
+    return map
+}
+
+private class DuplicatePluginConfigurationException(message: String) : Throwable(message)

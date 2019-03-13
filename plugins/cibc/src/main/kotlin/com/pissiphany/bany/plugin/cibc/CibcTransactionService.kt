@@ -38,9 +38,7 @@ class CibcTransactionService(
     private var token: String = ""
     private var accounts: Map<AccountId, CibcAccountsWrapper.CibcAccount> = emptyMap()
 
-    override val name = env.name
-
-    override fun setup(credentials: BanyPlugin.Credentials): Boolean {
+    override fun setup(): Boolean {
         seedCookieJar("foo") // TODO load static payload from disk
         seedCookieJar("bar")
 

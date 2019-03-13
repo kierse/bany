@@ -154,7 +154,7 @@ class CibcTransactionService(
         token = ""
     }
 
-    override fun getYnabBudgetIdAccountIds(): List<YnabBudgetAccountIds> {
+    override fun getYnabBudgetAccountIds(): List<YnabBudgetAccountIds> {
         return configuration.connections
             .map { YnabBudgetAccountIds(
                 ynabBudgetId = it.ynabBudgetId, ynabAccountId = it.ynabAccountId

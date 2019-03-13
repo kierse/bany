@@ -11,7 +11,7 @@ interface BanyPlugin : ExtensionPoint {
     fun setup(configuration: Configuration): Boolean
     fun tearDown()
 
-    fun getYnabBudgetIdAccountIds(): List<YnabBudgetAccountIds>
+    fun getYnabBudgetAccountIds(): List<YnabBudgetAccountIds>
     fun getNewBanyPluginTransactionsSince(
         ynabBudgetAccountIds: YnabBudgetAccountIds, date: LocalDate?
     ): List<BanyPluginTransaction>

@@ -17,7 +17,7 @@ class ThirdPartyTransactionGatewayFactoryImpl(
     init {
         val map = mutableMapOf<YnabBudgetAccountIds, BanyPlugin>()
         for (plugin in plugins) {
-            for (ids in plugin.getYnabBudgetIdAccountIds()) {
+            for (ids in plugin.getYnabBudgetAccountIds()) {
                 map[ids] = plugin
             }
         }

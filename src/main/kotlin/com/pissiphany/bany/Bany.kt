@@ -3,29 +3,33 @@ package com.pissiphany.bany
 import com.pissiphany.bany.adapter.BASE_URL
 import com.pissiphany.bany.adapter.Constants.CONFIG_FILE
 import com.pissiphany.bany.adapter.Constants.LAST_KNOWLEDGE_OF_SERVER_FILE
-import com.pissiphany.bany.config.BanyConfig
 import com.pissiphany.bany.adapter.controller.SyncTransactionsWithYnabController
 import com.pissiphany.bany.adapter.factory.ThirdPartyTransactionGatewayFactoryImpl
 import com.pissiphany.bany.adapter.gateway.YnabBudgetAccountsGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabMostRecentTransactionsGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabSaveTransactionsGatewayImpl
-import com.pissiphany.bany.adapter.json.DataEnvelopeFactory
-import com.pissiphany.bany.adapter.json.LocalDateAdapter
-import com.pissiphany.bany.adapter.json.LocalDateTimeAdapter
 import com.pissiphany.bany.adapter.mapper.*
 import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.adapter.presenter.Presenter
 import com.pissiphany.bany.adapter.repository.ConfigurationRepositoryImpl
 import com.pissiphany.bany.adapter.repository.FileBasedLastKnowledgeOfServerRepository
-import com.pissiphany.bany.adapter.service.RetrofitFactory
-import com.pissiphany.bany.adapter.service.YnabService
 import com.pissiphany.bany.adapter.view.ConsoleView
+import com.pissiphany.bany.dataStructure.BanyConfig
 import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase
 import com.pissiphany.bany.domain.useCase.step.GetBudgetAccounts
 import com.pissiphany.bany.domain.useCase.step.GetMostRecentTransaction
 import com.pissiphany.bany.domain.useCase.step.GetNewTransactions
 import com.pissiphany.bany.domain.useCase.step.SaveNewTransactions
+import com.pissiphany.bany.json.DataEnvelopeFactory
+import com.pissiphany.bany.json.LocalDateAdapter
+import com.pissiphany.bany.json.LocalDateTimeAdapter
+import com.pissiphany.bany.mapper.RetrofitAccountMapper
+import com.pissiphany.bany.mapper.RetrofitBudgetMapper
+import com.pissiphany.bany.mapper.RetrofitTransactionMapper
 import com.pissiphany.bany.plugin.BanyPluginFactory
+import com.pissiphany.bany.service.RetrofitFactory
+import com.pissiphany.bany.service.RetrofitYnabService
+import com.pissiphany.bany.service.RetrofitYnabApiService
 import com.squareup.moshi.Moshi
 import org.pf4j.DefaultPluginManager
 import java.lang.IllegalStateException
@@ -42,17 +46,22 @@ fun main() {
             throw UnknownError("Unable to parse and instantiate application config!")
 
     val serviceBuilder = RetrofitFactory.create(BASE_URL, config.ynabApiToken, moshi)
-    val ynabService = serviceBuilder.create(YnabService::class.java)
+    val retrofitService = serviceBuilder.create(RetrofitYnabService::class.java)
+    val ynabApiService = RetrofitYnabApiService(
+        retrofitService, RetrofitBudgetMapper(), RetrofitAccountMapper(), RetrofitTransactionMapper()
+    )
 
-    val configurationRepository = ConfigurationRepositoryImpl(config, BudgetAccountIdsMapper())
-    val ynabBudgetAccountsGateway = YnabBudgetAccountsGatewayImpl(ynabService, BudgetMapper(), AccountMapper())
+    val configurationRepository = ConfigurationRepositoryImpl(config.plugins, YnabBudgetAccountIdsMapper())
+    val ynabBudgetAccountsGateway = YnabBudgetAccountsGatewayImpl(ynabApiService, YnabBudgetMapper(), YnabAccountMapper())
     val getBudgetAccounts = GetBudgetAccounts(configurationRepository, ynabBudgetAccountsGateway)
 
     val lastKnowledgeOfServerRepository = FileBasedLastKnowledgeOfServerRepository(LAST_KNOWLEDGE_OF_SERVER_FILE)
-    val mostRecentTransactionsGateway = YnabMostRecentTransactionsGatewayImpl(ynabService, TransactionMapper())
+    val mostRecentTransactionsGateway = YnabMostRecentTransactionsGatewayImpl(
+        ynabApiService, YnabBudgetMapper(), YnabAccountMapper(), YnabTransactionMapper()
+    )
     val getMostRecentTransaction = GetMostRecentTransaction(lastKnowledgeOfServerRepository, mostRecentTransactionsGateway)
 
-    val saveTransactionsGateway = YnabSaveTransactionsGatewayImpl(ynabService, TransactionMapper())
+    val saveTransactionsGateway = YnabSaveTransactionsGatewayImpl(ynabApiService, YnabBudgetMapper(), YnabTransactionMapper())
     val saveNewTransactions = SaveNewTransactions(saveTransactionsGateway)
 
     val presenter = Presenter(ConsoleView())

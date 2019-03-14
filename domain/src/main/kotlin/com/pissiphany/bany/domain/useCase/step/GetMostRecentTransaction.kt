@@ -14,8 +14,7 @@ class GetMostRecentTransaction(
 ) : SyncThirdPartyTransactionsUseCase.Step2GetMostRecentTransaction {
     override fun getTransaction(budget: Budget, account: Account): Transaction? {
         val cachedLastKnowledge = ynabCache.getLastKnowledgeOfServer(account)
-        val (transactions, newLastKnowledge) = ynabGateway.getUpdatedTransactions(budget, account, cachedLastKnowledge) ?:
-            throw IllegalArgumentException("unable to retrieve transactions for ${account.id}")
+        val (transactions, newLastKnowledge) = ynabGateway.getUpdatedTransactions(budget, account, cachedLastKnowledge)
 
         ynabCache.saveLastKnowledgeOfServer(account, newLastKnowledge)
         return transactions.firstOrNull()

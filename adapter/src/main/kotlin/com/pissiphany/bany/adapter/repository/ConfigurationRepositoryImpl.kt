@@ -1,18 +1,18 @@
 package com.pissiphany.bany.adapter.repository
 
-import com.pissiphany.bany.config.BanyConfig
-import com.pissiphany.bany.adapter.mapper.BudgetAccountIdsMapper
+import com.pissiphany.bany.adapter.dataStructure.YnabCredentials
+import com.pissiphany.bany.adapter.mapper.YnabBudgetAccountIdsMapper
 import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 import com.pissiphany.bany.domain.repository.ConfigurationRepository
 
 class ConfigurationRepositoryImpl(
-    private val config: BanyConfig, private val mapper: BudgetAccountIdsMapper
+    private val pluginCredentials: Map<String, List<YnabCredentials>>, private val mapper: YnabBudgetAccountIdsMapper
 ) : ConfigurationRepository {
     override fun getBudgetAccountIds(): List<BudgetAccountIds> {
         val budgetAccountIds = mutableListOf<BudgetAccountIds>()
-        config.plugins
+        pluginCredentials
             .values
-            .flatten() // flatten into one big List<BanyConfigCredentials>
+            .flatten() // flatten into one big List<YnabCredentials>
             .filter { it.enabled }
             .forEach { credentials ->
                 for (connection in credentials.connections) {

@@ -1,0 +1,24 @@
+package com.pissiphany.bany.adapter.mapper
+
+import com.pissiphany.bany.adapter.dataStructure.YnabTransaction
+import com.pissiphany.bany.domain.dataStructure.Account
+import com.pissiphany.bany.domain.dataStructure.Transaction
+
+class YnabTransactionMapper {
+    fun toYnabTransaction(transaction: Transaction, account: Account): YnabTransaction {
+        return YnabTransaction(
+            id = transaction.id,
+            accountId = account.id,
+            amount = transaction.amount,
+            date = transaction.date
+        )
+    }
+
+    fun toTransaction(ynabTransaction: YnabTransaction): Transaction {
+        return Transaction(
+            id = ynabTransaction.id,
+            amount = ynabTransaction.amount,
+            date = ynabTransaction.date
+        )
+    }
+}

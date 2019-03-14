@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
 
-internal class FileBasedConfigurationRepositoryTest {
+internal class ConfigurationRepositoryImplTest {
     @Test
     fun getBudgetAccountIds() {
         val budgetAccountId1 = BudgetAccountIds("ynabBudgetId1", "ynabAccountId1")
@@ -43,7 +43,7 @@ internal class FileBasedConfigurationRepositoryTest {
         val config = BanyConfig("token", plugins)
         val mapper = BudgetAccountIdsMapper()
 
-        val repo = FileBasedConfigurationRepository(config, mapper)
+        val repo = ConfigurationRepositoryImpl(config, mapper)
 
         assertIterableEquals(listOf(budgetAccountId1, budgetAccountId2), repo.getBudgetAccountIds())
     }

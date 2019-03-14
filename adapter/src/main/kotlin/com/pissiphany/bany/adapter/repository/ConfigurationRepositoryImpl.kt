@@ -5,7 +5,7 @@ import com.pissiphany.bany.adapter.mapper.BudgetAccountIdsMapper
 import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 import com.pissiphany.bany.domain.repository.ConfigurationRepository
 
-class FileBasedConfigurationRepository(
+class ConfigurationRepositoryImpl(
     private val config: BanyConfig, private val mapper: BudgetAccountIdsMapper
 ) : ConfigurationRepository {
     override fun getBudgetAccountIds(): List<BudgetAccountIds> {

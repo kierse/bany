@@ -15,7 +15,7 @@ import com.pissiphany.bany.adapter.json.LocalDateTimeAdapter
 import com.pissiphany.bany.adapter.mapper.*
 import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.adapter.presenter.Presenter
-import com.pissiphany.bany.adapter.repository.FileBasedConfigurationRepository
+import com.pissiphany.bany.adapter.repository.ConfigurationRepositoryImpl
 import com.pissiphany.bany.adapter.repository.FileBasedLastKnowledgeOfServerRepository
 import com.pissiphany.bany.adapter.service.RetrofitFactory
 import com.pissiphany.bany.adapter.service.YnabService
@@ -44,7 +44,7 @@ fun main() {
     val serviceBuilder = RetrofitFactory.create(BASE_URL, config.ynabApiToken, moshi)
     val ynabService = serviceBuilder.create(YnabService::class.java)
 
-    val configurationRepository = FileBasedConfigurationRepository(config, BudgetAccountIdsMapper())
+    val configurationRepository = ConfigurationRepositoryImpl(config, BudgetAccountIdsMapper())
     val ynabBudgetAccountsGateway = YnabBudgetAccountsGatewayImpl(ynabService, BudgetMapper(), AccountMapper())
     val getBudgetAccounts = GetBudgetAccounts(configurationRepository, ynabBudgetAccountsGateway)
 

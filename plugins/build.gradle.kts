@@ -9,25 +9,8 @@ subprojects
         // Note: need to apply the plugin here so we have (and can use) the Jar task
         project.apply(plugin = "kotlin")
 
-        val jar by project.tasks.existing(Jar::class) {
-            manifest {
-                val pluginClass: String by project
-                val pluginId: String by project
-                val pluginVersion: String by project
-                val pluginProvider: String by project
-
-                attributes(
-                    mapOf(
-                        "Plugin-Class" to pluginClass,
-                        "Plugin-Id" to pluginId,
-                        "Plugin-Version" to pluginVersion,
-                        "Plugin-Provider" to pluginProvider
-                    )
-                )
-            }
-        }
-
-        project.tasks.register<Copy>("assemblePlugin") {
+        val jar by project.tasks.existing(Jar::class)
+        project.tasks.register<Copy>("copyJar") {
             val pluginsDir: String by rootProject.extra
             from(jar)
             into(pluginsDir)
@@ -36,5 +19,5 @@ subprojects
 
 tasks.named("build") {
     // make "build" task depend on all sub-project custom tasks named "assemblePlugin"
-    subprojects.forEach { dependsOn("${it.name}:assemblePlugin") }
+    subprojects.forEach { dependsOn("${it.name}:copyJar") }
 }

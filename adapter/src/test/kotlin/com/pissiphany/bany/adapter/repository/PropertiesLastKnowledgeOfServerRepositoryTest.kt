@@ -7,13 +7,13 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.*
 
-internal class FileBasedLastKnowledgeOfServerRepositoryTest {
+internal class PropertiesLastKnowledgeOfServerRepositoryTest {
     @Test
     fun getLastKnowledgeOfServer__empty_file() {
         val account = Account("account_id_1", "name", 0L, false, Account.Type.CHECKING)
 
         val nonExistentFile = File(System.getProperty("java.io.tmpdir"), "foo-bar.tmp")
-        val repo = FileBasedLastKnowledgeOfServerRepository(nonExistentFile)
+        val repo = PropertiesLastKnowledgeOfServerRepository(nonExistentFile)
 
         assertTrue(nonExistentFile.exists())
         assertEquals(0, repo.getLastKnowledgeOfServer(account))
@@ -27,7 +27,7 @@ internal class FileBasedLastKnowledgeOfServerRepositoryTest {
 
         val file = File.createTempFile("getLastKnowledgeOfServer__file_exists", null)
         createPropFile(file, mapOf("account_id_1" to 123, "account_id_2" to 5))
-        val repo = FileBasedLastKnowledgeOfServerRepository(file)
+        val repo = PropertiesLastKnowledgeOfServerRepository(file)
         file.delete()
 
         assertEquals(123, repo.getLastKnowledgeOfServer(account))
@@ -39,7 +39,7 @@ internal class FileBasedLastKnowledgeOfServerRepositoryTest {
 
         val file = File.createTempFile("saveLastKnowledgeOfServer", null)
         createPropFile(file, mapOf("account_id_1" to 123, "account_id_2" to 5))
-        val repo = FileBasedLastKnowledgeOfServerRepository(file)
+        val repo = PropertiesLastKnowledgeOfServerRepository(file)
         file.delete()
 
         repo.saveLastKnowledgeOfServer(account, 10)
@@ -52,12 +52,12 @@ internal class FileBasedLastKnowledgeOfServerRepositoryTest {
         val account = Account("account_id_2", "name", 0L, false, Account.Type.CHECKING)
 
         val file = File.createTempFile("saveChanges", null)
-        val repo = FileBasedLastKnowledgeOfServerRepository(file)
+        val repo = PropertiesLastKnowledgeOfServerRepository(file)
 
         repo.saveLastKnowledgeOfServer(account, 9)
         repo.saveChanges()
 
-        val repo2 = FileBasedLastKnowledgeOfServerRepository(file)
+        val repo2 = PropertiesLastKnowledgeOfServerRepository(file)
 
         assertEquals(9, repo2.getLastKnowledgeOfServer(account))
 

@@ -12,7 +12,7 @@ import com.pissiphany.bany.adapter.mapper.*
 import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.adapter.presenter.Presenter
 import com.pissiphany.bany.adapter.repository.ConfigurationRepositoryImpl
-import com.pissiphany.bany.adapter.repository.FileBasedLastKnowledgeOfServerRepository
+import com.pissiphany.bany.adapter.repository.PropertiesLastKnowledgeOfServerRepository
 import com.pissiphany.bany.adapter.view.ConsoleView
 import com.pissiphany.bany.dataStructure.BanyConfig
 import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase
@@ -55,7 +55,7 @@ fun main() {
     val ynabBudgetAccountsGateway = YnabBudgetAccountsGatewayImpl(ynabApiService, YnabBudgetMapper(), YnabAccountMapper())
     val getBudgetAccounts = GetBudgetAccounts(configurationRepository, ynabBudgetAccountsGateway)
 
-    val lastKnowledgeOfServerRepository = FileBasedLastKnowledgeOfServerRepository(LAST_KNOWLEDGE_OF_SERVER_FILE)
+    val lastKnowledgeOfServerRepository = PropertiesLastKnowledgeOfServerRepository(LAST_KNOWLEDGE_OF_SERVER_FILE)
     val mostRecentTransactionsGateway = YnabMostRecentTransactionsGatewayImpl(
         ynabApiService, YnabBudgetMapper(), YnabAccountMapper(), YnabTransactionMapper()
     )

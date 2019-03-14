@@ -7,7 +7,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-class FileBasedLastKnowledgeOfServerRepository(private val pathToProperties: File) : YnabLastKnowledgeOfServerRepository {
+class PropertiesLastKnowledgeOfServerRepository(private val pathToProperties: File) : YnabLastKnowledgeOfServerRepository {
     private val properties = Properties()
 
     init {

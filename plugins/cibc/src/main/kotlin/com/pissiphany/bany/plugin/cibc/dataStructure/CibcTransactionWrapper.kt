@@ -8,16 +8,16 @@ data class CibcTransactionWrapper(val transactions: List<CibcTransaction> = empt
         val descriptionLine1: String,
         val transactionDescription: String,
         val credit: String,
-        val debit: String,
-        val transactionType: CibcTransactionType
+        val debit: String
+//        val transactionType: CibcTransactionType
     )
-    enum class CibcTransactionType {
-        DEP, // deposit
-        XFR, // transfer
-        PAY, // payment
-        POS, // ???
-        INT, // interest
-        CHQ, // cheque
-        CRE  // credit
-    }
+//    enum class CibcTransactionType {
+//        DEP, // deposit
+//        XFR, // transfer
+//        PAY, // payment
+//        POS, // ???
+//        INT, // interest
+//        CHQ, // cheque
+//        CRE  // credit
+//    }
 }

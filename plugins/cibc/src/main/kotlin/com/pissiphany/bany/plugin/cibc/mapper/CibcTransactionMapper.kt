@@ -9,7 +9,7 @@ class CibcTransactionMapper {
     fun toBanyPluginTransaction(cibcTransaction: CibcTransactionWrapper.CibcTransaction): BanyPluginTransaction {
         return BanyPluginTransaction(
             id = cibcTransaction.id,
-            date = LocalDate.parse(cibcTransaction.date, DateTimeFormatter.ISO_LOCAL_DATE),
+            date = LocalDate.parse(cibcTransaction.date, DateTimeFormatter.ISO_OFFSET_DATE_TIME),
             amount = 0L // TODO find transaction value
         )
     }

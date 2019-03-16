@@ -13,20 +13,13 @@ import okhttp3.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-private const val ACCEPT_HEADER = "accept"
-private const val ACCEPT_LANGUAGE_HEADER = "accept-language"
-private const val USER_AGENT_HEADER = "user-agent"
-private const val USER_AGENT_HEADER_VALUE = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36"
+private const val BRAND_HEADER = "brand"
+private const val CONTENT_TYPE_HEADER_VALUE = "application/json"
 private const val X_AUTH_TOKEN_HEADER = "x-auth-token"
 
 typealias AccountId = String
 typealias XAuthToken = String
 
-// TODO create a factory extension point interface
-// TODO instances of this interface will have one method that instantiates and returns
-// TODO ThirdPartyTransactionService (or similar) instances. This will allow me to
-// TODO create transaction gateways that accept all dependencies via the constructor
-// TOOD making them far more testable
 class CibcTransactionService(
     private val credentials: BanyPlugin.Credentials,
     private val env: Environment,
@@ -39,8 +32,7 @@ class CibcTransactionService(
     private var accounts: Map<AccountId, CibcAccountsWrapper.CibcAccount> = emptyMap()
 
     override fun setup(): Boolean {
-        seedCookieJar("foo") // TODO load static payload from disk
-        seedCookieJar("bar")
+        fetchAppConfig()
 
         token = authenticate() ?: return false
         accounts = fetchAccounts()
@@ -48,24 +40,18 @@ class CibcTransactionService(
         return accounts.isNotEmpty()
     }
 
-    private fun seedCookieJar(payload: String) {
-        val mediaType = MediaType.parse("text/plain;charset=UTF-8")
-        val body = RequestBody.create(mediaType, payload)
-
+    private fun fetchAppConfig() {
         val request = Request.Builder()
-            .url(env.staticUrl)
-            .post(body)
-            .addHeader(ACCEPT_HEADER, "*/*")
-            .addHeader(ACCEPT_LANGUAGE_HEADER, "en-US,en;q=0.9")
-            .addHeader(USER_AGENT_HEADER, USER_AGENT_HEADER_VALUE)
+            .url(env.appConfigUrl)
+            .get()
+            .addHeader(BRAND_HEADER, env.brand)
             .build()
 
-        client
-            .newCall(request)
-            .execute()
-            .use { response ->
-                if (response.code() != 201) throw UnexpectedResponseException("expected 201, received ${response.code()}")
+        client.newCall(request).execute().use { reponse ->
+            if (reponse.code() != 200) {
+                // TODO proceed but log the error
             }
+        }
     }
 
     private fun authenticate(): XAuthToken? {
@@ -82,27 +68,14 @@ class CibcTransactionService(
             )
         )
 
-        val contentType = "application/vnd.api+json"
-        val mediaType = MediaType.parse(contentType)
+        val mediaType = MediaType.parse(CONTENT_TYPE_HEADER_VALUE)
         val body = RequestBody.create(mediaType, json)
 
         val request = Request.Builder()
             .url(env.authUrl)
             .post(body)
-            .addHeader(ACCEPT_HEADER, contentType)
-            .addHeader("accept-encoding", "gzip, deflate, br")
-            .addHeader(ACCEPT_LANGUAGE_HEADER, "en")
-            .addHeader("brand", env.brand)
-            .addHeader("client-type", "default_web")
-            .addHeader("content-type", contentType)
-            .addHeader("dnt", "1")
-            .addHeader("host", env.host)
-            .addHeader("origin", env.baseUrl)
-            .addHeader("referer", env.refererUrl)
-            .addHeader(USER_AGENT_HEADER, USER_AGENT_HEADER_VALUE)
             .addHeader("www-authenticate", "CardAndPassword")
-            .addHeader(X_AUTH_TOKEN_HEADER, "")
-            .addHeader("x-requested-with", "XMLHttpRequest")
+            .addRequiredHeaders()
             .build()
 
         return client
@@ -117,7 +90,7 @@ class CibcTransactionService(
         val request = Request.Builder()
             .url(env.accountsUrl)
             .get()
-            .addHeader(X_AUTH_TOKEN_HEADER, token)
+            .addRequiredHeaders()
             .build()
 
         return client
@@ -125,7 +98,12 @@ class CibcTransactionService(
             .execute()
             .use(
                 fun(response): Map<AccountId, CibcAccountsWrapper.CibcAccount> {
-                    val json = response.body()?.string() ?: ""
+                    if (response.code() != 200) {
+                        // TODO log / throw??
+                    }
+
+                    // TODO log
+                    val json = response.body()?.string() ?: return emptyMap()
 
                     val adapter = moshi.adapter(CibcAccountsWrapper::class.java)
                     return adapter.fromJson(json)
@@ -142,12 +120,13 @@ class CibcTransactionService(
         val request = Request.Builder()
             .url(env.authUrl)
             .delete()
-            .addHeader(X_AUTH_TOKEN_HEADER, token)
+            .addRequiredHeaders()
             .build()
 
         client
             .newCall(request)
             .execute()
+            .close() // TODO log response code
 
         token = ""
     }
@@ -162,18 +141,17 @@ class CibcTransactionService(
     override fun getNewBanyPluginTransactionsSince(
         ynabBudgetAccountIds: YnabBudgetAccountIds, date: LocalDate?
     ): List<BanyPluginTransaction> {
-        val accountId = getAccountId(ynabBudgetAccountIds)
-        var builder = HttpUrl.get(env.transactionsUrl).newBuilder()
+        val accountId = getInternalAccountId(ynabBudgetAccountIds)
+        var builder = HttpUrl
+            .get(env.transactionsUrl)
+            .newBuilder()
             .addQueryParameter("accountId", accountId)
             .addQueryParameter("filterBy", "range")
             .addQueryParameter("lastFilterBy", "range")
             .addQueryParameter("limit", "1000")
-            .addQueryParameter("lowerLimitAmount", "")
             .addQueryParameter("offset", "0")
             .addQueryParameter("sortAsc", "true")
             .addQueryParameter("sortByField", "date")
-            .addQueryParameter("transactionType", "")
-            .addQueryParameter("upperLimitAmount", "")
 
         if (date != null) {
             val now = LocalDate.now()
@@ -185,7 +163,7 @@ class CibcTransactionService(
         val request = Request.Builder()
             .url(builder.build())
             .get()
-            .addHeader(X_AUTH_TOKEN_HEADER, token)
+            .addRequiredHeaders()
             .build()
 
         return client
@@ -193,6 +171,13 @@ class CibcTransactionService(
             .execute()
             .use(
                 fun(response): List<BanyPluginTransaction> {
+                    if (response.code() == 422) { // no results
+                        return emptyList()
+                    } else if (response.code() != 200) {
+                        // TODO log / throw error
+                        return emptyList()
+                    }
+
                     val json = response.body()?.string() ?: return emptyList()
 
                     val adapter = moshi.adapter(CibcTransactionWrapper::class.java)
@@ -204,18 +189,24 @@ class CibcTransactionService(
             )
     }
 
-    private fun getAccountId(ynabBudgetAccountIds: YnabBudgetAccountIds): AccountId {
+    private fun getInternalAccountId(ynabBudgetAccountIds: YnabBudgetAccountIds): AccountId {
         for (connection in credentials.connections) {
             if (connection.ynabBudgetId == ynabBudgetAccountIds.ynabBudgetId
                 && connection.ynabAccountId == ynabBudgetAccountIds.ynabAccountId) {
-                return connection.thirdPartyAccountId
+                if (connection.thirdPartyAccountId in accounts) {
+                    return accounts.getValue(connection.thirdPartyAccountId).id
+                }
             }
         }
 
-        throw UnknownYnabBudgetAndAccountException("no credentials found for: $ynabBudgetAccountIds")
+        throw IllegalArgumentException("no credentials found for: $ynabBudgetAccountIds")
     }
 
-    class UnexpectedResponseException(message: String, cause: Throwable? = null) : Throwable(message, cause)
-    class UnknownYnabBudgetAndAccountException(message: String) : Throwable(message)
+    private fun Request.Builder.addRequiredHeaders() =
+        this.addHeader("accept", CONTENT_TYPE_HEADER_VALUE)
+            .addHeader("accept-language", "en")
+            .addHeader(BRAND_HEADER, env.brand)
+            .addHeader("content-type", CONTENT_TYPE_HEADER_VALUE)
+            .also { if (token.isNotBlank()) addHeader(X_AUTH_TOKEN_HEADER, token) }
 }
 

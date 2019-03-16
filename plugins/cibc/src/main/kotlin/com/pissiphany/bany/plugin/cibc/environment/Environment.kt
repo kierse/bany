@@ -1,8 +1,6 @@
 package com.pissiphany.bany.plugin.cibc.environment
 
 interface Environment {
-    val name: String
-
     val baseUrl: String
     val staticUrl: String
     val authUrl: String

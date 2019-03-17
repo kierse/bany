@@ -15,24 +15,23 @@ import java.time.format.DateTimeFormatter
 
 private const val BRAND_HEADER = "brand"
 private const val CONTENT_TYPE_HEADER_VALUE = "application/json"
-private const val X_AUTH_TOKEN_HEADER = "x-auth-token"
+internal const val X_AUTH_TOKEN_HEADER = "x-auth-token"
 
 typealias AccountId = String
 typealias XAuthToken = String
 
-class CibcTransactionService(
+internal class CibcTransactionService(
     private val credentials: BanyPlugin.Credentials,
     private val env: Environment,
     private val moshi: Moshi,
-    private val client: OkHttpClient,
+    private val client: (request: Request) -> Response,
     private val mapper: CibcTransactionMapper
 ) : BanyPlugin {
-
     private var token: String = ""
     private var accounts: Map<AccountId, CibcAccountsWrapper.CibcAccount> = emptyMap()
 
     override fun setup(): Boolean {
-        fetchAppConfig()
+        if (!fetchAppConfig()) return false
 
         token = authenticate() ?: return false
         accounts = fetchAccounts()
@@ -40,18 +39,21 @@ class CibcTransactionService(
         return accounts.isNotEmpty()
     }
 
-    private fun fetchAppConfig() {
+    private fun fetchAppConfig(): Boolean {
         val request = Request.Builder()
             .url(env.appConfigUrl)
             .get()
             .addHeader(BRAND_HEADER, env.brand)
             .build()
 
-        client.newCall(request).execute().use { reponse ->
-            if (reponse.code() != 200) {
+        client(request).use { response ->
+            if (response.code() != 200) {
                 // TODO proceed but log the error
+                return false
             }
         }
+
+        return true
     }
 
     private fun authenticate(): XAuthToken? {
@@ -78,9 +80,7 @@ class CibcTransactionService(
             .addRequiredHeaders()
             .build()
 
-        return client
-            .newCall(request)
-            .execute()
+        return client(request)
             .use { response ->
                 response.header(X_AUTH_TOKEN_HEADER)
             }
@@ -93,13 +93,12 @@ class CibcTransactionService(
             .addRequiredHeaders()
             .build()
 
-        return client
-            .newCall(request)
-            .execute()
+        return client(request)
             .use(
                 fun(response): Map<AccountId, CibcAccountsWrapper.CibcAccount> {
                     if (response.code() != 200) {
                         // TODO log / throw??
+                        return emptyMap()
                     }
 
                     // TODO log
@@ -123,9 +122,7 @@ class CibcTransactionService(
             .addRequiredHeaders()
             .build()
 
-        client
-            .newCall(request)
-            .execute()
+        client(request)
             .close() // TODO log response code
 
         token = ""
@@ -166,9 +163,7 @@ class CibcTransactionService(
             .addRequiredHeaders()
             .build()
 
-        return client
-            .newCall(request)
-            .execute()
+        return client(request)
             .use(
                 fun(response): List<BanyPluginTransaction> {
                     if (response.code() == 422) { // no results

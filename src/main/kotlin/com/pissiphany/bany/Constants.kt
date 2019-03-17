@@ -1,4 +1,4 @@
-package com.pissiphany.bany.adapter
+package com.pissiphany.bany
 
 import java.io.File
 

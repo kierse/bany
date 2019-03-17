@@ -1,7 +1,7 @@
 package com.pissiphany.bany.service
 
-import com.pissiphany.bany.adapter.BASE_URL
-import com.pissiphany.bany.adapter.Constants.CONFIG_FILE
+import com.pissiphany.bany.BASE_URL
+import com.pissiphany.bany.Constants.CONFIG_FILE
 import com.pissiphany.bany.dataStructure.BanyConfig
 import com.pissiphany.bany.json.DataEnvelopeFactory
 import com.pissiphany.bany.json.LocalDateTimeAdapter

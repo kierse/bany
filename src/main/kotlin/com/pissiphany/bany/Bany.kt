@@ -1,8 +1,7 @@
 package com.pissiphany.bany
 
-import com.pissiphany.bany.adapter.BASE_URL
-import com.pissiphany.bany.adapter.Constants.CONFIG_FILE
-import com.pissiphany.bany.adapter.Constants.LAST_KNOWLEDGE_OF_SERVER_FILE
+import com.pissiphany.bany.Constants.CONFIG_FILE
+import com.pissiphany.bany.Constants.LAST_KNOWLEDGE_OF_SERVER_FILE
 import com.pissiphany.bany.adapter.controller.SyncTransactionsWithYnabController
 import com.pissiphany.bany.adapter.factory.ThirdPartyTransactionGatewayFactoryImpl
 import com.pissiphany.bany.adapter.gateway.YnabBudgetAccountsGatewayImpl

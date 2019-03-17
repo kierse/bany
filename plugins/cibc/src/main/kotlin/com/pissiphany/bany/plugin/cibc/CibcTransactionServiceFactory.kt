@@ -2,9 +2,7 @@ package com.pissiphany.bany.plugin.cibc
 
 import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.plugin.BanyPluginFactory
-import com.pissiphany.bany.plugin.cibc.adapter.CibcAccountsWrapperAdapter
 import com.pissiphany.bany.plugin.cibc.environment.CibcEnvironment
-import com.pissiphany.bany.plugin.cibc.environment.Environment
 import com.pissiphany.bany.plugin.cibc.environment.SimpliiEnvironment
 import com.pissiphany.bany.plugin.cibc.mapper.CibcTransactionMapper
 import com.squareup.moshi.Moshi
@@ -22,12 +20,9 @@ class CibcTransactionServiceFactory : BanyPluginFactory {
     override val pluginNames = setOf(CIBC, SIMPLII)
 
     override fun createPlugin(pluginName: String, credentials: BanyPlugin.Credentials): BanyPlugin {
-        val builder = Moshi.Builder()
-            .add(CibcAccountsWrapperAdapter())
-
         val env = when (pluginName) {
             CIBC -> CibcEnvironment()
-            SIMPLII -> configureSimplii(builder)
+            SIMPLII -> SimpliiEnvironment()
             else -> throw IllegalArgumentException("unknown/unsupported plugin '$pluginName'")
         }
 
@@ -38,12 +33,7 @@ class CibcTransactionServiceFactory : BanyPluginFactory {
             .build()
 
         return CibcTransactionService(
-            credentials, env, builder.build(), client, CibcTransactionMapper()
+            credentials, env, Moshi.Builder().build(), { client.newCall(it).execute() }, CibcTransactionMapper()
         )
-    }
-
-    private fun configureSimplii(builder: Moshi.Builder): Environment {
-        builder.add(CibcAccountsWrapperAdapter())
-        return SimpliiEnvironment()
     }
 }

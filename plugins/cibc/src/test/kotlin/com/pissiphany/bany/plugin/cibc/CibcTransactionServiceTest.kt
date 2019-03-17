@@ -1,7 +1,6 @@
 package com.pissiphany.bany.plugin.cibc
 
 import com.pissiphany.bany.plugin.BanyPlugin
-import com.pissiphany.bany.plugin.cibc.adapter.CibcAccountsWrapperAdapter
 import com.pissiphany.bany.plugin.cibc.environment.CibcEnvironment
 import com.pissiphany.bany.plugin.cibc.environment.Environment
 import com.pissiphany.bany.plugin.cibc.environment.SimpliiEnvironment

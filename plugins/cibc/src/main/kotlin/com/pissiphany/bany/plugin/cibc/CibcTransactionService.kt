@@ -138,27 +138,9 @@ internal class CibcTransactionService(
     override fun getNewBanyPluginTransactionsSince(
         ynabBudgetAccountIds: YnabBudgetAccountIds, date: LocalDate?
     ): List<BanyPluginTransaction> {
-        val accountId = getInternalAccountId(ynabBudgetAccountIds)
-        var builder = HttpUrl
-            .get(env.transactionsUrl)
-            .newBuilder()
-            .addQueryParameter("accountId", accountId)
-            .addQueryParameter("filterBy", "range")
-            .addQueryParameter("lastFilterBy", "range")
-            .addQueryParameter("limit", "1000")
-            .addQueryParameter("offset", "0")
-            .addQueryParameter("sortAsc", "true")
-            .addQueryParameter("sortByField", "date")
-
-        if (date != null) {
-            val now = LocalDate.now()
-            builder = builder
-                .addQueryParameter("fromDate", date.format(DateTimeFormatter.ISO_LOCAL_DATE))
-                .addQueryParameter("toDate", now.format(DateTimeFormatter.ISO_LOCAL_DATE))
-        }
-
+        val url = buildTransactionsRequestUrl(ynabBudgetAccountIds, date)
         val request = Request.Builder()
-            .url(builder.build())
+            .url(url)
             .get()
             .addRequiredHeaders()
             .build()
@@ -182,6 +164,28 @@ internal class CibcTransactionService(
                         ?: emptyList()
                 }
             )
+    }
+
+    private fun buildTransactionsRequestUrl(ynabBudgetAccountIds: YnabBudgetAccountIds, date: LocalDate?): HttpUrl {
+        val accountId = getInternalAccountId(ynabBudgetAccountIds)
+        val builder = HttpUrl
+            .get(env.transactionsUrl)
+            .newBuilder()
+            .addQueryParameter("accountId", accountId)
+            .addQueryParameter("filterBy", "range")
+            .addQueryParameter("lastFilterBy", "range")
+            .addQueryParameter("limit", "1000")
+            .addQueryParameter("offset", "0")
+            .addQueryParameter("sortAsc", "true")
+            .addQueryParameter("sortByField", "date")
+
+        if (date != null) {
+            val now = LocalDate.now()
+            builder.addQueryParameter("fromDate", date.format(DateTimeFormatter.ISO_LOCAL_DATE))
+                   .addQueryParameter("toDate", now.format(DateTimeFormatter.ISO_LOCAL_DATE))
+        }
+
+        return builder.build()
     }
 
     private fun getInternalAccountId(ynabBudgetAccountIds: YnabBudgetAccountIds): AccountId {

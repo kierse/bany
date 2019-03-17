@@ -6,7 +6,6 @@ import com.pissiphany.bany.domain.dataStructure.Transaction
 import com.pissiphany.bany.domain.gateway.YnabMostRecentTransactionsGateway
 import com.pissiphany.bany.domain.repository.YnabLastKnowledgeOfServerRepository
 import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase
-import java.lang.IllegalArgumentException
 
 class GetMostRecentTransaction(
     private val ynabCache: YnabLastKnowledgeOfServerRepository,

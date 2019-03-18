@@ -3,8 +3,9 @@ package com.pissiphany.bany.service
 import com.pissiphany.bany.BASE_URL
 import com.pissiphany.bany.Constants.CONFIG_FILE
 import com.pissiphany.bany.dataStructure.BanyConfig
-import com.pissiphany.bany.json.DataEnvelopeFactory
-import com.pissiphany.bany.json.OffsetDateTimeAdapter
+import com.pissiphany.bany.factory.DataEnvelopeFactory
+import com.pissiphany.bany.adapter.OffsetDateTimeAdapter
+import com.pissiphany.bany.factory.RetrofitFactory
 import com.squareup.moshi.Moshi
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*

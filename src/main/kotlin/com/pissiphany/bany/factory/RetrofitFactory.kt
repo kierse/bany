@@ -1,4 +1,4 @@
-package com.pissiphany.bany.service
+package com.pissiphany.bany.factory
 
 import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient

@@ -19,13 +19,13 @@ import com.pissiphany.bany.domain.useCase.step.GetBudgetAccounts
 import com.pissiphany.bany.domain.useCase.step.GetMostRecentTransaction
 import com.pissiphany.bany.domain.useCase.step.GetNewTransactions
 import com.pissiphany.bany.domain.useCase.step.SaveNewTransactions
-import com.pissiphany.bany.json.DataEnvelopeFactory
-import com.pissiphany.bany.json.OffsetDateTimeAdapter
+import com.pissiphany.bany.factory.DataEnvelopeFactory
+import com.pissiphany.bany.adapter.OffsetDateTimeAdapter
 import com.pissiphany.bany.mapper.RetrofitAccountMapper
 import com.pissiphany.bany.mapper.RetrofitBudgetMapper
 import com.pissiphany.bany.mapper.RetrofitTransactionMapper
 import com.pissiphany.bany.plugin.BanyPluginFactory
-import com.pissiphany.bany.service.RetrofitFactory
+import com.pissiphany.bany.factory.RetrofitFactory
 import com.pissiphany.bany.service.RetrofitYnabService
 import com.pissiphany.bany.service.RetrofitYnabApiService
 import com.squareup.moshi.Moshi

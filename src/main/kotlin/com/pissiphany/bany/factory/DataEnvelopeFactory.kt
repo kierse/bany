@@ -1,4 +1,4 @@
-package com.pissiphany.bany.json
+package com.pissiphany.bany.factory
 
 import com.pissiphany.bany.annotation.DataEnvelope
 import com.squareup.moshi.*

@@ -1,4 +1,4 @@
-package com.pissiphany.bany.json
+package com.pissiphany.bany.adapter
 
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.ToJson

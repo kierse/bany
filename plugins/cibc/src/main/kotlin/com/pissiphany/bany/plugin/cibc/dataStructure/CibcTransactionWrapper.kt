@@ -1,6 +1,7 @@
 package com.pissiphany.bany.plugin.cibc.dataStructure
 
 import com.squareup.moshi.JsonClass
+import java.time.OffsetDateTime
 
 @JsonClass(generateAdapter = true)
 data class CibcTransactionWrapper(val transactions: List<CibcTransaction> = emptyList()) {
@@ -8,7 +9,7 @@ data class CibcTransactionWrapper(val transactions: List<CibcTransaction> = empt
     data class CibcTransaction(
         val id: String,
         val accountId: String,
-        val date: String,
+        val date: OffsetDateTime,
         val descriptionLine1: String,
         val transactionDescription: String,
         val credit: String? = null,

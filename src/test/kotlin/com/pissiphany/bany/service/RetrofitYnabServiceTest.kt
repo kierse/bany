@@ -4,7 +4,7 @@ import com.pissiphany.bany.BASE_URL
 import com.pissiphany.bany.Constants.CONFIG_FILE
 import com.pissiphany.bany.dataStructure.BanyConfig
 import com.pissiphany.bany.json.DataEnvelopeFactory
-import com.pissiphany.bany.json.LocalDateTimeAdapter
+import com.pissiphany.bany.json.OffsetDateTimeAdapter
 import com.squareup.moshi.Moshi
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
@@ -19,7 +19,7 @@ class RetrofitYnabServiceTest {
         internal fun setup() {
             val moshi = Moshi.Builder()
                 .add(DataEnvelopeFactory())
-                .add(LocalDateTimeAdapter())
+                .add(OffsetDateTimeAdapter())
                 .build()
             val adapter = moshi.adapter(BanyConfig::class.java)
             val config = adapter.fromJson(CONFIG_FILE.readText()) ?: throw UnknownError("unable to read config file!")

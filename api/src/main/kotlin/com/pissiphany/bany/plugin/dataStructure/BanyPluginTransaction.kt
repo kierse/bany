@@ -1,5 +1,9 @@
 package com.pissiphany.bany.plugin.dataStructure
 
-import java.time.LocalDate
+import java.time.OffsetDateTime
 
-class BanyPluginTransaction(val id: String, val date: LocalDate, val amount: Long)
+data class BanyPluginTransaction(
+    val id: String,
+    val date: OffsetDateTime,
+    val amount: Long
+)

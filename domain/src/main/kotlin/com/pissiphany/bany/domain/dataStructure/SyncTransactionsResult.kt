@@ -1,7 +1,10 @@
 package com.pissiphany.bany.domain.dataStructure
 
-import java.time.LocalDate
+import java.time.OffsetDateTime
 
 data class SyncTransactionsResult(
-    val budget: Budget, val account: Account, val dateOfLastTransaction: LocalDate?, val transactions: List<Transaction>
+    val budget: Budget,
+    val account: Account,
+    val dateOfLastTransaction: OffsetDateTime?,
+    val transactions: List<Transaction>
 )

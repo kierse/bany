@@ -20,8 +20,7 @@ import com.pissiphany.bany.domain.useCase.step.GetMostRecentTransaction
 import com.pissiphany.bany.domain.useCase.step.GetNewTransactions
 import com.pissiphany.bany.domain.useCase.step.SaveNewTransactions
 import com.pissiphany.bany.json.DataEnvelopeFactory
-import com.pissiphany.bany.json.LocalDateAdapter
-import com.pissiphany.bany.json.LocalDateTimeAdapter
+import com.pissiphany.bany.json.OffsetDateTimeAdapter
 import com.pissiphany.bany.mapper.RetrofitAccountMapper
 import com.pissiphany.bany.mapper.RetrofitBudgetMapper
 import com.pissiphany.bany.mapper.RetrofitTransactionMapper
@@ -36,8 +35,7 @@ import java.lang.IllegalStateException
 fun main() {
     val moshi = Moshi.Builder()
         .add(DataEnvelopeFactory())
-        .add(LocalDateTimeAdapter())
-        .add(LocalDateAdapter())
+        .add(OffsetDateTimeAdapter())
         .build()
 
     val adapter = moshi.adapter(BanyConfig::class.java)

@@ -2,6 +2,8 @@ package com.pissiphany.bany.domain.useCase
 
 import com.pissiphany.bany.domain.dataStructure.*
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 class SyncThirdPartyTransactionsUseCase(
     private val budgetAccounts: Step1GetBudgetAccounts,
@@ -39,11 +41,11 @@ class SyncThirdPartyTransactionsUseCase(
 
     private fun syncNewThirdPartyTransactions(
         budget: Budget, account: Account
-    ): Pair<LocalDate?, List<Transaction>> {
+    ): Pair<OffsetDateTime?, List<Transaction>> {
         val transaction = mostRecentTransaction.getTransaction(budget, account)
 
         val date = transaction?.date
-        val newTransactions = newTransactions.getTransactions(budget, account, date)
+        val newTransactions = newTransactions.getTransactions(budget, account, date?.toLocalDate())
 
         saveTransactions.saveTransactions(budget, account, newTransactions)
 

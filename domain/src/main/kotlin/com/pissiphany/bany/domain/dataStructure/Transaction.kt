@@ -1,6 +1,9 @@
 package com.pissiphany.bany.domain.dataStructure
 
-import java.time.LocalDate
+import java.time.OffsetDateTime
 
-
-data class Transaction(val id: String, val date: LocalDate, val amount: Long)
+data class Transaction(
+    val id: String,
+    val date: OffsetDateTime,
+    val amount: Long
+)

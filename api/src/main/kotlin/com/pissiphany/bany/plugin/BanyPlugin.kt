@@ -8,6 +8,7 @@ interface BanyPlugin {
     fun setup(): Boolean
     fun tearDown()
 
+    // TODO should take/return BanyPlugin* here not Ynab*
     fun getYnabBudgetAccountIds(): List<YnabBudgetAccountIds>
     fun getNewBanyPluginTransactionsSince(
         ynabBudgetAccountIds: YnabBudgetAccountIds, date: LocalDate?

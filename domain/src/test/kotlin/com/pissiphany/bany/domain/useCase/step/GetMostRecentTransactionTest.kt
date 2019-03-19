@@ -10,17 +10,18 @@ import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
 import java.time.LocalDate
+import java.time.OffsetDateTime
 
 internal class GetMostRecentTransactionTest {
 
     @Test
     fun getTransaction() {
         val budget = Budget("budgetId", "name")
-        val account = Account("accountId", "name", 1L, false, Account.Type.CHECKING)
+        val account = Account("accountId", "name", 1, false, Account.Type.CHECKING)
 
         val transactions = listOf(
-            Transaction("transactionId1", LocalDate.now(), 10L),
-            Transaction("transactionId2", LocalDate.now(), 15L)
+            Transaction("transactionId1", OffsetDateTime.now(), "payee", "memo", 10),
+            Transaction("transactionId2", OffsetDateTime.now(), "payee", "memo", 15)
         )
 
         val cache = TestRepo()

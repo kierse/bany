@@ -8,17 +8,21 @@ class YnabTransactionMapper {
     fun toYnabTransaction(transaction: Transaction, account: Account): YnabTransaction {
         return YnabTransaction(
             id = transaction.id,
-            accountId = account.id,
-            amount = transaction.amount,
-            date = transaction.date
+            accountId =  account.id,
+            date = transaction.date,
+            payee = transaction.payee,
+            memo = transaction.memo,
+            amountInMilliUnits = transaction.amountInCents * 10
         )
     }
 
     fun toTransaction(ynabTransaction: YnabTransaction): Transaction {
         return Transaction(
             id = ynabTransaction.id,
-            amount = ynabTransaction.amount,
-            date = ynabTransaction.date
+            date = ynabTransaction.date,
+            payee = ynabTransaction.payee,
+            memo = ynabTransaction.memo,
+            amountInCents = ynabTransaction.amountInMilliUnits / 10
         )
     }
 }

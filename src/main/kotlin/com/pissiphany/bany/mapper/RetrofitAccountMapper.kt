@@ -8,7 +8,7 @@ class RetrofitAccountMapper {
         return YnabAccount(
             id = account.id,
             name = account.name,
-            balance = account.balance,
+            balanceInMilliUnits = account.balance,
             closed = account.closed,
             type = account.type
         )

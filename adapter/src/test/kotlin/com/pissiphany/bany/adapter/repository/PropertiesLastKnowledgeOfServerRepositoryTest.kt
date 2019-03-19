@@ -10,7 +10,7 @@ import java.util.*
 internal class PropertiesLastKnowledgeOfServerRepositoryTest {
     @Test
     fun getLastKnowledgeOfServer__empty_file() {
-        val account = Account("account_id_1", "name", 0L, false, Account.Type.CHECKING)
+        val account = Account("account_id_1", "name", 0, false, Account.Type.CHECKING)
 
         val nonExistentFile = File(System.getProperty("java.io.tmpdir"), "foo-bar.tmp")
         val repo = PropertiesLastKnowledgeOfServerRepository(nonExistentFile)
@@ -23,7 +23,7 @@ internal class PropertiesLastKnowledgeOfServerRepositoryTest {
 
     @Test
     fun getLastKnowledgeOfServer__file_exists() {
-        val account = Account("account_id_1", "name", 0L, false, Account.Type.CHECKING)
+        val account = Account("account_id_1", "name", 0, false, Account.Type.CHECKING)
 
         val file = File.createTempFile("getLastKnowledgeOfServer__file_exists", null)
         createPropFile(file, mapOf("account_id_1" to 123, "account_id_2" to 5))
@@ -35,7 +35,7 @@ internal class PropertiesLastKnowledgeOfServerRepositoryTest {
 
     @Test
     fun saveLastKnowledgeOfServer() {
-        val account = Account("account_id_2", "name", 0L, false, Account.Type.CHECKING)
+        val account = Account("account_id_2", "name", 0, false, Account.Type.CHECKING)
 
         val file = File.createTempFile("saveLastKnowledgeOfServer", null)
         createPropFile(file, mapOf("account_id_1" to 123, "account_id_2" to 5))
@@ -49,7 +49,7 @@ internal class PropertiesLastKnowledgeOfServerRepositoryTest {
 
     @Test
     fun saveChanges() {
-        val account = Account("account_id_2", "name", 0L, false, Account.Type.CHECKING)
+        val account = Account("account_id_2", "name", 0, false, Account.Type.CHECKING)
 
         val file = File.createTempFile("saveChanges", null)
         val repo = PropertiesLastKnowledgeOfServerRepository(file)

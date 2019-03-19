@@ -11,14 +11,15 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertAll
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 internal class PresenterTest {
     private lateinit var budget: Budget
     private lateinit var account: Account
     private lateinit var transaction: Transaction
-    private lateinit var date: LocalDate
+    private lateinit var date: OffsetDateTime
     private lateinit var results: List<SyncTransactionsResult>
     private lateinit var view: TestView
     private lateinit var model: ViewModel
@@ -26,12 +27,17 @@ internal class PresenterTest {
     @BeforeEach
     fun setup() {
         budget = Budget(id = "budgetId", name = "budgetName")
-        account = Account(id = "accountId", name = "name", balance = 2L, type = Account.Type.CHECKING, closed = false)
+        account = Account(id = "accountId", name = "name", balanceInCents = 200, type = Account.Type.CHECKING, closed = false)
 
-        // Note: using LocalDate.EPOCH here fails when running tests with gradle on the command line. No idea why
-        date = LocalDate.of(1970, 1, 1)
+        date = OffsetDateTime.of(1970,1,1,0,0,0,0, ZoneOffset.UTC)
 
-        transaction = Transaction(id = "transactionId", date = date.plusDays(1), amount = 3L)
+        transaction = Transaction(
+            id = "transactionId",
+            date = date.plusDays(1),
+            amountInCents = 300,
+            payee = "payee",
+            memo = "memo"
+        )
         results = listOf(SyncTransactionsResult(
             budget, account, date, listOf(transaction)
         ))
@@ -82,10 +88,10 @@ internal class PresenterTest {
     @Test
     fun present__transactions() {
         assertAll("transactions",
-            { assertTrue(model.records[0].transactions[0].contains(transaction.id)) },
+            { assertTrue(model.records[0].transactions[0].contains(transaction.id!!)) },
             { assertTrue(model.records[0].transactions[0].contains(transaction.date.format(DateTimeFormatter.ISO_LOCAL_DATE))) },
             {
-                val bigDecimal = BigDecimal(transaction.amount).movePointLeft(3)
+                val bigDecimal = BigDecimal(transaction.amountInCents).movePointLeft(2)
                 assertTrue(model.records[0].transactions[0].contains(bigDecimal.toString()))
             }
         )

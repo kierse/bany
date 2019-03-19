@@ -8,7 +8,6 @@ import com.pissiphany.bany.adapter.gateway.YnabBudgetAccountsGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabMostRecentTransactionsGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabSaveTransactionsGatewayImpl
 import com.pissiphany.bany.adapter.mapper.*
-import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.adapter.presenter.Presenter
 import com.pissiphany.bany.adapter.repository.ConfigurationRepositoryImpl
 import com.pissiphany.bany.adapter.repository.PropertiesLastKnowledgeOfServerRepository
@@ -28,6 +27,7 @@ import com.pissiphany.bany.plugin.BanyPluginFactory
 import com.pissiphany.bany.factory.RetrofitFactory
 import com.pissiphany.bany.service.RetrofitYnabService
 import com.pissiphany.bany.service.RetrofitYnabApiService
+import com.pissiphany.bany.service.ThirdPartyTransactionServiceImpl
 import com.squareup.moshi.Moshi
 import org.pf4j.DefaultPluginManager
 import java.lang.IllegalStateException
@@ -63,8 +63,6 @@ fun main() {
 
     val presenter = Presenter(ConsoleView())
 
-    val pluginTransactionMapper = BanyPluginTransactionMapper()
-
     // plugins
     val pluginManager = DefaultPluginManager()
     val factoryMap = buildFactoryMap(pluginManager.getExtensions(BanyPluginFactory::class.java))
@@ -74,25 +72,26 @@ fun main() {
             credentialList.filter { it.enabled }
         }
 
-    val initializedPlugins = mutableListOf<BanyPlugin>()
+    val initializedServices = mutableListOf<ThirdPartyTransactionServiceImpl>()
     try {
         enabledPlugins.forEach(
             fun(pluginName, credentialList) {
-                // Note: above #mapValues call can lead to keys that point to empty lists
-                if (credentialList.isEmpty()) return
-
                 val factory = factoryMap[pluginName] ?: return // TODO log skipping this set of credentials
 
                 for (credentials in credentialList) {
                     val plugin = factory.createPlugin(pluginName, credentials)
-                    if (plugin.setup()) initializedPlugins.add(plugin)
+                    if (plugin.setup()) {
+                        initializedServices.add(
+                            ThirdPartyTransactionServiceImpl(plugin, BanyPluginTransactionMapper())
+                        )
+                    }
                 }
             }
         )
 
-        if (initializedPlugins.isEmpty()) throw IllegalStateException("No enabled plugins found!")
+        if (initializedServices.isEmpty()) throw IllegalStateException("No enabled plugins found!")
 
-        val gatewayFactory = ThirdPartyTransactionGatewayFactoryImpl(initializedPlugins, pluginTransactionMapper)
+        val gatewayFactory = ThirdPartyTransactionGatewayFactoryImpl(initializedServices, YnabTransactionMapper())
         val getNewTransactions = GetNewTransactions(gatewayFactory)
 
         val syncThirdPartyTransactionsUseCase = SyncThirdPartyTransactionsUseCase(
@@ -104,7 +103,7 @@ fun main() {
         // persist any changes to disk
         lastKnowledgeOfServerRepository.saveChanges()
     } finally {
-        initializedPlugins.forEach { it.tearDown() }
+        initializedServices.forEach { it.plugin.tearDown() }
     }
 
     // stop all active plugins
@@ -116,7 +115,7 @@ private fun buildFactoryMap(factories: List<BanyPluginFactory>): Map<String, Ban
     for (factory in factories) {
         for (pluginName in factory.pluginNames) {
             if (pluginName in map) {
-                throw DuplicatePluginConfigurationException("multiple factories report a plugin named of '$pluginName'")
+                throw DuplicatePluginConfigurationException("multiple factories report a plugin named '$pluginName'")
             }
 
             map[pluginName] = factory

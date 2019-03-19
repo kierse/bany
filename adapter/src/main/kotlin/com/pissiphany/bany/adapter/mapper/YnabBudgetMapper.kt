@@ -2,7 +2,7 @@ package com.pissiphany.bany.adapter.mapper
 
 import com.pissiphany.bany.adapter.dataStructure.YnabBudget
 import com.pissiphany.bany.domain.dataStructure.Budget
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 class YnabBudgetMapper {
     fun toBudget(ynabBudget: YnabBudget): Budget {
@@ -16,7 +16,7 @@ class YnabBudgetMapper {
         return YnabBudget(
             id = budget.id,
             name = budget.name,
-            lastModifiedOn = LocalDateTime.now() // TODO ???
+            lastModifiedOn = OffsetDateTime.now() // TODO ???
         )
     }
 }

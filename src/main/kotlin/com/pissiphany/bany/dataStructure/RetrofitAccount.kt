@@ -4,5 +4,9 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class RetrofitAccount(
-    val id: String, val name: String, val closed: Boolean, val balance: Long, val type: String
+    val id: String,
+    val name: String,
+    val closed: Boolean,
+    val balance: Int,
+    val type: String
 )

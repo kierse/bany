@@ -16,7 +16,10 @@ class DataEnvelopeFactory : JsonAdapter.Factory {
 
         val annotation = annotations.find { it is DataEnvelope } as? DataEnvelope
 
-        return DataEnvelopeJsonAdapter(delegate, annotation?.wrappers ?: 1)
+        return DataEnvelopeJsonAdapter(
+            delegate,
+            annotation?.wrappers ?: 1
+        )
     }
 
     private class DataEnvelopeJsonAdapter(private val delegate: JsonAdapter<*>, private val wrappers: Int): JsonAdapter<Any>() {

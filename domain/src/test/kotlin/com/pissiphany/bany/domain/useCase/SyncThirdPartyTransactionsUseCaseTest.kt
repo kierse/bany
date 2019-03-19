@@ -3,19 +3,20 @@ package com.pissiphany.bany.domain.useCase
 import com.pissiphany.bany.domain.dataStructure.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-
 import java.time.LocalDate
+
+import java.time.OffsetDateTime
 
 internal class SyncThirdPartyTransactionsUseCaseTest {
     @Test
     fun sync() {
         val budget = Budget("budgetId", "budgetName")
-        val account = Account("accountId", "accountName", 1L, false, Account.Type.CHECKING)
+        val account = Account("accountId", "accountName", 1, false, Account.Type.CHECKING)
         val budgetAccounts = listOf(BudgetAccount(budget, account))
 
-        val lastTransaction = Transaction("transactionId1", LocalDate.now(), 2L)
+        val lastTransaction = Transaction("transactionId1", OffsetDateTime.now(), "payee", "memo", 2)
 
-        val transactions = listOf(Transaction("transactionId2", LocalDate.now(), 3L))
+        val transactions = listOf(Transaction("transactionId2", OffsetDateTime.now(), "payee", "memo", 3))
 
         val results = listOf(SyncTransactionsResult(budget, account, lastTransaction.date, transactions))
 

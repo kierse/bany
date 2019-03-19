@@ -1,6 +1,12 @@
 package com.pissiphany.bany.domain.dataStructure
 
-data class Account(val id: String, val name: String, val balance: Long, val closed: Boolean, val type: Type) {
+data class Account(
+    val id: String,
+    val name: String,
+    val balanceInCents: Int,
+    val closed: Boolean,
+    val type: Type
+) {
     enum class Type(val raw: String) {
         CASH("cash"),
         CHECKING("checking"),

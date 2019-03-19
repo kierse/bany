@@ -116,6 +116,8 @@ internal class CibcTransactionService(
     }
 
     override fun tearDown() {
+        if (token.isBlank()) return
+
         val request = Request.Builder()
             .url(env.authUrl)
             .delete()

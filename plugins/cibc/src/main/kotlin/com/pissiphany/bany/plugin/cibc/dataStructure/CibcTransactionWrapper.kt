@@ -1,20 +1,18 @@
 package com.pissiphany.bany.plugin.cibc.dataStructure
 
 import com.squareup.moshi.JsonClass
+import java.math.BigDecimal
 import java.time.OffsetDateTime
 
 @JsonClass(generateAdapter = true)
 data class CibcTransactionWrapper(val transactions: List<CibcTransaction> = emptyList()) {
     @JsonClass(generateAdapter = true)
     data class CibcTransaction(
-        val id: String,
-        val accountId: String,
         val date: OffsetDateTime,
         val descriptionLine1: String,
         val transactionDescription: String,
-        val credit: String? = null,
-        val debit: String? = null
-//        val transactionType: CibcTransactionType
+        val credit: BigDecimal = BigDecimal.ZERO,
+        val debit: BigDecimal = BigDecimal.ZERO
     )
 //    enum class CibcTransactionType {
 //        DEP, // deposit

@@ -2,6 +2,7 @@ package com.pissiphany.bany.plugin.cibc
 
 import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.plugin.BanyPluginFactory
+import com.pissiphany.bany.plugin.cibc.adapter.BigDecimalAdapter
 import com.pissiphany.bany.plugin.cibc.environment.CibcEnvironment
 import com.pissiphany.bany.plugin.cibc.environment.SimpliiEnvironment
 import com.pissiphany.bany.plugin.cibc.mapper.CibcTransactionMapper
@@ -32,8 +33,12 @@ class CibcTransactionServiceFactory : BanyPluginFactory {
             .cookieJar(jar)
             .build()
 
+        val moshi = Moshi.Builder()
+            .add(BigDecimalAdapter())
+            .build()
+
         return CibcTransactionService(
-            credentials, env, Moshi.Builder().build(), { client.newCall(it).execute() }, CibcTransactionMapper()
+            credentials, env, moshi, { client.newCall(it).execute() }, CibcTransactionMapper()
         )
     }
 }

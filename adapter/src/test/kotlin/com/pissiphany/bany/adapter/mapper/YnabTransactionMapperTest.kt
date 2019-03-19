@@ -6,28 +6,28 @@ import com.pissiphany.bany.domain.dataStructure.Transaction
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
-import java.time.LocalDate
+import java.time.OffsetDateTime
 
 internal class YnabTransactionMapperTest {
     @Test
     fun toYnabTransaction() {
-        val date = LocalDate.now()
-        val transaction = Transaction("transactionId", date, 10L)
-        val account = Account("accountId", "name", 5L, false, Account.Type.CHECKING)
+        val date = OffsetDateTime.now()
+        val transaction = Transaction("transactionId", date, "payee", "memo", 100)
+        val account = Account("accountId", "name", 50, false, Account.Type.CHECKING)
 
         assertEquals(
-            YnabTransaction("transactionId", "accountId", 10L, date),
+            YnabTransaction("transactionId", "accountId", date, "payee", "memo", 1000),
             YnabTransactionMapper().toYnabTransaction(transaction, account)
         )
     }
 
     @Test
     fun toTransaction() {
-        val date = LocalDate.now()
-        val ynabTransaction = YnabTransaction("transactionId", "accountId", 10L, date)
+        val date = OffsetDateTime.now()
+        val ynabTransaction = YnabTransaction("transactionId", "accountId", date, "payee", "memo", 1500)
 
         assertEquals(
-            Transaction("transactionId", date, 10L),
+            Transaction("transactionId", date, "payee", "memo", 150),
             YnabTransactionMapper().toTransaction(ynabTransaction)
         )
     }

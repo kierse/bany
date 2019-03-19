@@ -19,7 +19,7 @@ internal class GetBudgetAccountsTest {
     }
 
     private val budget = Budget(id = "id1", name = "name1")
-    private val account = Account(id = "id", name = "name", balance = 1L, closed = false, type = Account.Type.CHECKING)
+    private val account = Account(id = "id", name = "name", balanceInCents = 1, closed = false, type = Account.Type.CHECKING)
 
     @Test
     fun getBudgetAccounts__success() {

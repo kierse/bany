@@ -28,7 +28,7 @@ class Presenter(private val view: View) : SyncThirdPartyTransactionsOutputBounda
         }
 
         val transactions = result.transactions.map(fun(transaction): String {
-            val amount = BigDecimal(transaction.amount).movePointLeft(3)
+            val amount = BigDecimal(transaction.amountInCents).movePointLeft(2)
             return "${transaction.id}: $$amount on ${transaction.date.format(DateTimeFormatter.ISO_LOCAL_DATE)}"
         })
 

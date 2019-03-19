@@ -1,6 +1,8 @@
 package com.pissiphany.bany.plugin.cibc
 
 import com.pissiphany.bany.plugin.BanyPlugin
+import com.pissiphany.bany.plugin.cibc.adapter.BigDecimalAdapter
+import com.pissiphany.bany.plugin.cibc.adapter.OffsetDateTimeAdapter
 import com.pissiphany.bany.plugin.cibc.environment.CibcEnvironment
 import com.pissiphany.bany.plugin.cibc.environment.Environment
 import com.pissiphany.bany.plugin.cibc.environment.SimpliiEnvironment
@@ -322,12 +324,12 @@ internal class CibcTransactionServiceTest {
         assertTrue(service.getNewBanyPluginTransactionsSince(ids, null).isEmpty())
     }
 
-    @Test
+//    @Test
     fun getNewBanyPluginTransactionsSince__cibc() {
         assertTrue(getNewBanyPluginTransactionsSince(CibcEnvironment()).isNotEmpty())
     }
 
-    @Test
+//    @Test
     fun getNewBanyPluginTransactionsSince__simplii() {
         assertTrue(getNewBanyPluginTransactionsSince(SimpliiEnvironment()).isNotEmpty())
     }
@@ -340,7 +342,10 @@ internal class CibcTransactionServiceTest {
             return emptyList()
         }
 
-        val moshi = Moshi.Builder().build()
+        val moshi = Moshi.Builder()
+            .add(OffsetDateTimeAdapter())
+            .add(BigDecimalAdapter())
+            .build()
         val configAdapter = moshi.adapter(TestConfig::class.java)
         val config = configAdapter.fromJson(configFile.readText())
             ?: throw Exception("unable to load config!")

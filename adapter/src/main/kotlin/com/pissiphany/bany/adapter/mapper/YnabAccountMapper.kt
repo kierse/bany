@@ -24,7 +24,7 @@ class YnabAccountMapper {
         return Account(
             id = ynabAccount.id,
             name = ynabAccount.name,
-            balance = ynabAccount.balance,
+            balanceInCents = ynabAccount.balanceInMilliUnits / 10,
             closed = ynabAccount.closed,
             type = type
         )
@@ -35,7 +35,7 @@ class YnabAccountMapper {
             id = account.id,
             name = account.name,
             closed = account.closed,
-            balance = account.balance,
+            balanceInMilliUnits = account.balanceInCents * 10,
             type = account.type.raw
         )
     }

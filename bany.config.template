@@ -1,0 +1,57 @@
+/*
+ * ATTENTION: this simple config file is json. Comments are not supported. Remove before use!
+ *
+ * Copy this file to $HOME/.bany/bany.config and modify/populate as needed
+ */
+{
+  "ynabApiToken": "api-token-from-ynab",
+  "plugins": {
+    "sample": [
+      {
+        "description": "sample account #1",
+        "enabled": true,
+        "username": "username1",
+        "password": "password1",
+        "connections": [
+          {
+            "name": "Chequing account",
+            "thirdPartyAccountId": "sample-account-number-1",
+            "ynabBudgetId": "budget-id-from-ynab-1",
+            "ynabAccountId": "account-id-from-ynab-1"
+          },
+          {
+            "name": "Saving account",
+            "thirdPartyAccountId": "sample-account-number-3",
+            "ynabBudgetId": "budget-id-from-ynab-3",
+            "ynabAccountId": "account-id-from-ynab-3"
+          }
+        ]
+      },
+      {
+        "description": "sample account #2",
+        "enabled": true,
+        "username": "username2",
+        "password": "password2,
+        "connections": [{
+          "name": "Chequing account",
+          "thirdPartyAccountId": "sample-account-number-2",
+          "ynabBudgetId": "budget-id-from-ynab-2",
+          "ynabAccountId": "account-id-from-ynab-2"
+        }]
+      }
+    ],
+    "simplii": [{
+      "description": "simplii account",
+      "enabled": false,
+      "username": "simplii-card-number",
+      "password": "simplii-password",
+      "connections": [{
+        "name": "Chequing",
+        "thirdPartyAccountId": "simplii-account-number",
+        "ynabBudgetId": "budget-id-from-ynab",
+        "ynabAccountId": "account-id-from-ynab"
+      }]
+    }]
+  }
+}
+

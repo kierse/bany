@@ -15,7 +15,7 @@ class RetrofitYnabApiService(
     private val budgetMapper: RetrofitBudgetMapper,
     private val accountMapper: RetrofitAccountMapper,
     private val transactionMapper: RetrofitTransactionMapper
-    ) : YnabApiService {
+) : YnabApiService {
     override fun getBudget(budgetId: String): YnabBudget? {
         val call = service.getBudget(budgetId)
         val response = call.execute()

@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel>
-      <module name="bany.plugins.sample-plugin.main" target="1.9" />
-      <module name="bany.plugins.sample-plugin.test" target="1.9" />
+    <bytecodeTargetLevel target="14">
       <module name="com.pissiphany.bany.adapter.adapter.main" target="1.9" />
       <module name="com.pissiphany.bany.adapter.adapter.test" target="1.9" />
       <module name="com.pissiphany.bany.api.main" target="1.9" />

@@ -13,6 +13,6 @@ dependencies {
     implementation(project(":bany-plugin-api"))
 
     // pf4j
-    implementation("org.pf4j:pf4j:2.6.0")
-    kapt("org.pf4j:pf4j:2.6.0")
+    implementation("org.pf4j:pf4j:3.4.1")
+    kapt("org.pf4j:pf4j:3.4.1")
 }

@@ -5,8 +5,8 @@ import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
 import java.time.LocalDate
 
 interface BanyPlugin {
-    fun setup(): Boolean
-    fun tearDown()
+    fun setup(): Boolean = true
+    fun tearDown() = Unit
 
     // TODO should take/return BanyPlugin* here not Ynab*
     fun getYnabBudgetAccountIds(): List<YnabBudgetAccountIds>

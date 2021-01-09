@@ -20,11 +20,16 @@ import com.pissiphany.bany.domain.useCase.step.GetNewTransactions
 import com.pissiphany.bany.domain.useCase.step.SaveNewTransactions
 import com.pissiphany.bany.factory.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.OffsetDateTimeAdapter
+import com.pissiphany.bany.adapter.dataStructure.YnabConnection
+import com.pissiphany.bany.adapter.dataStructure.YnabCredentials
+import com.pissiphany.bany.dataStructure.ServiceCredentials
 import com.pissiphany.bany.mapper.RetrofitAccountMapper
 import com.pissiphany.bany.mapper.RetrofitBudgetMapper
 import com.pissiphany.bany.mapper.RetrofitTransactionMapper
 import com.pissiphany.bany.plugin.BanyPluginFactory
 import com.pissiphany.bany.factory.RetrofitFactory
+import com.pissiphany.bany.mapper.BanyPluginDataMapper
+import com.pissiphany.bany.plugin.ConfigurablePlugin
 import com.pissiphany.bany.service.RetrofitYnabService
 import com.pissiphany.bany.service.RetrofitYnabApiService
 import com.pissiphany.bany.service.ThirdPartyTransactionServiceImpl
@@ -42,22 +47,35 @@ fun main() {
     val config = adapter.fromJson(CONFIG_FILE.readText()) ?:
             throw UnknownError("Unable to parse and instantiate application config!")
 
+    val enabledPlugins = config.plugins
+        .mapValues { (_, credentialList) -> credentialList.filter(ServiceCredentials::enabled) }
+        .filter { it.value.isNotEmpty() }
+    if (enabledPlugins.isEmpty()) throw IllegalStateException("No enabled plugins found!")
+
+    val credentialsMap = enabledPlugins
+        .values
+        .flatten()
+        .associateWith(::mapToYnabCredentials)
+
     val serviceBuilder = RetrofitFactory.create(BASE_URL, config.ynabApiToken, moshi)
     val retrofitService = serviceBuilder.create(RetrofitYnabService::class.java)
     val ynabApiService = RetrofitYnabApiService(
         retrofitService, RetrofitBudgetMapper(), RetrofitAccountMapper(), RetrofitTransactionMapper()
     )
 
-    val configurationRepository = ConfigurationRepositoryImpl(config.plugins, YnabBudgetAccountIdsMapper())
+    // Step1GetBudgetAccounts
+    val configurationRepository = ConfigurationRepositoryImpl(credentialsMap.values.toList(), YnabBudgetAccountIdsMapper())
     val ynabBudgetAccountsGateway = YnabBudgetAccountsGatewayImpl(ynabApiService, YnabBudgetMapper(), YnabAccountMapper())
     val getBudgetAccounts = GetBudgetAccounts(configurationRepository, ynabBudgetAccountsGateway)
 
+    // Step2GetMostRecentTransaction
     val lastKnowledgeOfServerRepository = PropertiesLastKnowledgeOfServerRepository(LAST_KNOWLEDGE_OF_SERVER_FILE)
     val mostRecentTransactionsGateway = YnabMostRecentTransactionsGatewayImpl(
         ynabApiService, YnabBudgetMapper(), YnabAccountMapper(), YnabTransactionMapper()
     )
     val getMostRecentTransaction = GetMostRecentTransaction(lastKnowledgeOfServerRepository, mostRecentTransactionsGateway)
 
+    // Step4SaveNewTransactions
     val saveTransactionsGateway = YnabSaveTransactionsGatewayImpl(ynabApiService, YnabBudgetMapper(), YnabTransactionMapper())
     val saveNewTransactions = SaveNewTransactions(saveTransactionsGateway)
 
@@ -67,23 +85,18 @@ fun main() {
     val pluginManager = DefaultPluginManager()
     val factoryMap = buildFactoryMap(pluginManager.getExtensions(BanyPluginFactory::class.java))
 
-    val enabledPlugins = config.plugins
-        .mapValues { (_, credentialList) ->
-            credentialList.filter { it.enabled }
-        }
-
     val initializedServices = mutableListOf<ThirdPartyTransactionServiceImpl>()
+    val initializedPlugins = mutableListOf<ConfigurablePlugin>()
     try {
         enabledPlugins.forEach(
             fun(pluginName, credentialList) {
                 val factory = factoryMap[pluginName] ?: return // TODO log skipping this set of credentials
 
                 for (credentials in credentialList) {
-                    val plugin = factory.createPlugin(pluginName, credentials)
+                    val plugin = factory.createPlugin(pluginName, credentialsMap.getValue(credentials))
                     if (plugin.setup()) {
-                        initializedServices.add(
-                            ThirdPartyTransactionServiceImpl(plugin, BanyPluginTransactionMapper())
-                        )
+                        initializedServices.add(ThirdPartyTransactionServiceImpl(plugin, BanyPluginDataMapper()))
+                        initializedPlugins.add(plugin)
                     }
                 }
             }
@@ -91,6 +104,7 @@ fun main() {
 
         if (initializedServices.isEmpty()) throw IllegalStateException("No enabled plugins found!")
 
+        // Step3GetNewTransactions
         val gatewayFactory = ThirdPartyTransactionGatewayFactoryImpl(initializedServices, YnabTransactionMapper())
         val getNewTransactions = GetNewTransactions(gatewayFactory)
 
@@ -103,11 +117,32 @@ fun main() {
         // persist any changes to disk
         lastKnowledgeOfServerRepository.saveChanges()
     } finally {
-        initializedServices.forEach { it.plugin.tearDown() }
+        initializedPlugins.forEach(ConfigurablePlugin::tearDown)
     }
 
     // stop all active plugins
     pluginManager.stopPlugins()
+}
+
+// TODO test
+private fun mapToYnabCredentials(credentials: ServiceCredentials): YnabCredentials {
+    val connections = credentials.connections.map { connection ->
+        with(connection) {
+            YnabConnection(
+                name = name,
+                ynabBudgetId = ynabBudgetId,
+                ynabAccountId = ynabAccountId,
+                thirdPartyAccountId = thirdPartyAccountId
+            )
+        }
+    }
+    return YnabCredentials(
+        username = credentials.username,
+        password = credentials.password,
+        connections = connections,
+        enabled = credentials.enabled,
+        description = credentials.description
+    )
 }
 
 private fun buildFactoryMap(factories: List<BanyPluginFactory>): Map<String, BanyPluginFactory> {

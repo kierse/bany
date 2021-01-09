@@ -6,13 +6,11 @@ import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 import com.pissiphany.bany.domain.repository.ConfigurationRepository
 
 class ConfigurationRepositoryImpl(
-    private val pluginCredentials: Map<String, List<YnabCredentials>>, private val mapper: YnabBudgetAccountIdsMapper
+    private val ynabCredentials: List<YnabCredentials>, private val mapper: YnabBudgetAccountIdsMapper
 ) : ConfigurationRepository {
     override fun getBudgetAccountIds(): List<BudgetAccountIds> {
         val budgetAccountIds = mutableListOf<BudgetAccountIds>()
-        pluginCredentials
-            .values
-            .flatten() // flatten into one big List<YnabCredentials>
+        ynabCredentials
             .filter { it.enabled }
             .forEach { credentials ->
                 for (connection in credentials.connections) {

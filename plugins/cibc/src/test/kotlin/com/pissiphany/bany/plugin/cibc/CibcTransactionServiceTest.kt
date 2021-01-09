@@ -7,8 +7,8 @@ import com.pissiphany.bany.plugin.cibc.environment.CibcEnvironment
 import com.pissiphany.bany.plugin.cibc.environment.Environment
 import com.pissiphany.bany.plugin.cibc.environment.SimpliiEnvironment
 import com.pissiphany.bany.plugin.cibc.mapper.CibcTransactionMapper
+import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
-import com.pissiphany.bany.plugin.dataStructure.YnabBudgetAccountIds
 import com.squareup.moshi.Moshi
 import okhttp3.*
 import org.junit.jupiter.api.Assertions.*
@@ -174,11 +174,11 @@ internal class CibcTransactionServiceTest {
             CibcTransactionMapper()
         )
 
-        val expected = listOf(YnabBudgetAccountIds(
+        val expected = listOf(BanyPluginBudgetAccountIds(
             ynabBudgetId = "ynabBudgetId",
             ynabAccountId = "ynabAccountId"
         ))
-        assertIterableEquals(expected, service.getYnabBudgetAccountIds())
+        assertIterableEquals(expected, service.getBanyPluginBudgetAccountIds())
     }
 
     @Test
@@ -230,7 +230,7 @@ internal class CibcTransactionServiceTest {
             ynabAccountId = "ynabAccountId",
             thirdPartyAccountId = "unknown_account_id"
         )
-        val ids = YnabBudgetAccountIds(
+        val ids = BanyPluginBudgetAccountIds(
             ynabBudgetId = "ynabBudgetId",
             ynabAccountId = "ynabAccountId"
         )
@@ -306,7 +306,7 @@ internal class CibcTransactionServiceTest {
             ynabAccountId = "ynabAccountId",
             thirdPartyAccountId = "number"
         )
-        val ids = YnabBudgetAccountIds(
+        val ids = BanyPluginBudgetAccountIds(
             ynabBudgetId = "ynabBudgetId",
             ynabAccountId = "ynabAccountId"
         )
@@ -360,7 +360,7 @@ internal class CibcTransactionServiceTest {
             ?: throw Exception("unable to find credentials!")
 
         // TODO do some validation to make sure values aren't empty!!
-        val budgetAccountIds = YnabBudgetAccountIds(
+        val budgetAccountIds = BanyPluginBudgetAccountIds(
             ynabBudgetId = credentials.connections[0].ynabBudgetId,
             ynabAccountId = credentials.connections[0].ynabAccountId
         )

@@ -6,14 +6,13 @@ import com.pissiphany.bany.mapper.RetrofitAccountMapper
 import com.pissiphany.bany.mapper.RetrofitBudgetMapper
 import com.pissiphany.bany.mapper.RetrofitTransactionMapper
 import okhttp3.Request
+import okio.Timeout
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
 internal class RetrofitYnabApiServiceTest {
@@ -121,6 +120,6 @@ internal class RetrofitYnabApiServiceTest {
         override fun isCanceled(): Boolean { TODO("not implemented") }
         override fun cancel() { TODO("not implemented") }
         override fun request(): Request { TODO("not implemented") }
-
+        override fun timeout(): Timeout { TODO("Not yet implemented") }
     }
 }

@@ -13,8 +13,8 @@ internal class ConfigurationRepositoryImplTest {
     fun getBudgetAccountIds() {
         val budgetAccountId1 = BudgetAccountIds("ynabBudgetId1", "ynabAccountId1")
         val budgetAccountId2 = BudgetAccountIds("ynabBudgetId2", "ynabAccountId2")
-        val plugins = mapOf(
-            "type1" to listOf(YnabCredentials(
+        val credentials = listOf(
+            YnabCredentials(
                 "username1",
                 "password1",
                 listOf(
@@ -25,9 +25,8 @@ internal class ConfigurationRepositoryImplTest {
                         "accountId1"
                     )
                 )
-            )
             ),
-            "type2" to listOf(YnabCredentials(
+            YnabCredentials(
                 "username2",
                 "password2",
                 listOf(
@@ -38,11 +37,11 @@ internal class ConfigurationRepositoryImplTest {
                         "accountId2"
                     )
                 )
-            ))
+            )
         )
         val mapper = YnabBudgetAccountIdsMapper()
 
-        val repo = ConfigurationRepositoryImpl(plugins, mapper)
+        val repo = ConfigurationRepositoryImpl(credentials, mapper)
 
         assertIterableEquals(listOf(budgetAccountId1, budgetAccountId2), repo.getBudgetAccountIds())
     }

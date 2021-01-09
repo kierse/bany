@@ -1,5 +1,6 @@
 package com.pissiphany.bany.plugin.cibc
 
+import com.pissiphany.bany.plugin.BanyConfigurablePlugin
 import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.plugin.BanyPluginFactory
 import com.pissiphany.bany.plugin.cibc.adapter.BigDecimalAdapter
@@ -20,7 +21,7 @@ internal const val SIMPLII = "simplii"
 class CibcTransactionServiceFactory : BanyPluginFactory {
     override val pluginNames = setOf(CIBC, SIMPLII)
 
-    override fun createPlugin(pluginName: String, credentials: BanyPlugin.Credentials): BanyPlugin {
+    override fun createPlugin(pluginName: String, credentials: BanyPlugin.Credentials): BanyConfigurablePlugin {
         val env = when (pluginName) {
             CIBC -> CibcEnvironment()
             SIMPLII -> SimpliiEnvironment()

@@ -1,10 +1,29 @@
-package com.pissiphany.bany.adapter.mapper
+package com.pissiphany.bany.mapper
 
 import com.pissiphany.bany.adapter.dataStructure.YnabTransaction
+import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
+import com.pissiphany.bany.plugin.dataStructure.YnabBudgetAccountIds
 import java.math.BigDecimal
 
-class BanyPluginTransactionMapper {
+// TODO update tests!
+class BanyPluginDataMapper {
+    fun toYnabBudgetAccountIds(
+        banyPluginBudgetAccountIds: BanyPluginBudgetAccountIds
+    ): YnabBudgetAccountIds {
+        return YnabBudgetAccountIds(
+            ynabBudgetId =  banyPluginBudgetAccountIds.ynabBudgetId,
+            ynabAccountId = banyPluginBudgetAccountIds.ynabAccountId
+        )
+    }
+
+    fun toBanyPluginBudgetAccountIds(budgetAccountIds: YnabBudgetAccountIds): BanyPluginBudgetAccountIds {
+        return BanyPluginBudgetAccountIds(
+            ynabBudgetId = budgetAccountIds.ynabBudgetId,
+            ynabAccountId = budgetAccountIds.ynabAccountId
+        )
+    }
+
     fun toYnabTransaction(
         banyPluginTransaction: BanyPluginTransaction, accountId: String
     ): YnabTransaction {

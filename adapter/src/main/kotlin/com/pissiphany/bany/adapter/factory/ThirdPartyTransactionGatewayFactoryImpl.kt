@@ -26,6 +26,7 @@ class ThirdPartyTransactionGatewayFactoryImpl(
     }
 
     override fun getGateway(budget: Budget, account: Account): ThirdPartyTransactionGateway {
+        // TODO use mapper here!!!
         val budgetAccountIds = YnabBudgetAccountIds(ynabBudgetId = budget.id, ynabAccountId = account.id)
         val service = idsToService[budgetAccountIds]
             ?: throw NoSuitableTransactionGatewayException("unable to find gateway for: $budgetAccountIds")

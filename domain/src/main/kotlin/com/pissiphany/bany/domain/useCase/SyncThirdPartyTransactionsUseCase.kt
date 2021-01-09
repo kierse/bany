@@ -2,7 +2,6 @@ package com.pissiphany.bany.domain.useCase
 
 import com.pissiphany.bany.domain.dataStructure.*
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
 class SyncThirdPartyTransactionsUseCase(

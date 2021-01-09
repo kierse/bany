@@ -1,5 +1,6 @@
 package com.pissiphany.bany.plugin.cibc
 
+import com.pissiphany.bany.plugin.BanyConfigurablePlugin
 import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
 import com.pissiphany.bany.plugin.cibc.dataStructure.AuthRequest
@@ -7,7 +8,7 @@ import com.pissiphany.bany.plugin.cibc.dataStructure.CibcAccountsWrapper
 import com.pissiphany.bany.plugin.cibc.dataStructure.CibcTransactionWrapper
 import com.pissiphany.bany.plugin.cibc.environment.Environment
 import com.pissiphany.bany.plugin.cibc.mapper.CibcTransactionMapper
-import com.pissiphany.bany.plugin.dataStructure.YnabBudgetAccountIds
+import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.squareup.moshi.Moshi
 import okhttp3.*
 import java.time.LocalDate
@@ -26,7 +27,7 @@ internal class CibcTransactionService(
     private val moshi: Moshi,
     private val client: (request: Request) -> Response,
     private val mapper: CibcTransactionMapper
-) : BanyPlugin {
+) : BanyConfigurablePlugin {
     private var token: String = ""
     private var accounts: Map<AccountId, CibcAccountsWrapper.CibcAccount> = emptyMap()
 
@@ -130,17 +131,17 @@ internal class CibcTransactionService(
         token = ""
     }
 
-    override fun getYnabBudgetAccountIds(): List<YnabBudgetAccountIds> {
+    override fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
         return credentials.connections
-            .map { YnabBudgetAccountIds(
+            .map { BanyPluginBudgetAccountIds(
                 ynabBudgetId = it.ynabBudgetId, ynabAccountId = it.ynabAccountId
             ) }
     }
 
     override fun getNewBanyPluginTransactionsSince(
-        ynabBudgetAccountIds: YnabBudgetAccountIds, date: LocalDate?
+        budgetAccountIds: BanyPluginBudgetAccountIds, date: LocalDate?
     ): List<BanyPluginTransaction> {
-        val url = buildTransactionsRequestUrl(ynabBudgetAccountIds, date)
+        val url = buildTransactionsRequestUrl(budgetAccountIds, date)
         val request = Request.Builder()
             .url(url)
             .get()
@@ -168,8 +169,8 @@ internal class CibcTransactionService(
             )
     }
 
-    private fun buildTransactionsRequestUrl(ynabBudgetAccountIds: YnabBudgetAccountIds, date: LocalDate?): HttpUrl {
-        val accountId = getInternalAccountId(ynabBudgetAccountIds)
+    private fun buildTransactionsRequestUrl(budgetAccountIds: BanyPluginBudgetAccountIds, date: LocalDate?): HttpUrl {
+        val accountId = getInternalAccountId(budgetAccountIds)
         val builder = HttpUrl
             .get(env.transactionsUrl)
             .newBuilder()
@@ -190,17 +191,17 @@ internal class CibcTransactionService(
         return builder.build()
     }
 
-    private fun getInternalAccountId(ynabBudgetAccountIds: YnabBudgetAccountIds): AccountId {
+    private fun getInternalAccountId(budgetAccountIds: BanyPluginBudgetAccountIds): AccountId {
         for (connection in credentials.connections) {
-            if (connection.ynabBudgetId == ynabBudgetAccountIds.ynabBudgetId
-                && connection.ynabAccountId == ynabBudgetAccountIds.ynabAccountId) {
+            if (connection.ynabBudgetId == budgetAccountIds.ynabBudgetId
+                && connection.ynabAccountId == budgetAccountIds.ynabAccountId) {
                 if (connection.thirdPartyAccountId in accounts) {
                     return accounts.getValue(connection.thirdPartyAccountId).id
                 }
             }
         }
 
-        throw IllegalArgumentException("no credentials found for: $ynabBudgetAccountIds")
+        throw IllegalArgumentException("no credentials found for: $budgetAccountIds")
     }
 
     private fun Request.Builder.addRequiredHeaders() =

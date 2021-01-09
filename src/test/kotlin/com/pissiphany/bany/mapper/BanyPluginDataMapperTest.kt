@@ -1,4 +1,4 @@
-package com.pissiphany.bany.adapter.mapper
+package com.pissiphany.bany.mapper
 
 import com.pissiphany.bany.adapter.dataStructure.YnabTransaction
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
@@ -10,7 +10,7 @@ import java.lang.IllegalArgumentException
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 
-internal class BanyPluginTransactionMapperTest {
+internal class BanyPluginDataMapperTest {
     @Test
     fun toTransaction__debit() {
         val transaction = YnabTransaction(null, "accountId", OffsetDateTime.now(), "payee", "memo", -10000)
@@ -22,7 +22,7 @@ internal class BanyPluginTransactionMapperTest {
             credit = BigDecimal.ZERO
         )
 
-        assertEquals(transaction, BanyPluginTransactionMapper().toYnabTransaction(pluginTransaction, "accountId"))
+        assertEquals(transaction, BanyPluginDataMapper().toYnabTransaction(pluginTransaction, "accountId"))
     }
 
     @Test
@@ -36,7 +36,7 @@ internal class BanyPluginTransactionMapperTest {
             debit = BigDecimal.ZERO
         )
 
-        assertEquals(transaction, BanyPluginTransactionMapper().toYnabTransaction(pluginTransaction, "accountId"))
+        assertEquals(transaction, BanyPluginDataMapper().toYnabTransaction(pluginTransaction, "accountId"))
     }
 
     @Test
@@ -50,7 +50,7 @@ internal class BanyPluginTransactionMapperTest {
         )
 
         assertThrows<IllegalArgumentException> {
-            BanyPluginTransactionMapper().toYnabTransaction(pluginTransaction, "accountId")
+            BanyPluginDataMapper().toYnabTransaction(pluginTransaction, "accountId")
         }
     }
 }

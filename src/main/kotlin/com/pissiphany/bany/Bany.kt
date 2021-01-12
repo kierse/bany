@@ -140,6 +140,7 @@ private fun mapToYnabCredentials(credentials: ServiceCredentials): YnabCredentia
         username = credentials.username,
         password = credentials.password,
         connections = connections,
+        data = credentials.data,
         enabled = credentials.enabled,
         description = credentials.description
     )

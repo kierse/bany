@@ -7,7 +7,7 @@ import com.pissiphany.bany.domain.dataStructure.Account
 import com.pissiphany.bany.domain.dataStructure.Budget
 import com.pissiphany.bany.domain.gateway.ThirdPartyTransactionGateway
 import com.pissiphany.bany.domain.gateway.ThirdPartyTransactionGatewayFactory
-import com.pissiphany.bany.plugin.dataStructure.YnabBudgetAccountIds
+import com.pissiphany.bany.adapter.dataStructure.YnabBudgetAccountIds
 
 class ThirdPartyTransactionGatewayFactoryImpl(
     services: List<ThirdPartyTransactionService>, private val transactionMapper: YnabTransactionMapper

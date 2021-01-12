@@ -3,7 +3,7 @@ package com.pissiphany.bany.mapper
 import com.pissiphany.bany.adapter.dataStructure.YnabTransaction
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
-import com.pissiphany.bany.plugin.dataStructure.YnabBudgetAccountIds
+import com.pissiphany.bany.adapter.dataStructure.YnabBudgetAccountIds
 import java.math.BigDecimal
 
 // TODO update tests!

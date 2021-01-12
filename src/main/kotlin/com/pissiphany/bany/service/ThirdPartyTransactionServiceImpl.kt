@@ -4,7 +4,7 @@ import com.pissiphany.bany.adapter.dataStructure.YnabTransaction
 import com.pissiphany.bany.adapter.service.ThirdPartyTransactionService
 import com.pissiphany.bany.mapper.BanyPluginDataMapper
 import com.pissiphany.bany.plugin.BanyPlugin
-import com.pissiphany.bany.plugin.dataStructure.YnabBudgetAccountIds
+import com.pissiphany.bany.adapter.dataStructure.YnabBudgetAccountIds
 import java.time.LocalDate
 
 class ThirdPartyTransactionServiceImpl(

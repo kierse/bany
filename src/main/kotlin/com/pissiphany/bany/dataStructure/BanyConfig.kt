@@ -11,7 +11,8 @@ class ServiceCredentials(
     val password: String,
     val connections: List<ServiceConnection>,
     val enabled: Boolean = true,
-    val description: String = ""
+    val description: String = "",
+    val data: Map<String, String> = emptyMap()
 )
 
 @JsonClass(generateAdapter = true)
@@ -19,5 +20,6 @@ class ServiceConnection(
     val name: String,
     val ynabBudgetId: String,
     val ynabAccountId: String,
-    val thirdPartyAccountId: String
+    val thirdPartyAccountId: String,
+    val data: Map<String, String> = emptyMap(),
 )

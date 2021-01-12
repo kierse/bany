@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<title>Equitable Life Client Access Sign In</title>
+	<link rel="shortcut icon" href="/client/Content/Images/favicon.ico" />
+	<link rel="stylesheet" type="text/css" href="/client/Content/Styles/reset.css?v=1.0.1" media="screen" />
+	<link rel="stylesheet" type="text/css" href="/client/Content/Styles/text.css?v=1.0.1" media="screen" />
+	<link rel="stylesheet" type="text/css" href="/client/Content/Styles/v1.css?v=1.0.1" media="screen" />
+
+
+	<!--[if IE ]>
+		<link rel="stylesheet" href="/client/Content/Styles/ie.css?v=1.0.1" media="screen" />
+	<![endif]-->
+
+	<!--[if IE 7]>
+		<link rel="stylesheet" href="/client/Content/Styles/ie7.css?v=1.0.1" media="screen" />
+		<style>
+			.logo {
+				float: none;
+			}
+		</style>
+	<![endif]-->
+
+	<!--[if IE 8]>
+		<link rel="stylesheet" href="/client/Content/Styles/ie8.css?v=1.0.1" media="screen" />
+	<![endif]-->
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+	<script type="text/javascript">
+	    if (typeof jQuery == 'undefined') {
+	        var e = document.createElement('script');
+	        e.src = '/client/Scripts/jquery-1.7.1.min.js?v=1.0.1';
+	        e.type = 'text/javascript';
+	        document.getElementsByTagName("head")[0].appendChild(e);
+	    }
+	</script>
+
+    <script src="/client/Scripts/modernizr-2.5.3.js?v=1.0.1"></script>
+
+    <script>
+    function myCallback(i, width) {
+        // Replace HTML tag's ID.
+        document.documentElement.id = 'range_' + i;
+    }
+
+    var ADAPT_CONFIG = {
+        path: '/client/content' + '/Styles/',
+
+        dynamic: true, // True: Change on Window Resize, False: Runs on Page Load
+
+        // Optional callback... myCallback(i, width)
+        callback: myCallback,
+
+        // First Range Entry is the Minimum.
+        // Last Range Entry is the Maximum.
+        range: [
+            '0px    to 760px  = mobile.css',
+            '760px  to 980px  = 720.css',
+            '980px  to 1280px = 960.css',
+            '1280px to 1600px = 960.css',
+            '1600px to 1920px = 960.css',
+            '1940px to 2540px = 960.css',
+            '2540px           = 960.css'
+        ]
+    };
+</script>
+
+<script src="/client/Scripts/adapt.js?v=1.0.1"></script>
+
+	<script type="text/javascript">
+
+	    var _gaq = _gaq || [];
+	    _gaq.push(['_setAccount', 'UA-12986177-7']);
+	    _gaq.push(['_trackPageview']);
+
+	    (function () {
+	        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	    })();
+
+	</script>
+</head>
+
+<body>
+	<input id="contentPath" type="hidden" value="/client/content"/>
+
+	<div class="eq_bar">
+	<div class="container_12">
+		
+		<div class="grid_12">
+			<p>
+					<a href="http://www.equitable.ca" class="eq_logo">
+						Equitable Life of Canada
+					</a>
+			</p>
+		
+		</div>
+
+	</div>
+</div>
+
+	<div class="container_12">
+
+		<header id="header" class="grid_12" role="banner">
+		<a href="/client/fr/Account/LogOnAskSecurityQuestion" class="lang_toggle">Fran&ccedil;ais</a>
+
+	<a href="/client/en" class="logo">
+			<img src="/client/Content/Images/En/logo.png" width="225" height="67" alt="Equitable Life Client Access" />
+	</a>
+
+	<div class="clear"></div>
+</header>
+<div class="clear"></div>
+
+		<h1 class="h1 grid_12">
+			
+	Answer Security Question
+
+		</h1>
+
+		<div class="clearfix">
+			
+
+
+<div class="grid_12">
+	 
+	
+
+	<section class="grid_7 alpha">
+<form action="/client/en/Account/LogInAnswerSecurityQuestion" autocomplete="off" id="sign_in_question" method="post"><input id="ReturnUrl" name="ReturnUrl" type="hidden" value="" />			<fieldset>
+				<legend>Client Access Sign In</legend>
+				<p><strong>QuEsTiOn</strong></p>
+				
+				<div class="answer_container">
+					<label for="Answer">Your Answer</label>
+					<a href="#" rel="popover" data-placement="right" data-popover-trigger="click" data-content="We use the security questions as an extra layer of protection, helping to prevent unauthorized people from accessing your accounts. If someone has your user name and password, they likely won&#39;t know the answer to your security question.&lt;br/&gt;&lt;br/&gt;If someone logs on from a computer we don&#39;t recognize (for example, if you log on from a public computer in a library), we&#39;ll ask you a challenge question to verify your identity.&lt;br/&gt;&lt;br/&gt;&lt;small&gt;If you are being asked this every time you log in from the same machine, and you are checking the &#39;Trust this machine&#39; checkbox, please ensure your browser is not configured to clear cookies on close.&lt;/small&gt;">Why am I being asked this?</a>
+				</div>
+				<div class="input_container input_answer">
+					<input class="required" data-val="true" data-val-length="The field Your Answer must be a string with a maximum length of 256." data-val-length-max="256" data-val-required="Enter your answer" id="Answer" maxLength="256" name="Answer" type="text" value="" />
+					<span class="field-validation-valid" data-valmsg-for="Answer" data-valmsg-replace="true"></span>
+				</div>
+				
+				<div class="remember_me trust_me">
+					<input data-val="true" data-val-required="The Trust this machine field is required." id="TrustMachine" name="TrustMachine" type="checkbox" value="true" /><input name="TrustMachine" type="hidden" value="false" />
+					<label for="TrustMachine">Trust this machine</label>
+					<a href="#" rel="popover" data-placement="right" data-popover-trigger="click" data-content="Check this if you want to trust the machine you are logging in with and don&#39;t want to be asked another security question the next time you sign in to Client Access with it.">What is this?</a>
+				</div>
+				<div class="clear"></div>
+
+			</fieldset>
+			<div class="frm_btns">
+				<button id="btn_submit" type="submit">Submit</button>
+			</div>
+<input name="__RequestVerificationToken" type="hidden" value="Dr3JRSa4IxNxPZJHQOZR0wpWVe0ZvWBDZnbUpPuDqk70x9Lo7bxbiMCqjuO6IEH7a7hcmpUiPaqacjehqWgGKbipGu6ZoMvg2V8A9v1X/KYXDka538IacBmmr/SztGthyFDDmMr++4VjCMLQb0NlA4V4UEs=" /></form>	</section>
+
+</div>
+
+
+		</div>
+
+		<div class="space_footer">
+			<footer>
+	<p>&#169; Copyright 1999-2021 Equitable Life of Canada</p>
+
+	<ul>
+		<li><a href="/client/en/Contact?timestamp=637458561323870701" rel="facebox">Get In Touch</a></li>
+		<li><a href="/client/en/Home/FAQ">FAQ</a></li>
+		<li><a href="/client/en/Home/Privacy">Privacy</a></li>
+		<li><a href="/client/en/Account/TermsOfUse">Terms of Use</a></li>
+		<li>
+				<a href="http://www.equitable.ca">www.equitable.ca</a>
+		</li>
+	</ul>
+</footer>
+		</div>
+
+	</div>
+
+<script type="text/javascript" src="/client/asset.axd?id=zgEAAB-LCAAAAAAABABtkcFuwjAMht_F5zZr19Gx3ngATjtOHNKQQqoIZ4kbdUJ993loCTB2iGT93xfZss-wh-7jDA46eFfeOApQwHDJTpyNn5P2XyJKa_aStBh_MEJXLcX_wnTCnvwUTLzKdZK3RnkMONBmlHPGzw94G9Wd0fzpdtOklLfiSxJ_50EfMlslNkile5zLWjQZtgkeLPbS5vz1vnM5Gf62FnUrjuZwtPwou-vk9ogUyEtXEqIl47Ly9qg4dBi1vy6rWnbLrgBFrJGe6WmUUYbLbdiInNaiEjXXim_XtCsuoON16OUb-D86gc4BAAA%3d"></script>
+<script type="text/javascript" src="/client/asset.axd?id=jAAAAB-LCAAAAAAABAAljbEOwjAQQ__Fc5W2QjBk4xsYUYfoCCgF5UruUoGq_Dunsln2s73hBn_dsMDjQiUtKv2ZiGtWdLjvWbYs_D334gfnIE-JVEvS77tG0cTZzWI8ww9talMHUitp_Gg_hzXIvmzAau7oBjeaJns-nI4m4LXU2H6_b03cjAAAAA%3d%3d"></script>
+<script type="text/javascript">
+//<![CDATA[
+jQuery(document).ready(function(){
+	
+		$.facebox.settings.loadingImage = '/client/Content/Images/loading.gif';
+		$.facebox.settings.closeImage = '/client/Content/Images/close.png';
+		$('a[rel*=facebox]').facebox();
+	
+});
+//]]>
+</script>
+
+
+
+
+	
+
+<img src="/client/Content/Images/loading.gif" width="32" height="32" class="ajax_loader" alt="" />
+	<script type="text/javascript" src="/Policy/Scripts/Auth/auth-exp-check.js"></script>
+</body>
+</html>

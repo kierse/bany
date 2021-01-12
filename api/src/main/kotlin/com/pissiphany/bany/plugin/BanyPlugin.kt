@@ -14,12 +14,14 @@ interface BanyPlugin {
         val username: String
         val password: String
         val connections: List<Connection>
+        val data: Map<String, String>
     }
 
     interface Connection {
         val ynabBudgetId: String
         val ynabAccountId: String
         val thirdPartyAccountId: String
+        val data: Map<String, String>
     }
 }
 

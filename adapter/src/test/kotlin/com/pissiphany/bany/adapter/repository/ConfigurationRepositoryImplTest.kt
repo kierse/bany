@@ -24,7 +24,8 @@ internal class ConfigurationRepositoryImplTest {
                         "ynabAccountId1",
                         "accountId1"
                     )
-                )
+                ),
+                emptyMap()
             ),
             YnabCredentials(
                 "username2",
@@ -36,7 +37,8 @@ internal class ConfigurationRepositoryImplTest {
                         "ynabAccountId2",
                         "accountId2"
                     )
-                )
+                ),
+                emptyMap()
             )
         )
         val mapper = YnabBudgetAccountIdsMapper()

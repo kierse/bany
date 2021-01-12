@@ -382,12 +382,14 @@ internal class CibcTransactionServiceTest {
     class TestCredentials(
         override val username: String = "username",
         override val password: String = "password",
-        override val connections: List<TestConnection> = emptyList()
+        override val connections: List<TestConnection> = emptyList(),
+        override val data: Map<String, String> = emptyMap()
     ) : BanyPlugin.Credentials
 
     class TestConnection(
         override val ynabBudgetId: String = "ynabBudgetId",
         override val ynabAccountId: String = "ynabAccountId",
-        override val thirdPartyAccountId: String = "thirdPartyAccountId"
+        override val thirdPartyAccountId: String = "thirdPartyAccountId",
+        override val data: Map<String, String> = emptyMap()
     ) : BanyPlugin.Connection
 }

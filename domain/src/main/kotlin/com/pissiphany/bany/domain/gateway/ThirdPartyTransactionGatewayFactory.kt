@@ -1,8 +1,7 @@
 package com.pissiphany.bany.domain.gateway
 
-import com.pissiphany.bany.domain.dataStructure.Account
-import com.pissiphany.bany.domain.dataStructure.Budget
+import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 
 interface ThirdPartyTransactionGatewayFactory {
-    fun getGateway(budget: Budget, account: Account): ThirdPartyTransactionGateway
+    fun getGateway(budgetAccountIds: BudgetAccountIds): ThirdPartyTransactionGateway
 }

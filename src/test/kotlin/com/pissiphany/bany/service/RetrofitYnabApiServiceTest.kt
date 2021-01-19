@@ -17,47 +17,39 @@ import java.time.OffsetDateTime
 
 internal class RetrofitYnabApiServiceTest {
     @Test
-    fun getBudget() {
-        val now = OffsetDateTime.now()
-        val budgetWrapper = RetrofitBudgetWrapper(RetrofitBudget("budgetId", "name", now), 10)
-        val ynabService = TestService(key1 = "budgetId", budgetWrapper = budgetWrapper)
-        val service = RetrofitYnabApiService(
-            ynabService, RetrofitBudgetMapper(), RetrofitAccountMapper(), RetrofitTransactionMapper()
-        )
-
-        assertEquals(YnabBudget("budgetId", "name", now), service.getBudget("budgetId"))
-    }
-
-    @Test
     fun getAccount() {
         val ynabService = TestService(
             key1 = "budgetId", key2 = "accountId", account = RetrofitAccount("accountId", "name", false, 5, "checking")
         )
-        val service = RetrofitYnabApiService(
-            ynabService, RetrofitBudgetMapper(), RetrofitAccountMapper(), RetrofitTransactionMapper()
-        )
+        val service = RetrofitYnabApiService(ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper())
 
-        assertEquals(YnabAccount("accountId", "name", false, 5, "checking"), service.getAccount("budgetId", "accountId"))
+        assertEquals(
+            YnabAccount("accountId", "name", false, 5, "checking"),
+            service.getAccount(YnabBudgetAccountIds("budgetId", "accountId"))
+        )
     }
 
     @Test
     fun getTransactions() {
         val now = OffsetDateTime.now()
-        val budget = YnabBudget("budgetId", "name", now)
-        val account = YnabAccount("accountId", "name", false, 5, "checking")
+        val budgetAccountIds = YnabBudgetAccountIds("budgetId", "accountId")
         val transactionsWrapper = RetrofitTransactionsWrapper(
             listOf(RetrofitTransaction("transactionId", "accountId", now, "payee", "memo", 7)), 10
         )
-        val ynabService = TestService(
-            key1 = budget.id, key2 = account.id, key3 = 10, transactionsWrapper = transactionsWrapper
-        )
-        val service = RetrofitYnabApiService(
-            ynabService, RetrofitBudgetMapper(), RetrofitAccountMapper(), RetrofitTransactionMapper()
+
+        val expected = YnabUpdatedTransactions(
+            listOf(YnabAccountTransaction("transactionId", "accountId", now, "payee", "memo", 7)),
+            10
         )
 
+        val ynabService = TestService(
+            key3 = 10, transactionsWrapper = transactionsWrapper
+        )
+        val service = RetrofitYnabApiService(ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper())
+
         assertEquals(
-            YnabUpdatedTransactions(listOf(YnabTransaction("transactionId", account.id, now, "payee", "memo", 7)), 10),
-            service.getTransactions(budget, account, 10)
+            expected,
+            service.getTransactions(budgetAccountIds, 10)
         )
     }
 

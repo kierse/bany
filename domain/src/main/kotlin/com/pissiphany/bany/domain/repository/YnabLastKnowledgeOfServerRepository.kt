@@ -1,8 +1,8 @@
 package com.pissiphany.bany.domain.repository
 
-import com.pissiphany.bany.domain.dataStructure.Account
+import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 
 interface YnabLastKnowledgeOfServerRepository {
-    fun getLastKnowledgeOfServer(account: Account): Int
-    fun saveLastKnowledgeOfServer(account: Account, lastKnowledgeOfServer: Int)
+    fun getLastKnowledgeOfServer(budgetAccountIds: BudgetAccountIds): Int
+    fun saveLastKnowledgeOfServer(budgetAccountIds: BudgetAccountIds, lastKnowledgeOfServer: Int)
 }

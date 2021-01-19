@@ -1,3 +1,3 @@
 package com.pissiphany.bany.domain.dataStructure
 
-data class UpdatedTransactions(val transactions: List<Transaction> = emptyList(), val lastKnowledgeOfServer: Int)
+data class UpdatedTransactions(val transactions: List<AccountTransaction> = emptyList(), val lastKnowledgeOfServer: Int)

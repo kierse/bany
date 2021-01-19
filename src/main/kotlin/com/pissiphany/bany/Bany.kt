@@ -4,8 +4,7 @@ import com.pissiphany.bany.Constants.CONFIG_FILE
 import com.pissiphany.bany.Constants.LAST_KNOWLEDGE_OF_SERVER_FILE
 import com.pissiphany.bany.adapter.controller.SyncTransactionsWithYnabController
 import com.pissiphany.bany.adapter.factory.ThirdPartyTransactionGatewayFactoryImpl
-import com.pissiphany.bany.adapter.gateway.YnabBudgetAccountsGatewayImpl
-import com.pissiphany.bany.adapter.gateway.YnabMostRecentTransactionsGatewayImpl
+import com.pissiphany.bany.adapter.gateway.YnabAccountDetailsGatewayImpl
 import com.pissiphany.bany.adapter.gateway.YnabSaveTransactionsGatewayImpl
 import com.pissiphany.bany.adapter.mapper.*
 import com.pissiphany.bany.adapter.presenter.Presenter
@@ -14,15 +13,13 @@ import com.pissiphany.bany.adapter.repository.PropertiesLastKnowledgeOfServerRep
 import com.pissiphany.bany.adapter.view.ConsoleView
 import com.pissiphany.bany.dataStructure.BanyConfig
 import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase
-import com.pissiphany.bany.domain.useCase.step.GetBudgetAccounts
-import com.pissiphany.bany.domain.useCase.step.GetMostRecentTransaction
-import com.pissiphany.bany.domain.useCase.step.GetNewTransactions
-import com.pissiphany.bany.domain.useCase.step.SaveNewTransactions
 import com.pissiphany.bany.factory.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.OffsetDateTimeAdapter
 import com.pissiphany.bany.adapter.dataStructure.YnabConnection
 import com.pissiphany.bany.adapter.dataStructure.YnabCredentials
+import com.pissiphany.bany.adapter.service.ThirdPartyTransactionService
 import com.pissiphany.bany.dataStructure.ServiceCredentials
+import com.pissiphany.bany.domain.useCase.step.*
 import com.pissiphany.bany.mapper.RetrofitAccountMapper
 import com.pissiphany.bany.mapper.RetrofitBudgetMapper
 import com.pissiphany.bany.mapper.RetrofitTransactionMapper
@@ -59,35 +56,38 @@ fun main() {
 
     val serviceBuilder = RetrofitFactory.create(BASE_URL, config.ynabApiToken, moshi)
     val retrofitService = serviceBuilder.create(RetrofitYnabService::class.java)
-    val ynabApiService = RetrofitYnabApiService(
-        retrofitService, RetrofitBudgetMapper(), RetrofitAccountMapper(), RetrofitTransactionMapper()
-    )
+    val ynabApiService = RetrofitYnabApiService(retrofitService, RetrofitAccountMapper(), RetrofitTransactionMapper())
 
-    // Step1GetBudgetAccounts
-    val configurationRepository = ConfigurationRepositoryImpl(credentialsMap.values.toList(), YnabBudgetAccountIdsMapper())
-    val ynabBudgetAccountsGateway = YnabBudgetAccountsGatewayImpl(ynabApiService, YnabBudgetMapper(), YnabAccountMapper())
-    val getBudgetAccounts = GetBudgetAccounts(configurationRepository, ynabBudgetAccountsGateway)
+//    // Step1GetBudgetAccounts
+//    val ynabBudgetAccountsGateway = YnabBudgetAccountsGatewayImpl(ynabApiService, YnabBudgetMapper(), YnabAccountMapper())
+//    val getBudgetAccounts = GetBudgetAccounts(configurationRepository, ynabBudgetAccountsGateway)
 
-    // Step2GetMostRecentTransaction
+    // Step2GetAccountDetails
     val lastKnowledgeOfServerRepository = PropertiesLastKnowledgeOfServerRepository(LAST_KNOWLEDGE_OF_SERVER_FILE)
-    val mostRecentTransactionsGateway = YnabMostRecentTransactionsGatewayImpl(
-        ynabApiService, YnabBudgetMapper(), YnabAccountMapper(), YnabTransactionMapper()
+    val accountDetailsGateway = YnabAccountDetailsGatewayImpl(
+        ynabApiService, YnabBudgetAccountIdsMapper(), YnabAccountMapper(), YnabTransactionMapper()
     )
-    val getMostRecentTransaction = GetMostRecentTransaction(lastKnowledgeOfServerRepository, mostRecentTransactionsGateway)
+    val getAccountDetails = GetAccountDetails(lastKnowledgeOfServerRepository, accountDetailsGateway)
 
-    // Step4SaveNewTransactions
-    val saveTransactionsGateway = YnabSaveTransactionsGatewayImpl(ynabApiService, YnabBudgetMapper(), YnabTransactionMapper())
+    // Step4ProcessNewTransaction
+    val processNewTransaction = ProcessNewTransaction()
+
+    // Step5SaveNewTransactions
+    val saveTransactionsGateway = YnabSaveTransactionsGatewayImpl(
+        ynabApiService, YnabBudgetAccountIdsMapper(), YnabTransactionMapper()
+    )
     val saveNewTransactions = SaveNewTransactions(saveTransactionsGateway)
 
+    val configurationRepository = ConfigurationRepositoryImpl(credentialsMap.values.toList(), YnabBudgetAccountIdsMapper())
     val presenter = Presenter(ConsoleView())
 
     // plugins
     val pluginManager = DefaultPluginManager()
     val factoryMap = buildFactoryMap(pluginManager.getExtensions(BanyPluginFactory::class.java))
 
-    val initializedServices = mutableListOf<ThirdPartyTransactionServiceImpl>()
     val initializedPlugins = mutableListOf<ConfigurablePlugin>()
     try {
+        val initializedServices = mutableListOf<ThirdPartyTransactionService>()
         enabledPlugins.forEach(
             fun(pluginName, credentialList) {
                 val factory = factoryMap[pluginName] ?: return // TODO log skipping this set of credentials
@@ -105,11 +105,18 @@ fun main() {
         if (initializedServices.isEmpty()) throw IllegalStateException("No enabled plugins found!")
 
         // Step3GetNewTransactions
-        val gatewayFactory = ThirdPartyTransactionGatewayFactoryImpl(initializedServices, YnabTransactionMapper())
+        val gatewayFactory = ThirdPartyTransactionGatewayFactoryImpl(
+            initializedServices, YnabBudgetAccountIdsMapper(), YnabTransactionMapper()
+        )
         val getNewTransactions = GetNewTransactions(gatewayFactory)
 
         val syncThirdPartyTransactionsUseCase = SyncThirdPartyTransactionsUseCase(
-            getBudgetAccounts, getMostRecentTransaction, getNewTransactions, saveNewTransactions, presenter
+            configurationRepository,
+            getAccountDetails,
+            getNewTransactions,
+            processNewTransaction,
+            saveNewTransactions,
+            presenter
         )
 
         SyncTransactionsWithYnabController(syncThirdPartyTransactionsUseCase).sync()

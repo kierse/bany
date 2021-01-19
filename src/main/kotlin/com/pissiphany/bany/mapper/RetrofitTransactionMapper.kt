@@ -1,14 +1,16 @@
 package com.pissiphany.bany.mapper
 
-import com.pissiphany.bany.adapter.dataStructure.YnabAccount
-import com.pissiphany.bany.adapter.dataStructure.YnabTransaction
+import com.pissiphany.bany.adapter.dataStructure.YnabAccountTransaction
+import com.pissiphany.bany.adapter.dataStructure.YnabBudgetAccountIds
 import com.pissiphany.bany.dataStructure.RetrofitTransaction
 
 class RetrofitTransactionMapper {
-    fun toYnabTransaction(transaction: RetrofitTransaction, account: YnabAccount): YnabTransaction {
-        return YnabTransaction(
+    fun toYnabTransaction(
+        budgetAccountIds: YnabBudgetAccountIds, transaction: RetrofitTransaction
+    ): YnabAccountTransaction {
+        return YnabAccountTransaction(
             id = transaction.id,
-            accountId = account.id,
+            accountId = budgetAccountIds.ynabAccountId,
             date = transaction.date,
             payee = transaction.payee_name,
             memo = transaction.memo,
@@ -16,7 +18,7 @@ class RetrofitTransactionMapper {
         )
     }
 
-    fun toRetrofitTransaction(transaction: YnabTransaction): RetrofitTransaction {
+    fun toRetrofitTransaction(transaction: YnabAccountTransaction): RetrofitTransaction {
         return RetrofitTransaction(
             id = transaction.id,
             account_id = transaction.accountId,

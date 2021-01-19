@@ -1,6 +1,6 @@
 package com.pissiphany.bany.adapter.repository
 
-import com.pissiphany.bany.domain.dataStructure.Account
+import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 import com.pissiphany.bany.domain.repository.YnabLastKnowledgeOfServerRepository
 import java.io.File
 import java.io.FileInputStream
@@ -20,12 +20,12 @@ class PropertiesLastKnowledgeOfServerRepository(private val pathToProperties: Fi
         }
     }
 
-    override fun getLastKnowledgeOfServer(account: Account): Int {
-        return properties.getProperty(account.id, "0").toInt()
+    override fun getLastKnowledgeOfServer(budgetAccountIds: BudgetAccountIds): Int {
+        return properties.getProperty(budgetAccountIds.accountId, "0").toInt()
     }
 
-    override fun saveLastKnowledgeOfServer(account: Account, lastKnowledgeOfServer: Int) {
-        properties.setProperty(account.id, lastKnowledgeOfServer.toString())
+    override fun saveLastKnowledgeOfServer(budgetAccountIds: BudgetAccountIds, lastKnowledgeOfServer: Int) {
+        properties.setProperty(budgetAccountIds.accountId, lastKnowledgeOfServer.toString())
     }
 
     fun saveChanges() {

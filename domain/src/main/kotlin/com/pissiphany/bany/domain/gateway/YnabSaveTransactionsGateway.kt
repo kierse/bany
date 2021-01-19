@@ -1,9 +1,8 @@
 package com.pissiphany.bany.domain.gateway
 
-import com.pissiphany.bany.domain.dataStructure.Account
-import com.pissiphany.bany.domain.dataStructure.Budget
-import com.pissiphany.bany.domain.dataStructure.Transaction
+import com.pissiphany.bany.domain.dataStructure.AccountTransaction
+import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 
 interface YnabSaveTransactionsGateway {
-    fun saveTransactions(budget: Budget, account: Account, domainTransactions: List<Transaction>): Boolean
+    fun saveTransactions(budgetAccountIds: BudgetAccountIds, transactions: List<AccountTransaction>): Boolean
 }

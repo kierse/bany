@@ -1,52 +1,56 @@
 package com.pissiphany.bany.domain.useCase
 
 import com.pissiphany.bany.domain.dataStructure.*
+import com.pissiphany.bany.domain.repository.ConfigurationRepository
 import java.time.LocalDate
 import java.time.OffsetDateTime
 
 class SyncThirdPartyTransactionsUseCase(
-    private val budgetAccounts: Step1GetBudgetAccounts,
-    private val mostRecentTransaction: Step2GetMostRecentTransaction,
-    private val newTransactions: Step3GetNewTransactions,
+    private val repo: ConfigurationRepository,
+    private val getAccountDetails: Step1GetAccountDetails,
+    private val newThirdPartyTransactions: Step2GetNewTransactions,
+    private val processNewTransaction: Step3ProcessNewTransaction,
     private val saveTransactions: Step4SaveNewTransactions,
     private val outputBoundary: SyncThirdPartyTransactionsOutputBoundary
 ) {
-    interface Step1GetBudgetAccounts {
-        fun getBudgetAccounts(): List<BudgetAccount>
+    interface Step1GetAccountDetails {
+        fun getAccountAndLastTransaction(budgetAccountIds: BudgetAccountIds): AccountAndTransaction
     }
 
-    interface Step2GetMostRecentTransaction {
-        fun getTransaction(budget: Budget, account: Account): Transaction?
+    interface Step2GetNewTransactions {
+        fun getTransactions(budgetAccountIds: BudgetAccountIds, date: LocalDate?): List<Transaction>
     }
 
-    interface Step3GetNewTransactions {
-        fun getTransactions(budget: Budget, account: Account, date: LocalDate?): List<Transaction>
+    interface Step3ProcessNewTransaction {
+        fun processTransaction(account: Account, newTransaction: Transaction): AccountTransaction
     }
 
     interface Step4SaveNewTransactions {
-        fun saveTransactions(budget: Budget, account: Account, transactions: List<Transaction>)
+        fun saveTransactions(budgetAccountIds: BudgetAccountIds, transactions: List<AccountTransaction>)
     }
 
     fun sync() {
         val results = mutableListOf<SyncTransactionsResult>()
-        for ((budget, account) in budgetAccounts.getBudgetAccounts()) {
-            val (dateOfLastTransaction, transactions) = syncNewThirdPartyTransactions(budget, account)
+        for (budgetAccountIds in repo.getBudgetAccountIds()) {
+            val (dateOfLastTransaction, transactions) = syncNewThirdPartyTransactions(budgetAccountIds)
 
-            results.add(SyncTransactionsResult(budget, account, dateOfLastTransaction, transactions))
+            results.add(SyncTransactionsResult(budgetAccountIds, dateOfLastTransaction, transactions))
         }
 
         outputBoundary.present(results)
     }
 
     private fun syncNewThirdPartyTransactions(
-        budget: Budget, account: Account
+        budgetAccountIds: BudgetAccountIds
     ): Pair<OffsetDateTime?, List<Transaction>> {
-        val transaction = mostRecentTransaction.getTransaction(budget, account)
+        val (account, lastTransaction) = getAccountDetails.getAccountAndLastTransaction(budgetAccountIds)
 
-        val date = transaction?.date
-        val newTransactions = newTransactions.getTransactions(budget, account, date?.toLocalDate())
+        val date = lastTransaction?.date
+        val newTransactions = newThirdPartyTransactions.getTransactions(budgetAccountIds, date?.toLocalDate())
 
-        saveTransactions.saveTransactions(budget, account, newTransactions)
+        newTransactions
+            .map { processNewTransaction.processTransaction(account, it) }
+            .let { saveTransactions.saveTransactions(budgetAccountIds, it) }
 
         return Pair(date, newTransactions)
     }

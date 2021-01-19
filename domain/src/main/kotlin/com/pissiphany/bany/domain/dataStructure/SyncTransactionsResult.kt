@@ -3,8 +3,7 @@ package com.pissiphany.bany.domain.dataStructure
 import java.time.OffsetDateTime
 
 data class SyncTransactionsResult(
-    val budget: Budget,
-    val account: Account,
+    val budgetAccountIds: BudgetAccountIds,
     val dateOfLastTransaction: OffsetDateTime?,
     val transactions: List<Transaction>
 )

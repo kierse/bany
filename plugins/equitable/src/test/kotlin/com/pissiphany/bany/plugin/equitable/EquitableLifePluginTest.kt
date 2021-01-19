@@ -2,7 +2,7 @@ package com.pissiphany.bany.plugin.equitable
 
 import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
-import com.pissiphany.bany.plugin.dataStructure.NewBalanceTransaction
+import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountBalance
 import com.squareup.moshi.JsonClass
 import okhttp3.Headers
 import okhttp3.HttpUrl
@@ -235,7 +235,7 @@ class EquitableLifePluginTest {
         )
 
         assertEquals(1, results.size)
-        val transaction = results.first() as NewBalanceTransaction
+        val transaction = results.first() as BanyPluginAccountBalance
         assertEquals(BigDecimal("88888.88"), transaction.balance)
 
         // GET 200 /policy/en/Policy/Values/<AccountNo>

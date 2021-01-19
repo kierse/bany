@@ -6,26 +6,18 @@ import java.time.OffsetDateTime
 sealed class BanyPluginTransaction {
     abstract val date: OffsetDateTime
     abstract val payee: String
-    abstract val memo: String
+    abstract val amount: BigDecimal
 }
 
-data class DebitTransaction(
+data class BanyPluginAccountTransaction(
     override val date: OffsetDateTime,
     override val payee: String,
-    override val memo: String,
-    val debit: BigDecimal
+    val memo: String,
+    override val amount: BigDecimal
 ): BanyPluginTransaction()
 
-data class CreditTransaction(
+data class BanyPluginAccountBalance(
     override val date: OffsetDateTime,
     override val payee: String,
-    override val memo: String,
-    val credit: BigDecimal
-): BanyPluginTransaction()
-
-data class NewBalanceTransaction(
-    override val date: OffsetDateTime,
-    override val payee: String,
-    override val memo: String,
-    val balance: BigDecimal
+    override val amount: BigDecimal
 ): BanyPluginTransaction()

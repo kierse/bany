@@ -1,6 +1,7 @@
 package com.pissiphany.bany.domain.useCase
 
 import com.pissiphany.bany.domain.dataStructure.*
+import com.pissiphany.bany.domain.repository.ConfigurationRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -10,44 +11,47 @@ import java.time.OffsetDateTime
 internal class SyncThirdPartyTransactionsUseCaseTest {
     @Test
     fun sync() {
-        val budget = Budget("budgetId", "budgetName")
+        val budgetAccountIds = BudgetAccountIds(name = "name", budgetId = "budgetId", accountId = "accountId")
         val account = Account("accountId", "accountName", 1, false, Account.Type.CHECKING)
-        val budgetAccounts = listOf(BudgetAccount(budget, account))
 
-        val lastTransaction = Transaction("transactionId1", OffsetDateTime.now(), "payee", "memo", 2)
+        val lastTransaction = AccountTransaction("transactionId1", OffsetDateTime.now(), "payee", "memo", 2)
 
-        val transactions = listOf(Transaction("transactionId2", OffsetDateTime.now(), "payee", "memo", 3))
+        val transactions = listOf(AccountTransaction("transactionId2", OffsetDateTime.now(), "payee", "memo", 3))
 
-        val results = listOf(SyncTransactionsResult(budget, account, lastTransaction.date, transactions))
+        val results = listOf(SyncTransactionsResult(budgetAccountIds, lastTransaction.date, transactions))
 
-        val step1 = Step1Test(budgetAccounts)
-        val step2 = Step2Test(lastTransaction)
-        val step3 = Step3Test(transactions)
+        val repo = TestConfigRepo(listOf(budgetAccountIds))
+        val step1 = Step1Test(AccountAndTransaction(account, lastTransaction))
+        val step2 = Step2Test(transactions)
+        val step3 = Step3Test()
         val step4 = Step4Test()
         val output = OutputBoundaryTest()
 
-        val uc = SyncThirdPartyTransactionsUseCase(step1, step2, step3, step4, output)
-        uc.sync()
+        SyncThirdPartyTransactionsUseCase(repo, step1, step2, step3, step4, output).sync()
 
         assertEquals(results, output.results)
     }
 
-    private class Step1Test(private val budgetAccounts: List<BudgetAccount>) : SyncThirdPartyTransactionsUseCase.Step1GetBudgetAccounts {
-        override fun getBudgetAccounts(): List<BudgetAccount> = budgetAccounts
+    private class TestConfigRepo(private val budgetAccountIds: List<BudgetAccountIds>) : ConfigurationRepository {
+        override fun getBudgetAccountIds(): List<BudgetAccountIds> = budgetAccountIds
     }
 
-    private class Step2Test(private val transaction: Transaction) : SyncThirdPartyTransactionsUseCase.Step2GetMostRecentTransaction {
-        override fun getTransaction(budget: Budget, account: Account): Transaction? = transaction
+    private class Step1Test(private val accountAndTransaction: AccountAndTransaction) : SyncThirdPartyTransactionsUseCase.Step1GetAccountDetails {
+        override fun getAccountAndLastTransaction(budgetAccountIds: BudgetAccountIds) = accountAndTransaction
     }
 
-    private class Step3Test(private val transactions: List<Transaction>) : SyncThirdPartyTransactionsUseCase.Step3GetNewTransactions {
-        override fun getTransactions(budget: Budget, account: Account, date: LocalDate?): List<Transaction> = transactions
+    private class Step2Test(private val transactions: List<Transaction>) : SyncThirdPartyTransactionsUseCase.Step2GetNewTransactions {
+        override fun getTransactions(budgetAccountIds: BudgetAccountIds, date: LocalDate?) = transactions
+    }
+
+    private class Step3Test: SyncThirdPartyTransactionsUseCase.Step3ProcessNewTransaction {
+        override fun processTransaction(account: Account, newTransaction: Transaction) = newTransaction as AccountTransaction
     }
 
     private class Step4Test: SyncThirdPartyTransactionsUseCase.Step4SaveNewTransactions {
         var transactions = emptyList<Transaction>()
 
-        override fun saveTransactions(budget: Budget, account: Account, transactions: List<Transaction>) {
+        override fun saveTransactions(budgetAccountIds: BudgetAccountIds, transactions: List<AccountTransaction>) {
             this.transactions = transactions
         }
     }

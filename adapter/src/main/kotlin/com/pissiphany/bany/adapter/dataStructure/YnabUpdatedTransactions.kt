@@ -1,3 +1,3 @@
 package com.pissiphany.bany.adapter.dataStructure
 
-data class YnabUpdatedTransactions(val transactions: List<YnabTransaction> = emptyList(), val lastKnowledgeOfServer: Int)
+data class YnabUpdatedTransactions(val transactions: List<YnabAccountTransaction> = emptyList(), val lastKnowledgeOfServer: Int)

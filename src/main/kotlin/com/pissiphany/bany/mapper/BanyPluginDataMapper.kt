@@ -1,10 +1,13 @@
 package com.pissiphany.bany.mapper
 
+import com.pissiphany.bany.adapter.dataStructure.YnabAccountBalance
+import com.pissiphany.bany.adapter.dataStructure.YnabAccountTransaction
 import com.pissiphany.bany.adapter.dataStructure.YnabTransaction
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
 import com.pissiphany.bany.adapter.dataStructure.YnabBudgetAccountIds
-import java.math.BigDecimal
+import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountBalance
+import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountTransaction
 
 // TODO update tests!
 class BanyPluginDataMapper {
@@ -27,25 +30,31 @@ class BanyPluginDataMapper {
     fun toYnabTransaction(
         banyPluginTransaction: BanyPluginTransaction, accountId: String
     ): YnabTransaction {
-        if (banyPluginTransaction.debit != BigDecimal.ZERO
-            && banyPluginTransaction.credit != BigDecimal.ZERO)
-            throw IllegalArgumentException("transaction has non-zero value for credit and debit")
-
-        val amount = if (banyPluginTransaction.debit != BigDecimal.ZERO) {
-            banyPluginTransaction.debit.negate()
-        } else {
-            banyPluginTransaction.credit
+        return when(banyPluginTransaction) {
+            is BanyPluginAccountTransaction -> toYnabAccountTransaction(banyPluginTransaction, accountId)
+            is BanyPluginAccountBalance -> toYnabAccountBalance(banyPluginTransaction, accountId)
         }
+    }
 
-        return YnabTransaction(
-            // Note: coming from third party so no transaction id
+    private fun toYnabAccountTransaction(
+        accountTransaction: BanyPluginAccountTransaction, accountId: String
+    ): YnabAccountTransaction {
+        return YnabAccountTransaction(
             id = null,
-
+            memo = accountTransaction.memo,
             accountId = accountId,
-            date = banyPluginTransaction.date,
-            payee = banyPluginTransaction.payee,
-            memo = banyPluginTransaction.memo,
-            amountInMilliUnits = amount.movePointRight(3).toInt()
+            date = accountTransaction.date,
+            payee = accountTransaction.payee,
+            amountInMilliUnits = accountTransaction.amount.movePointRight(3).toInt()
+        )
+    }
+
+    private fun toYnabAccountBalance(accountBalance: BanyPluginAccountBalance, accountId: String): YnabAccountBalance {
+        return YnabAccountBalance(
+            accountId = accountId,
+            date = accountBalance.date,
+            payee = accountBalance.payee,
+            amountInMilliUnits = accountBalance.amount.movePointRight(3).toInt()
         )
     }
 }

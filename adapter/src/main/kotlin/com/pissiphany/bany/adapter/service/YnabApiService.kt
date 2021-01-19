@@ -1,16 +1,11 @@
 package com.pissiphany.bany.adapter.service
 
-import com.pissiphany.bany.adapter.dataStructure.YnabAccount
-import com.pissiphany.bany.adapter.dataStructure.YnabBudget
-import com.pissiphany.bany.adapter.dataStructure.YnabTransaction
-import com.pissiphany.bany.adapter.dataStructure.YnabUpdatedTransactions
+import com.pissiphany.bany.adapter.dataStructure.*
 
 interface YnabApiService {
-    fun getBudget(budgetId: String): YnabBudget?
+    fun getAccount(budgetAccountIds: YnabBudgetAccountIds): YnabAccount?
 
-    fun getAccount(budgetId: String, accountId: String): YnabAccount?
+    fun getTransactions(budgetAccountIds: YnabBudgetAccountIds, serverKnowledge: Int? = null): YnabUpdatedTransactions
 
-    fun getTransactions(budget: YnabBudget, account: YnabAccount, serverKnowledge: Int? = null): YnabUpdatedTransactions
-
-    fun saveTransactions(budget: YnabBudget, ynabTransactions: List<YnabTransaction>): Boolean
+    fun saveTransactions(budgetAccountIds: YnabBudgetAccountIds, ynabTransactions: List<YnabAccountTransaction>): Boolean
 }

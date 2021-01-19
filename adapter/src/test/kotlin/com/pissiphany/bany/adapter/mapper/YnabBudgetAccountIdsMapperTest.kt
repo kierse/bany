@@ -14,7 +14,7 @@ internal class YnabBudgetAccountIdsMapperTest {
         val connection = YnabConnection(
             name = "name", ynabBudgetId = budgetId, ynabAccountId = accountId, thirdPartyAccountId = "accountId"
         )
-        val budgetAccountIds = BudgetAccountIds(budgetId = budgetId, accountId = accountId)
+        val budgetAccountIds = BudgetAccountIds(budgetId = budgetId, accountId = accountId, name = "name")
 
         assertEquals(budgetAccountIds, YnabBudgetAccountIdsMapper().toBudgetAccountIds(connection))
     }

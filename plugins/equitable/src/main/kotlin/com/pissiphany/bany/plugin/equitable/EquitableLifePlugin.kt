@@ -4,7 +4,7 @@ import com.pissiphany.bany.plugin.BanyConfigurablePlugin
 import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
-import com.pissiphany.bany.plugin.dataStructure.NewBalanceTransaction
+import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountBalance
 import org.jsoup.Connection
 import org.jsoup.Jsoup
 import org.jsoup.nodes.FormElement
@@ -177,10 +177,9 @@ class EquitableLifePlugin(
         check(loanAvailable.isNotBlank()) { "Unable to identify available loan amount!" }
 
         return listOf(
-            NewBalanceTransaction(
+            BanyPluginAccountBalance(
                 date = OffsetDateTime.now(ZoneOffset.UTC),
                 payee = "Equitable Life of Canada",
-                memo = "",
                 balance = BigDecimal(loanAvailable)
             )
         )

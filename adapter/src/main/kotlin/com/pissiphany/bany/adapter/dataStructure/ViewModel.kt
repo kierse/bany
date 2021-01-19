@@ -6,7 +6,6 @@ data class ViewModel(
     data class Record(
         val syncIndex: String,
         val budgetId: String,
-        val budgetName: String,
         val accountId: String,
         val accountName: String,
         val latestTransactionDate: String = "",

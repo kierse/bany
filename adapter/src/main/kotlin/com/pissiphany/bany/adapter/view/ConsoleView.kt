@@ -9,7 +9,6 @@ class ConsoleView : Presenter.View {
             println()
             println(record.syncIndex)
             println(record.budgetId)
-            println(record.budgetName)
             println(record.accountId)
             println(record.accountName)
             println()

@@ -2,10 +2,22 @@ package com.pissiphany.bany.domain.dataStructure
 
 import java.time.OffsetDateTime
 
-data class Transaction(
+sealed class Transaction {
+    abstract val date: OffsetDateTime
+    abstract val payee: String
+    abstract val amountInCents: Int
+}
+
+data class AccountTransaction(
     val id: String?,
-    val date: OffsetDateTime,
-    val payee: String,
+    override val date: OffsetDateTime,
+    override val payee: String,
     val memo: String,
-    val amountInCents: Int
-)
+    override val amountInCents: Int
+): Transaction()
+
+data class AccountBalance(
+    override val date: OffsetDateTime,
+    override val payee: String,
+    override val amountInCents: Int
+): Transaction()

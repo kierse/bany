@@ -21,7 +21,6 @@ import com.pissiphany.bany.adapter.service.ThirdPartyTransactionService
 import com.pissiphany.bany.dataStructure.ServiceCredentials
 import com.pissiphany.bany.domain.useCase.step.*
 import com.pissiphany.bany.mapper.RetrofitAccountMapper
-import com.pissiphany.bany.mapper.RetrofitBudgetMapper
 import com.pissiphany.bany.mapper.RetrofitTransactionMapper
 import com.pissiphany.bany.plugin.BanyPluginFactory
 import com.pissiphany.bany.factory.RetrofitFactory

@@ -13,7 +13,7 @@ import java.time.OffsetDateTime
 internal class BanyPluginDataMapperTest {
     @Test
     fun `toYnabTransaction - account transaction`() {
-        val expected = YnabAccountTransaction(null, "accountId", OffsetDateTime.now(), "payee", "memo", -10000)
+        val expected = YnabAccountTransaction(null, "accountId", OffsetDateTime.now(), "payee", "memo", 10000)
         val pluginTransaction = BanyPluginAccountTransaction(
             date = expected.date,
             payee = expected.payee,
@@ -26,7 +26,7 @@ internal class BanyPluginDataMapperTest {
 
     @Test
     fun `toYnabTransaction - account balance`() {
-        val expected = YnabAccountBalance("accountId", OffsetDateTime.now(), "payee", 1500)
+        val expected = YnabAccountBalance("accountId", OffsetDateTime.now(), "payee", 10000)
         val pluginTransaction = BanyPluginAccountBalance(
             date = expected.date,
             payee = expected.payee,

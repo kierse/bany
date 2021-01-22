@@ -1,10 +1,7 @@
 package com.pissiphany.bany.adapter.presenter
 
 import com.pissiphany.bany.adapter.dataStructure.ViewModel
-import com.pissiphany.bany.domain.dataStructure.Account
-import com.pissiphany.bany.domain.dataStructure.Budget
-import com.pissiphany.bany.domain.dataStructure.SyncTransactionsResult
-import com.pissiphany.bany.domain.dataStructure.Transaction
+import com.pissiphany.bany.domain.dataStructure.*
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
@@ -16,8 +13,7 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 internal class PresenterTest {
-    private lateinit var budget: Budget
-    private lateinit var account: Account
+    private lateinit var budgetAccountIds: BudgetAccountIds
     private lateinit var transaction: Transaction
     private lateinit var date: OffsetDateTime
     private lateinit var results: List<SyncTransactionsResult>
@@ -26,12 +22,11 @@ internal class PresenterTest {
 
     @BeforeEach
     fun setup() {
-        budget = Budget(id = "budgetId", name = "budgetName")
-        account = Account(id = "accountId", name = "name", balanceInCents = 200, type = Account.Type.CHECKING, closed = false)
+        budgetAccountIds = BudgetAccountIds(name = "name", budgetId = "budgetId", accountId = "accountId")
 
         date = OffsetDateTime.of(1970,1,1,0,0,0,0, ZoneOffset.UTC)
 
-        transaction = Transaction(
+        transaction = AccountTransaction(
             id = "transactionId",
             date = date.plusDays(1),
             amountInCents = 300,
@@ -39,7 +34,7 @@ internal class PresenterTest {
             memo = "memo"
         )
         results = listOf(SyncTransactionsResult(
-            budget, account, date, listOf(transaction)
+            budgetAccountIds, date, listOf(transaction)
         ))
         view = TestView()
 
@@ -50,22 +45,17 @@ internal class PresenterTest {
 
     @Test
     fun present__budgetId() {
-        assertTrue(model.records[0].budgetId.contains(budget.id))
-    }
-
-    @Test
-    fun present__budgetName() {
-        assertTrue(model.records[0].budgetName.contains(budget.name))
+        assertTrue(model.records[0].budgetId.contains(budgetAccountIds.budgetId))
     }
 
     @Test
     fun present__accountId() {
-        assertTrue(model.records[0].accountId.contains(account.id))
+        assertTrue(model.records[0].accountId.contains(budgetAccountIds.accountId))
     }
 
     @Test
     fun present__accountName() {
-        assertTrue(model.records[0].accountName.contains(account.name))
+        assertTrue(model.records[0].accountName.contains(budgetAccountIds.name))
     }
 
     @Test
@@ -76,7 +66,7 @@ internal class PresenterTest {
     @Test
     fun present__no_latest_transaction_date() {
         results = listOf(SyncTransactionsResult(
-            budget, account, null, listOf(transaction)
+            budgetAccountIds, null, listOf(transaction)
         ))
 
         Presenter(view).present(results)
@@ -88,7 +78,7 @@ internal class PresenterTest {
     @Test
     fun present__transactions() {
         assertAll("transactions",
-            { assertTrue(model.records[0].transactions[0].contains(transaction.id!!)) },
+            // TODO test AccountBalance transactions
             { assertTrue(model.records[0].transactions[0].contains(transaction.date.format(DateTimeFormatter.ISO_LOCAL_DATE))) },
             {
                 val bigDecimal = BigDecimal(transaction.amountInCents).movePointLeft(2)
@@ -100,7 +90,7 @@ internal class PresenterTest {
     @Test
     fun present__no_transactions() {
         results = listOf(SyncTransactionsResult(
-            budget, account, date, listOf()
+            budgetAccountIds, date, listOf()
         ))
 
         Presenter(view).present(results)

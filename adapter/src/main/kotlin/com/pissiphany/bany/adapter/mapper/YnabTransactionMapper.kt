@@ -20,7 +20,7 @@ class YnabTransactionMapper {
         budgetAccountIds: YnabBudgetAccountIds, accountTransaction: AccountTransaction
     ): YnabAccountTransaction {
         return YnabAccountTransaction(
-            id = null,
+            id = accountTransaction.id,
             memo = accountTransaction.memo,
             accountId = budgetAccountIds.ynabAccountId,
             date = accountTransaction.date,

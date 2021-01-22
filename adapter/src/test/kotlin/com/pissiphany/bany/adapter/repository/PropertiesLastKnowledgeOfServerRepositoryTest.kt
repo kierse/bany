@@ -1,6 +1,6 @@
 package com.pissiphany.bany.adapter.repository
 
-import com.pissiphany.bany.domain.dataStructure.Account
+import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
@@ -10,63 +10,63 @@ import java.util.*
 internal class PropertiesLastKnowledgeOfServerRepositoryTest {
     @Test
     fun getLastKnowledgeOfServer__empty_file() {
-        val account = Account("account_id_1", "name", 0, false, Account.Type.CHECKING)
+        val ids = BudgetAccountIds("name_1", "budget_id_1", "account_id_1")
 
         val nonExistentFile = File(System.getProperty("java.io.tmpdir"), "foo-bar.tmp")
         val repo = PropertiesLastKnowledgeOfServerRepository(nonExistentFile)
 
         assertTrue(nonExistentFile.exists())
-        assertEquals(0, repo.getLastKnowledgeOfServer(account))
+        assertEquals(0, repo.getLastKnowledgeOfServer(ids))
 
         nonExistentFile.delete()
     }
 
     @Test
     fun getLastKnowledgeOfServer__file_exists() {
-        val account = Account("account_id_1", "name", 0, false, Account.Type.CHECKING)
+        val ids = BudgetAccountIds("name_1", "budget_id_1", "account_id_1")
 
         val file = File.createTempFile("getLastKnowledgeOfServer__file_exists", null)
         createPropFile(file, mapOf("account_id_1" to 123, "account_id_2" to 5))
         val repo = PropertiesLastKnowledgeOfServerRepository(file)
         file.delete()
 
-        assertEquals(123, repo.getLastKnowledgeOfServer(account))
+        assertEquals(123, repo.getLastKnowledgeOfServer(ids))
     }
 
     @Test
     fun saveLastKnowledgeOfServer() {
-        val account = Account("account_id_2", "name", 0, false, Account.Type.CHECKING)
+        val ids = BudgetAccountIds("name_1", "budget_id_1", "account_id_2")
 
         val file = File.createTempFile("saveLastKnowledgeOfServer", null)
         createPropFile(file, mapOf("account_id_1" to 123, "account_id_2" to 5))
         val repo = PropertiesLastKnowledgeOfServerRepository(file)
         file.delete()
 
-        repo.saveLastKnowledgeOfServer(account, 10)
+        repo.saveLastKnowledgeOfServer(ids, 10)
 
-        assertEquals(10, repo.getLastKnowledgeOfServer(account))
+        assertEquals(10, repo.getLastKnowledgeOfServer(ids))
     }
 
     @Test
     fun saveChanges() {
-        val account = Account("account_id_2", "name", 0, false, Account.Type.CHECKING)
+        val ids = BudgetAccountIds("name_1", "budget_id_1", "account_id_2")
 
         val file = File.createTempFile("saveChanges", null)
         val repo = PropertiesLastKnowledgeOfServerRepository(file)
 
-        repo.saveLastKnowledgeOfServer(account, 9)
+        repo.saveLastKnowledgeOfServer(ids, 9)
         repo.saveChanges()
 
         val repo2 = PropertiesLastKnowledgeOfServerRepository(file)
 
-        assertEquals(9, repo2.getLastKnowledgeOfServer(account))
+        assertEquals(9, repo2.getLastKnowledgeOfServer(ids))
 
         file.delete()
     }
 
     private fun createPropFile(path: File, data: Map<String, Int>) {
         val properties = Properties()
-        data.forEach { key, value -> properties.setProperty(key, value.toString()) }
+        data.forEach { (key, value) -> properties.setProperty(key, value.toString()) }
         FileOutputStream(path).use { writer ->
             properties.store(writer, null)
         }

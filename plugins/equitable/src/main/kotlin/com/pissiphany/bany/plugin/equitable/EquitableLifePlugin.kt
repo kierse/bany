@@ -180,7 +180,7 @@ class EquitableLifePlugin(
             BanyPluginAccountBalance(
                 date = OffsetDateTime.now(ZoneOffset.UTC),
                 payee = "Equitable Life of Canada",
-                balance = BigDecimal(loanAvailable)
+                amount = BigDecimal(loanAvailable)
             )
         )
     }

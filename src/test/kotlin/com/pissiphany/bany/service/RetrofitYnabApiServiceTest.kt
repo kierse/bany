@@ -3,7 +3,6 @@ package com.pissiphany.bany.service
 import com.pissiphany.bany.adapter.dataStructure.*
 import com.pissiphany.bany.dataStructure.*
 import com.pissiphany.bany.mapper.RetrofitAccountMapper
-import com.pissiphany.bany.mapper.RetrofitBudgetMapper
 import com.pissiphany.bany.mapper.RetrofitTransactionMapper
 import okhttp3.Request
 import okio.Timeout
@@ -19,7 +18,7 @@ internal class RetrofitYnabApiServiceTest {
     @Test
     fun getAccount() {
         val ynabService = TestService(
-            key1 = "budgetId", key2 = "accountId", account = RetrofitAccount("accountId", "name", false, 5, "checking")
+            budgetId = "budgetId", accountId = "accountId", account = RetrofitAccount("accountId", "name", false, 5, "checking")
         )
         val service = RetrofitYnabApiService(ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper())
 
@@ -43,7 +42,10 @@ internal class RetrofitYnabApiServiceTest {
         )
 
         val ynabService = TestService(
-            key3 = 10, transactionsWrapper = transactionsWrapper
+            budgetId = "budgetId",
+            accountId = "accountId",
+            lastKnowledgeOfServer = 10,
+            transactionsWrapper = transactionsWrapper
         )
         val service = RetrofitYnabApiService(ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper())
 
@@ -56,23 +58,23 @@ internal class RetrofitYnabApiServiceTest {
     @Test
     fun saveTransactions() {
         val now = OffsetDateTime.now()
-        val budget = YnabBudget("budgetId", "name", now)
+        val ids = YnabBudgetAccountIds(ynabBudgetId = "budgetId", ynabAccountId = "accountId")
         val ynabTransactions = listOf(
-            YnabTransaction("transactionId", "accountId", now, "payee", "memo", 10)
+            YnabAccountTransaction("transactionId", "accountId", now, "payee", "memo", 10)
         )
 
-        val ynabService = TestService(key1 = "budgetId")
+        val ynabService = TestService(budgetId = "budgetId")
         val service = RetrofitYnabApiService(
-            ynabService, RetrofitBudgetMapper(), RetrofitAccountMapper(), RetrofitTransactionMapper()
+            ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper()
         )
 
-        assertTrue(service.saveTransactions(budget, ynabTransactions))
+        assertTrue(service.saveTransactions(ids, ynabTransactions))
     }
 
     private class TestService(
-        private val key1: String,
-        private val key2: String = "",
-        private val key3: Int? = null,
+        private val budgetId: String,
+        private val accountId: String = "",
+        private val lastKnowledgeOfServer: Int? = null,
         private val budgetWrapper: RetrofitBudgetWrapper? = null,
         private val account: RetrofitAccount? = null,
         private val transactionsWrapper: RetrofitTransactionsWrapper? = null
@@ -80,21 +82,22 @@ internal class RetrofitYnabApiServiceTest {
         override fun getTransactions(
             budgetId: String, accountId: String, lastKnowledgeOfServer: Int?
         ): Call<RetrofitTransactionsWrapper> {
-            return TestCall(
-                if (key1 == budgetId && key2 == accountId && key3 == lastKnowledgeOfServer) transactionsWrapper else null
-            )
+            val assertion = this.budgetId == budgetId
+                    && this.accountId == accountId
+                    && this.lastKnowledgeOfServer == lastKnowledgeOfServer
+            return TestCall(if (assertion) transactionsWrapper else null)
         }
 
         override fun saveTransactions(budgetId: String, transactions: RetrofitTransactions): Call<Unit> {
-            return TestCall(if (key1 == budgetId) Unit else null)
+            return TestCall(if (this.budgetId == budgetId) Unit else null)
         }
 
         override fun getBudget(budgetId: String): Call<RetrofitBudgetWrapper> {
-            return TestCall(if (key1 == budgetId) budgetWrapper else null)
+            return TestCall(if (this.budgetId == budgetId) budgetWrapper else null)
         }
 
         override fun getAccount(budgetId: String, accountId: String): Call<RetrofitAccount> {
-            return TestCall(if (budgetId == key1 && accountId == key2) account else null)
+            return TestCall(if (budgetId == this.budgetId && accountId == this.accountId) account else null)
         }
 
         /** NOT NEEDED **/

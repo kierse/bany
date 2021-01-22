@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Assertions.*
 internal class ConfigurationRepositoryImplTest {
     @Test
     fun getBudgetAccountIds() {
-        val budgetAccountId1 = BudgetAccountIds("ynabBudgetId1", "ynabAccountId1")
-        val budgetAccountId2 = BudgetAccountIds("ynabBudgetId2", "ynabAccountId2")
+        val budgetAccountId1 = BudgetAccountIds("name1", "ynabBudgetId1", "ynabAccountId1")
+        val budgetAccountId2 = BudgetAccountIds("name2", "ynabBudgetId2", "ynabAccountId2")
         val credentials = listOf(
             YnabCredentials(
                 "username1",

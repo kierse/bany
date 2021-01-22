@@ -236,7 +236,7 @@ class EquitableLifePluginTest {
 
         assertEquals(1, results.size)
         val transaction = results.first() as BanyPluginAccountBalance
-        assertEquals(BigDecimal("88888.88"), transaction.balance)
+        assertEquals(BigDecimal("88888.88"), transaction.amount)
 
         // GET 200 /policy/en/Policy/Values/<AccountNo>
         val getPolicyValuesRequest = server.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()

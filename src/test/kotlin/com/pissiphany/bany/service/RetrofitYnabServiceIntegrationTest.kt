@@ -1,18 +1,22 @@
 package com.pissiphany.bany.service
 
 import com.pissiphany.bany.BASE_URL
-import com.pissiphany.bany.Constants.CONFIG_FILE
-import com.pissiphany.bany.dataStructure.BanyConfig
-import com.pissiphany.bany.factory.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.OffsetDateTimeAdapter
+import com.pissiphany.bany.factory.DataEnvelopeFactory
 import com.pissiphany.bany.factory.RetrofitFactory
+import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import java.io.File
+
+private val CONFIG_DIR = File(System.getProperty("user.home"), ".bany")
+private val CONFIG_FILE = File(CONFIG_DIR, "ynab-integration.config")
 
 // See https://spin.atomicobject.com/2018/07/18/gradle-integration-tests/
-class RetrofitYnabServiceTest {
+class RetrofitYnabServiceIntegrationTest {
     companion object {
+        private lateinit var config: YnabConfig
         private lateinit var service: RetrofitYnabService
 
         @BeforeAll
@@ -22,12 +26,19 @@ class RetrofitYnabServiceTest {
                 .add(DataEnvelopeFactory())
                 .add(OffsetDateTimeAdapter())
                 .build()
-            val adapter = moshi.adapter(BanyConfig::class.java)
-            val config = adapter.fromJson(CONFIG_FILE.readText()) ?: throw UnknownError("unable to read config file!")
 
-            val retrofit = RetrofitFactory.create(BASE_URL, config.ynabApiToken, moshi)
+            config = CONFIG_FILE
+                .takeIf(File::isFile)
+                ?.let { file ->
+                    val adapter = moshi.adapter(YnabConfig::class.java)
+                    adapter.fromJson(file.readText())
+                }
+                ?: throw UnknownError("unable to read config file!")
 
-            service = retrofit.create(RetrofitYnabService::class.java)
+            service = RetrofitFactory.create(BASE_URL, config.apiToken, moshi)
+                .run {
+                    create(RetrofitYnabService::class.java)
+                }
         }
     }
 
@@ -39,6 +50,16 @@ class RetrofitYnabServiceTest {
 
         assertTrue(response.isSuccessful)
         assertTrue(body?.budgets?.isNotEmpty() ?: false)
+    }
+
+    @Test
+    fun getBudget() {
+        val call = service.getBudget(config.budgetId)
+        val response = call.execute()
+        val body = response.body()
+
+        assertTrue(response.isSuccessful)
+        assertEquals(config.budgetId, body?.budget?.id)
     }
 
     @Test
@@ -63,4 +84,21 @@ class RetrofitYnabServiceTest {
         assertFalse(accountsResponse.isSuccessful)
         assertEquals(404, accountsResponse.code())
     }
+
+    @Test
+    fun getAccount() {
+        val call = service.getAccount(config.budgetId, config.accountId)
+        val response = call.execute()
+        val account = response.body()
+
+        assertTrue(response.isSuccessful)
+        assertEquals(config.accountId, account?.id)
+    }
+
+    @JsonClass(generateAdapter = true)
+    data class YnabConfig(
+        val apiToken: String,
+        val budgetId: String,
+        val accountId: String
+    )
 }

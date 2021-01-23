@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import java.io.File
 
 private val CONFIG_DIR = File(System.getProperty("user.home"), ".bany")
-private val CONFIG_FILE = File(CONFIG_DIR, "equitable-life-instrumentation.config")
+private val CONFIG_FILE = File(CONFIG_DIR, "equitable-life-integration.config")
 
 class EquitableLifePluginIntegrationTest {
     private val credentials: EquitableLifePluginTest.Credentials? =

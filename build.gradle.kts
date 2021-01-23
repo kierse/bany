@@ -43,6 +43,14 @@ dependencies {
 }
 
 tasks.named<Test>("test") {
+    sourceSets {
+        test {
+            if (!project.hasProperty("includeIntegration")) {
+                exclude("**/*Integration*.class")
+            }
+        }
+    }
+
     useJUnitPlatform()
 }
 

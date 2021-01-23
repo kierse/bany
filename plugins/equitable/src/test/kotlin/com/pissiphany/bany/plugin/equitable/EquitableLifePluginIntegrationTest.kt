@@ -1,7 +1,6 @@
 package com.pissiphany.bany.plugin.equitable
 
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
-import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -10,30 +9,20 @@ private val CONFIG_DIR = File(System.getProperty("user.home"), ".bany")
 private val CONFIG_FILE = File(CONFIG_DIR, "equitable-life-instrumentation.config")
 
 class EquitableLifePluginIntegrationTest {
-    private val config: EquitableLifePluginConfig?
-
-    init {
-        config = if (CONFIG_FILE.isFile) {
-            val moshi = Moshi.Builder().build()
-            val adapter = moshi.adapter(EquitableLifePluginConfig::class.java)
-            adapter.fromJson(CONFIG_FILE.readText())
-        } else {
-            null
-        }
-    }
+    private val credentials: EquitableLifePluginTest.Credentials? =
+        CONFIG_FILE
+            .takeIf(File::isFile)
+            ?.let { file ->
+                val moshi = Moshi.Builder().build()
+                val adapter = moshi.adapter(EquitableLifePluginTest.Credentials::class.java)
+                adapter.fromJson(file.readText())
+            }
 
     @Test
     fun integration() {
-        if (config == null || !config.enabled) {
-            println()
-            println("##########################")
-            println("Skipping integration test!")
-            println("##########################")
-            println()
-            return
-        }
+        checkNotNull(credentials) { "Unable to initialize config! Does file exist at $CONFIG_FILE?" }
 
-        EquitableLifePlugin(config.credentials)
+        EquitableLifePlugin(credentials)
             .apply {
                 check(setup()) { "Unable to configure plugin!" }
 
@@ -49,10 +38,4 @@ class EquitableLifePluginIntegrationTest {
                 tearDown()
             }
     }
-
-    @JsonClass(generateAdapter = true)
-    class EquitableLifePluginConfig(
-        val credentials: EquitableLifePluginTest.Credentials,
-        val enabled: Boolean
-    )
 }

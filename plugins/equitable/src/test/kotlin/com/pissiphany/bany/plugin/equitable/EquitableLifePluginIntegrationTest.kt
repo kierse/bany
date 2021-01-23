@@ -9,7 +9,7 @@ import java.io.File
 private val CONFIG_DIR = File(System.getProperty("user.home"), ".bany")
 private val CONFIG_FILE = File(CONFIG_DIR, "equitable-life-instrumentation.config")
 
-class Integration {
+class EquitableLifePluginIntegrationTest {
     private val config: EquitableLifePluginConfig?
 
     init {

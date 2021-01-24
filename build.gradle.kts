@@ -1,8 +1,14 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.4.10"
-    kotlin("kapt") version "1.4.10"
+    application
+    kotlin("jvm") version "1.4.21"
+    kotlin("kapt") version "1.4.21"
+}
+
+// https://docs.gradle.org/current/userguide/application_plugin.html
+application {
+    mainClass.set("com.pissiphany.bany.BanyKt")
 }
 
 group = "com.pissiphany.bany"
@@ -14,12 +20,9 @@ allprojects {
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "14"
     }
 }
-
-// plugin location
-rootProject.extra["pluginsDir"] = "${rootProject.buildDir.path}/plugins"
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
@@ -27,6 +30,7 @@ dependencies {
     implementation(project(":bany-plugin-api"))
     implementation(project(":domain"))
     implementation(project(":adapter"))
+    implementation(project(":plugins:equitable"))
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
@@ -37,6 +41,7 @@ dependencies {
     implementation("org.pf4j:pf4j:3.4.1")
     implementation("org.slf4j:slf4j-simple:1.7.30")
 
+    // TODO needed?
     kaptTest("com.squareup.moshi:moshi-kotlin-codegen:1.11.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
@@ -46,6 +51,7 @@ dependencies {
 tasks.named<Test>("test") {
     sourceSets {
         test {
+            // Append "-PincludeIntegration" to command line to run instrumentation
             if (!project.hasProperty("includeIntegration")) {
                 exclude("**/*Integration*.class")
             }
@@ -53,10 +59,4 @@ tasks.named<Test>("test") {
     }
 
     useJUnitPlatform()
-}
-
-tasks.register("run-in-ide") {
-    dependencies {
-        runtime(fileTree("build/plugins").include("*.jar"))
-    }
 }

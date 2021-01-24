@@ -10,7 +10,7 @@ group = "com.pissiphany.bany"
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
-    implementation(project(":bany-plugin-api"))
+    api(project(":bany-plugin-api"))
 
     implementation("org.jsoup:jsoup:1.13.1")
 

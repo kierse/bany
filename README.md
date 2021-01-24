@@ -5,3 +5,9 @@ When starting work on Bany, I had a couple goals in mind:
 1. do a deep dive into [The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html).
 
 After some initial effort, I have decided to halt work. Many of the financial institutions I use personally employ measures to prevent screen scaping and/or unauthorized API usage.
+
+## Copy plugin jars to ROOT/build/plugins
+./gradlew build
+
+# Logging
+https://stackoverflow.com/a/34462577

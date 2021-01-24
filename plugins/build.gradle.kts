@@ -1,6 +1,7 @@
 // based on: https://github.com/pf4j/pf4j/blob/master/demo_gradle/plugins/build.gradle
 plugins {
     kotlin("jvm")
+    `java-library-distribution`
 }
 
 subprojects
@@ -9,15 +10,18 @@ subprojects
         // Note: need to apply the plugin here so we have (and can use) the Jar task
         project.apply(plugin = "kotlin")
 
-        val jar by project.tasks.existing(Jar::class)
-        project.tasks.register<Copy>("copyJar") {
-            val pluginsDir: String by rootProject.extra
-            from(jar)
-            into(pluginsDir)
+        project.tasks.jar {
+            manifest {
+                // make sure each plugin jar manifest is properly populated
+                attributes(
+                    mapOf(
+                        "Plugin-Class" to "${project.findProperty("pluginClass")}",
+                        "Plugin-Id" to "${project.findProperty("pluginId")}",
+                        "Plugin-Version" to "${project.findProperty("pluginVersion")}",
+                        "Plugin-Provider" to "${project.findProperty("pluginProvider")}"
+                    )
+                )
+            }
         }
     }
 
-tasks.named("build") {
-    // make "build" task depend on all sub-project custom tasks named "assemblePlugin"
-    subprojects.forEach { dependsOn("${it.name}:copyJar") }
-}

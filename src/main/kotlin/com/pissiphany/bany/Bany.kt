@@ -57,10 +57,6 @@ fun main() {
     val retrofitService = serviceBuilder.create(RetrofitYnabService::class.java)
     val ynabApiService = RetrofitYnabApiService(retrofitService, RetrofitAccountMapper(), RetrofitTransactionMapper())
 
-//    // Step1GetBudgetAccounts
-//    val ynabBudgetAccountsGateway = YnabBudgetAccountsGatewayImpl(ynabApiService, YnabBudgetMapper(), YnabAccountMapper())
-//    val getBudgetAccounts = GetBudgetAccounts(configurationRepository, ynabBudgetAccountsGateway)
-
     // Step2GetAccountDetails
     val lastKnowledgeOfServerRepository = PropertiesLastKnowledgeOfServerRepository(LAST_KNOWLEDGE_OF_SERVER_FILE)
     val accountDetailsGateway = YnabAccountDetailsGatewayImpl(

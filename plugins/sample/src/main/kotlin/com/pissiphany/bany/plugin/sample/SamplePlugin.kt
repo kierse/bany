@@ -1,23 +1,23 @@
 package com.pissiphany.bany.plugin.sample
 
-import com.pissiphany.bany.plugin.BanyPlugin
+import com.pissiphany.bany.plugin.BanyConfigurablePlugin
+import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
-import com.pissiphany.bany.plugin.dataStructure.YnabBudgetAccountIds
 import java.time.LocalDate
 
-class SamplePlugin : BanyPlugin {
+class SamplePlugin : BanyConfigurablePlugin {
     override fun setup(): Boolean {
         println("sample plugin setup")
         return true
     }
 
-    override fun getYnabBudgetAccountIds(): List<YnabBudgetAccountIds> {
+    override fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
         println("sample plugin getYnabBudgetAccountIds")
         return emptyList()
     }
 
     override fun getNewBanyPluginTransactionsSince(
-        ynabBudgetAccountIds: YnabBudgetAccountIds, date: LocalDate?
+        budgetAccountIds: BanyPluginBudgetAccountIds, date: LocalDate?
     ): List<BanyPluginTransaction> {
         println("sample plugin getNewTransactionsSince()")
         return emptyList()

@@ -1,6 +1,7 @@
 package com.pissiphany.bany.service
 
 import com.pissiphany.bany.BASE_URL
+import com.pissiphany.bany.adapter.LocalDateAdapter
 import com.pissiphany.bany.adapter.OffsetDateTimeAdapter
 import com.pissiphany.bany.factory.DataEnvelopeFactory
 import com.pissiphany.bany.factory.RetrofitFactory
@@ -24,6 +25,7 @@ class RetrofitYnabServiceIntegrationTest {
         internal fun setup() {
             val moshi = Moshi.Builder()
                 .add(DataEnvelopeFactory())
+                .add(LocalDateAdapter())
                 .add(OffsetDateTimeAdapter())
                 .build()
 
@@ -33,7 +35,7 @@ class RetrofitYnabServiceIntegrationTest {
                     val adapter = moshi.adapter(YnabConfig::class.java)
                     adapter.fromJson(file.readText())
                 }
-                ?: throw UnknownError("unable to read config file!")
+                ?: throw UnknownError("unable to read config file! Does file exist at $CONFIG_FILE")
 
             service = RetrofitFactory.create(BASE_URL, config.apiToken, moshi)
                 .run {

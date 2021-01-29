@@ -52,7 +52,10 @@ tasks.named<Test>("test") {
     sourceSets {
         test {
             // Append "-PincludeIntegration" to command line to run instrumentation
-            if (!project.hasProperty("includeIntegration")) {
+            if (project.hasProperty("includeIntegration")) {
+                println("Running integration tests...")
+            } else {
+                println("Skipping integration tests...")
                 exclude("**/*Integration*.class")
             }
         }

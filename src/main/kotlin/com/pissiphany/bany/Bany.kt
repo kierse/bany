@@ -14,7 +14,7 @@ import com.pissiphany.bany.adapter.view.ConsoleView
 import com.pissiphany.bany.dataStructure.BanyConfig
 import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase
 import com.pissiphany.bany.factory.DataEnvelopeFactory
-import com.pissiphany.bany.adapter.OffsetDateTimeAdapter
+import com.pissiphany.bany.adapter.LocalDateAdapter
 import com.pissiphany.bany.adapter.dataStructure.YnabConnection
 import com.pissiphany.bany.adapter.dataStructure.YnabCredentials
 import com.pissiphany.bany.adapter.service.ThirdPartyTransactionService
@@ -36,6 +36,7 @@ import java.lang.IllegalStateException
 fun main() {
     val moshi = Moshi.Builder()
         .add(DataEnvelopeFactory())
+        .add(LocalDateAdapter())
         .add(OffsetDateTimeAdapter())
         .build()
 

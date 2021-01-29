@@ -3,6 +3,9 @@ package com.pissiphany.bany.mapper
 import com.pissiphany.bany.adapter.dataStructure.YnabAccountTransaction
 import com.pissiphany.bany.adapter.dataStructure.YnabBudgetAccountIds
 import com.pissiphany.bany.dataStructure.RetrofitTransaction
+import java.time.LocalTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 class RetrofitTransactionMapper {
     fun toYnabTransaction(
@@ -11,9 +14,9 @@ class RetrofitTransactionMapper {
         return YnabAccountTransaction(
             id = transaction.id,
             accountId = budgetAccountIds.ynabAccountId,
-            date = transaction.date,
+            date = OffsetDateTime.of(transaction.date, LocalTime.MIN, ZoneOffset.UTC),
             payee = transaction.payee_name,
-            memo = transaction.memo,
+            memo = transaction.memo ?: "",
             amountInMilliUnits = transaction.amount
         )
     }
@@ -22,7 +25,7 @@ class RetrofitTransactionMapper {
         return RetrofitTransaction(
             id = transaction.id,
             account_id = transaction.accountId,
-            date = transaction.date,
+            date = transaction.date.toLocalDate(),
             payee_name = transaction.payee,
             memo = transaction.memo,
             amount = transaction.amountInMilliUnits

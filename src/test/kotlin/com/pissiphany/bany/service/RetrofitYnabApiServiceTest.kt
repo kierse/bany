@@ -12,7 +12,10 @@ import org.junit.jupiter.api.Assertions.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.LocalDate
+import java.time.LocalTime
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 internal class RetrofitYnabApiServiceTest {
     @Test
@@ -30,14 +33,15 @@ internal class RetrofitYnabApiServiceTest {
 
     @Test
     fun getTransactions() {
-        val now = OffsetDateTime.now()
+        val now = LocalDate.now()
         val budgetAccountIds = YnabBudgetAccountIds("budgetId", "accountId")
         val transactionsWrapper = RetrofitTransactionsWrapper(
             listOf(RetrofitTransaction("transactionId", "accountId", now, "payee", "memo", 7)), 10
         )
 
+        val expectedTime = OffsetDateTime.of(now, LocalTime.MIN, ZoneOffset.UTC)
         val expected = YnabUpdatedTransactions(
-            listOf(YnabAccountTransaction("transactionId", "accountId", now, "payee", "memo", 7)),
+            listOf(YnabAccountTransaction("transactionId", "accountId", expectedTime, "payee", "memo", 7)),
             10
         )
 

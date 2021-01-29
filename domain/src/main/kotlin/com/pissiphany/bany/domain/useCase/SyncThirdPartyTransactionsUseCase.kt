@@ -47,10 +47,9 @@ class SyncThirdPartyTransactionsUseCase(
 
         val date = lastTransaction?.date
         val newTransactions = newThirdPartyTransactions.getTransactions(budgetAccountIds, date?.toLocalDate())
-
-        newTransactions
             .map { processNewTransaction.processTransaction(account, it) }
-            .let { saveTransactions.saveTransactions(budgetAccountIds, it) }
+            .filter { it.amountInCents != 0 }
+            .also { saveTransactions.saveTransactions(budgetAccountIds, it) }
 
         return Pair(date, newTransactions)
     }

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
-internal class BanyConfigTest {
+class BanyConfigTest {
 
     companion object {
         private lateinit var config: BanyConfig
@@ -21,27 +21,27 @@ internal class BanyConfigTest {
                             "password": "password",
                             "enabled": true,
                             "description": "description",
-                            "connections": [
-                                {
-                                    "name": "name",
-                                    "thirdPartyAccountId": "third_party_account_id",
-                                    "ynabBudgetId": "ynab_budget_id",
-                                    "ynabAccountId": "ynab_account_id"
-                                },
-                                {
-                                    "name": "name2",
-                                    "thirdPartyAccountId": "third_party_account_id2",
-                                    "ynabBudgetId": "ynab_budget_id2",
-                                    "ynabAccountId": "ynab_account_id2"
-                                }
-                            ]
+                            "connections": {
+                                "ynab_budget_id": [
+                                    {
+                                        "name": "name",
+                                        "thirdPartyAccountId": "third_party_account_id",
+                                        "ynabAccountId": "ynab_account_id"
+                                    },
+                                    {
+                                        "name": "name2",
+                                        "thirdPartyAccountId": "third_party_account_id2",
+                                        "ynabAccountId": "ynab_account_id2"
+                                    }
+                                ]
+                            }
                         },
                         {
                             "username": "username2",
                             "password": "password2",
                             "enabled": false,
                             "description": "description2",
-                            "connections": []
+                            "connections": {}
                         }
                     ]
                 }
@@ -90,22 +90,22 @@ internal class BanyConfigTest {
 
     @Test
     fun config__connection1_name() {
-        assertEquals("name", config.plugins.getValue("type").first().connections[0].name)
+        assertEquals("name", config.plugins.getValue("type").first().connections["ynab_budget_id"]?.get(0)?.name)
     }
 
     @Test
     fun config__connection1_third_party_account_id() {
-        assertEquals("third_party_account_id", config.plugins.getValue("type").first().connections[0].thirdPartyAccountId)
+        assertEquals("third_party_account_id", config.plugins.getValue("type").first().connections["ynab_budget_id"]?.get(0)?.thirdPartyAccountId)
     }
 
     @Test
     fun config__connection1_ynab_account_id() {
-        assertEquals("ynab_account_id", config.plugins.getValue("type").first().connections[0].ynabAccountId)
+        assertEquals("ynab_account_id", config.plugins.getValue("type").first().connections["ynab_budget_id"]?.get(0)?.ynabAccountId)
     }
 
     @Test
     fun config__connection1_ynab_budget_it() {
-        assertEquals("ynab_budget_id", config.plugins.getValue("type").first().connections[0].ynabBudgetId)
+        assertTrue(config.plugins.getValue("type").first().connections.containsKey("ynab_budget_id"))
     }
 
     @Test

@@ -32,7 +32,6 @@ import com.pissiphany.bany.service.RetrofitYnabApiService
 import com.pissiphany.bany.service.ThirdPartyTransactionServiceImpl
 import com.squareup.moshi.Moshi
 import org.pf4j.DefaultPluginManager
-import java.lang.IllegalStateException
 
 fun main() {
     val moshi = Moshi.Builder()
@@ -42,18 +41,20 @@ fun main() {
         .build()
 
     val adapter = moshi.adapter(BanyConfig::class.java)
-    val config = adapter.fromJson(CONFIG_FILE.readText()) ?:
-            throw UnknownError("Unable to parse and instantiate application config!")
+    val config = checkNotNull(adapter.fromJson(CONFIG_FILE.readText())) {
+        "Unable to parse and instantiate application config!"
+    }
 
     val enabledPlugins = config.plugins
         .mapValues { (_, credentialList) -> credentialList.filter(ServiceCredentials::enabled) }
         .filter { it.value.isNotEmpty() }
-    if (enabledPlugins.isEmpty()) throw IllegalStateException("No enabled plugins found!")
+    check(enabledPlugins.isNotEmpty()) { "No enabled plugins found!" }
 
     val credentialsMap = enabledPlugins
         .values
         .flatten()
-        .associateWith(::mapToYnabCredentials)
+        .associateWithNotNull(::mapToYnabCredentials)
+    check(credentialsMap.isNotEmpty()) { "No enabled credentials found!" }
 
     val serviceBuilder = RetrofitFactory.create(BASE_URL, config.ynabApiToken, moshi)
     val retrofitService = serviceBuilder.create(RetrofitYnabService::class.java)
@@ -99,7 +100,7 @@ fun main() {
             }
         )
 
-        if (initializedServices.isEmpty()) throw IllegalStateException("No enabled plugins found!")
+        check(initializedServices.isNotEmpty()) { "No enabled plugins found!" }
 
         // Step3GetNewTransactions
         val gatewayFactory = ThirdPartyTransactionGatewayFactoryImpl(
@@ -128,18 +129,35 @@ fun main() {
     pluginManager.stopPlugins()
 }
 
-// TODO test
-private fun mapToYnabCredentials(credentials: ServiceCredentials): YnabCredentials {
-    val connections = credentials.connections.map { connection ->
-        with(connection) {
-            YnabConnection(
-                name = name,
-                ynabBudgetId = ynabBudgetId,
-                ynabAccountId = ynabAccountId,
-                thirdPartyAccountId = thirdPartyAccountId
-            )
+internal fun <K,V> List<K>.associateWithNotNull(valueSelector: (K) -> V?): Map<K,V> {
+    val result = mutableMapOf<K,V>()
+    for (key in this) {
+        val value = valueSelector(key) ?: continue
+        result[key] = value
+    }
+
+    return result
+}
+
+internal fun mapToYnabCredentials(credentials: ServiceCredentials): YnabCredentials? {
+    val connections = mutableListOf<YnabConnection>()
+    for ((budgetId, serviceConnections) in credentials.connections) {
+        for (serviceConnection in serviceConnections) {
+            if (!serviceConnection.enabled) continue
+            connections += with(serviceConnection) {
+                YnabConnection(
+                    name = name,
+                    ynabBudgetId = budgetId,
+                    ynabAccountId = ynabAccountId,
+                    thirdPartyAccountId = thirdPartyAccountId,
+                    data = data
+                )
+            }
         }
     }
+
+    if (connections.isEmpty()) return null
+
     return YnabCredentials(
         username = credentials.username,
         password = credentials.password,

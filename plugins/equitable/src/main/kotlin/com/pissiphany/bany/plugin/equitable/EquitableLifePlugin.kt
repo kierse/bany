@@ -7,6 +7,7 @@ import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountBalance
 import org.jsoup.Connection
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import org.jsoup.nodes.FormElement
 import java.math.BigDecimal
 import java.net.URL
@@ -145,13 +146,26 @@ class EquitableLifePlugin(
         checkSession()
 
         val connection = getConnection(budgetAccountIds)
-        return when (val type = getAccountType(connection.data["accountType"])) {
-            AccountType.INSURANCE -> getInsurancePolicyValues(connection)
+        return when (val type = connection.getAccountType()) {
+            AccountType.INSURANCE -> getInsuranceTransaction(connection)
+            AccountType.LIABILITY -> getInsuranceLiabilityTransaction(connection)
             else -> throw IllegalArgumentException("$type unsupported!")
         }
     }
 
-    private fun getInsurancePolicyValues(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
+    private fun getInsuranceTransaction(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
+        val details = getInsuranceDetails(connection)
+
+        return listOf(
+            BanyPluginAccountBalance(
+                date = OffsetDateTime.now(ZoneOffset.UTC),
+                payee = "Equitable Life of Canada",
+                amount = details.loadAvailable + details.loanBalance
+            )
+        )
+    }
+
+    private fun getInsuranceDetails(connection: BanyPlugin.Connection): InsuranceDetails {
         val getAccountDetailsResponse = Jsoup
             .connect(getUrl(POLICY_VALUES_URL, connection.thirdPartyAccountId))
             .method(Connection.Method.GET)
@@ -163,24 +177,47 @@ class EquitableLifePlugin(
         val getAccountDetailsDoc = getAccountDetailsResponse.parse()
         val rows = getAccountDetailsDoc.select("div.details_row")
 
-        val loanAvailableRowElem = rows.asReversed().first {
-            it.selectFirst("div.grid_4.detail_label > p").text().toLowerCase() == "loan available"
+        val loanBalanceRowElem = rows.first {
+            it.selectFirst("div.grid_4.detail_label > p:contains(loan balance)") != null
         }
-        val loanAvailable = loanAvailableRowElem.select("div.grid_8.omega > p").text()
-            .filter { char ->
-                char.toInt().let {
-                    // a .. z      ||    .
-                    (it in 48..57) || it == 46
-                }
-            }
+        val loanBalance = checkNotNull(loanBalanceRowElem.getDollarValue()) {
+            "Unable to identify current loan balance!"
+        }
 
-        check(loanAvailable.isNotBlank()) { "Unable to identify available loan amount!" }
+        val loanAvailableRowElem = rows.asReversed().first {
+            it.selectFirst("div.grid_4.detail_label > p:contains(loan available)") != null
+        }
+        val loanAvailable = checkNotNull(loanAvailableRowElem.getDollarValue()) {
+            "Unable to identify available loan amount!"
+        }
+
+        return InsuranceDetails(
+            loadAvailable = loanAvailable,
+            loanBalance = loanBalance
+        )
+    }
+
+    private fun Element.getDollarValue() = select("div.grid_8.omega > p").text()
+        .filter { char ->
+            char.toInt().let {
+                // a .. z      ||    .
+                (it in 48..57) || it == 46
+            }
+        }
+        .takeIf(String::isNotBlank)
+        ?.let(::BigDecimal)
+
+    private fun getInsuranceLiabilityTransaction(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
+        val totalLiabilities = credentials.connections
+            .filter { it != connection && it.getAccountType() == AccountType.INSURANCE }
+            .map(::getInsuranceDetails)
+            .fold(BigDecimal(0)) { total, account -> total - account.loanBalance }
 
         return listOf(
             BanyPluginAccountBalance(
                 date = OffsetDateTime.now(ZoneOffset.UTC),
                 payee = "Equitable Life of Canada",
-                amount = BigDecimal(loanAvailable)
+                amount = totalLiabilities
             )
         )
     }
@@ -206,10 +243,17 @@ class EquitableLifePlugin(
         }
     }
 
-    private fun getAccountType(type: String?): AccountType {
-        if (type == null) return AccountType.INSURANCE
-        return AccountType.values().single { it.name.equals(type, ignoreCase = true) }
+    private fun BanyPlugin.Connection.getAccountType(): AccountType {
+        val type = data["accountType"] ?: return AccountType.INSURANCE
+        return checkNotNull(AccountType.values().singleOrNull { it.name.equals(type, ignoreCase = true) }) {
+            "Unable to find account type matching '$type'"
+        }
     }
+
+    private data class InsuranceDetails(
+        val loadAvailable: BigDecimal,
+        val loanBalance: BigDecimal
+    )
 
     inner class TestBackdoor {
         var sessionCookies: Cookies

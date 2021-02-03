@@ -45,12 +45,12 @@ fun main() {
         "Unable to parse and instantiate application config!"
     }
 
-    val enabledPlugins = config.plugins
+    val enabledPlugins: Map<String, List<ServiceCredentials>> = config.plugins
         .mapValues { (_, credentialList) -> credentialList.filter(ServiceCredentials::enabled) }
         .filter { it.value.isNotEmpty() }
     check(enabledPlugins.isNotEmpty()) { "No enabled plugins found!" }
 
-    val credentialsMap = enabledPlugins
+    val credentialsMap: Map<ServiceCredentials, YnabCredentials> = enabledPlugins
         .values
         .flatten()
         .associateWithNotNull(::mapToYnabCredentials)

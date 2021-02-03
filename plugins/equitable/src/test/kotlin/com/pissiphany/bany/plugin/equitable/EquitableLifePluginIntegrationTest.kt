@@ -26,14 +26,27 @@ class EquitableLifePluginIntegrationTest {
             .apply {
                 check(setup()) { "Unable to configure plugin!" }
 
-                val transactions = getNewBanyPluginTransactionsSince(
-                    BanyPluginBudgetAccountIds("budgetId", "accountId"), null
-                )
-
-                println()
-                println("Account balance:")
-                println(transactions.first())
-                println()
+                getNewBanyPluginTransactionsSince(BanyPluginBudgetAccountIds("budgetId", "accountId1"), null)
+                    .let { transactions ->
+                        println()
+                        println("Account 01: insurance")
+                        println(transactions.first())
+                        println()
+                    }
+                getNewBanyPluginTransactionsSince(BanyPluginBudgetAccountIds("budgetId", "accountId2"), null)
+                    .let { transactions ->
+                        println()
+                        println("Account 02: insurance")
+                        println(transactions.first())
+                        println()
+                    }
+                getNewBanyPluginTransactionsSince(BanyPluginBudgetAccountIds("budgetId", "accountId3"), null)
+                    .let { transactions ->
+                        println()
+                        println("Account 03: liability")
+                        println(transactions.first())
+                        println()
+                    }
 
                 tearDown()
             }

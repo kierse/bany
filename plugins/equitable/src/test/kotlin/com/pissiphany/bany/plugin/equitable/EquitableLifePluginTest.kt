@@ -18,7 +18,8 @@ import java.util.concurrent.TimeUnit
 private val RESOURCES_FILE = File("src/test/resources/html")
 private const val LOG_ON = "01-LogOn.html"
 private const val LOG_ON_SECURITY = "02-LogOnAskSecurityQuestion.html"
-private const val POLICY_VALUES = "03-PolicyValues.html"
+private const val POLICY_VALUES_01 = "03-PolicyValues.html"
+private const val POLICY_VALUES_02 = "04-PolicyValues.html"
 private const val TIMEOUT = 0L
 
 private const val LOG_IN_URL = "/client/en/Account/LogIn"
@@ -38,14 +39,15 @@ class EquitableLifePluginTest {
                 thirdPartyAccountId = "thirdPartyAccount1"
             ),
             Connection(
-                ynabBudgetId = "budget2",
+                ynabBudgetId = "budget1",
                 ynabAccountId = "account2",
                 thirdPartyAccountId = "thirdPartyAccount2"
             ),
             Connection(
-                ynabBudgetId = "budget3",
+                ynabBudgetId = "budget1",
                 ynabAccountId = "account3",
-                thirdPartyAccountId = "thirdPartyAccount3"
+                thirdPartyAccountId = "",
+                data = mutableMapOf("accountType" to "liability")
             )
         ),
         data = mapOf("question" to "answer")
@@ -213,14 +215,14 @@ class EquitableLifePluginTest {
             .getBanyPluginBudgetAccountIds()
 
         assertEquals(BanyPluginBudgetAccountIds("budget1", "account1"), results[0])
-        assertEquals(BanyPluginBudgetAccountIds("budget2", "account2"), results[1])
-        assertEquals(BanyPluginBudgetAccountIds("budget3", "account3"), results[2])
+        assertEquals(BanyPluginBudgetAccountIds("budget1", "account2"), results[1])
+        assertEquals(BanyPluginBudgetAccountIds("budget1", "account3"), results[2])
     }
 
     @Test
     fun `getNewBanyPluginTransactionsSince - insurance`() {
         // GET 200 /policy/en/Policy/Values/<AccountNo>
-        server.enqueue(MockResponse().setBody(getHtml(POLICY_VALUES)))
+        server.enqueue(MockResponse().setBody(getHtml(POLICY_VALUES_01)))
 
         server.start()
 
@@ -236,7 +238,7 @@ class EquitableLifePluginTest {
 
         assertEquals(1, results.size)
         val transaction = results.first() as BanyPluginAccountBalance
-        assertEquals(BigDecimal("88888.88"), transaction.amount)
+        assertEquals(BigDecimal("98888.87"), transaction.amount)
 
         // GET 200 /policy/en/Policy/Values/<AccountNo>
         val getPolicyValuesRequest = server.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
@@ -244,6 +246,45 @@ class EquitableLifePluginTest {
         assertTrue(getPolicyValuesRequest.path?.matches(regex) ?: false)
         assertEquals("GET", getPolicyValuesRequest.method)
         getPolicyValuesRequest.headers.assertCookie(
+            EquitableLifePlugin.ASPXAUTH to "baz"
+        )
+    }
+
+    @Test
+    fun `getNewBanyPluginTransactionsSince - liability`() {
+        // GET 200 /policy/en/Policy/Values/<AccountNo>
+        server.enqueue(MockResponse().setBody(getHtml(POLICY_VALUES_01)))
+        server.enqueue(MockResponse().setBody(getHtml(POLICY_VALUES_02)))
+
+        server.start()
+
+        val plugin = EquitableLifePlugin(credentials, server.url("/").toUrl())
+        plugin.TestBackdoor()
+            .apply {
+                sessionCookies = mapOf(EquitableLifePlugin.ASPXAUTH to "baz")
+            }
+
+        val results = plugin.getNewBanyPluginTransactionsSince(
+            BanyPluginBudgetAccountIds(ynabBudgetId = "budget1", ynabAccountId = "account3"), null
+        )
+
+        assertEquals(1, results.size)
+        val transaction = results.first() as BanyPluginAccountBalance
+        assertEquals(BigDecimal("-11500.24"), transaction.amount)
+
+        val regex = """^${EquitableLifePlugin.POLICY_VALUES_URL}/thirdPartyAccount\d\?_=\d+$""".toRegex()
+
+        // GET 200 /policy/en/Policy/Values/thirdPartyAccount1
+        val getPolicyValuesRequest1 = server.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
+        assertTrue(getPolicyValuesRequest1.path?.matches(regex) ?: false)
+        assertEquals("GET", getPolicyValuesRequest1.method)
+
+        // GET 200 /policy/en/Policy/Values/thirdPartyAccount2
+        val getPolicyValuesRequest2 = server.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
+        assertTrue(getPolicyValuesRequest2.path?.matches(regex) ?: false)
+        assertEquals("GET", getPolicyValuesRequest2.method)
+
+        getPolicyValuesRequest2.headers.assertCookie(
             EquitableLifePlugin.ASPXAUTH to "baz"
         )
     }

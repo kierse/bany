@@ -8,9 +8,9 @@ version = "1.0-SNAPSHOT"
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
+    testImplementation(Versions.Junit.Jupiter.dependency)
+    testImplementation(Versions.Junit.Jupiter.Api.dependency)
+    testRuntimeOnly(Versions.Junit.Jupiter.Engine.dependency)
 }
 
 tasks.named<Test>("test") {

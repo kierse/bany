@@ -30,8 +30,10 @@ class EquitableLifePlugin(
         const val LOG_ON_ASK_SECURITY_URL = "/client/en/Account/LogOnAskSecurityQuestion"
         const val LOG_OUT_URL = "/client/en/Account/LogOut"
         const val POLICY_VALUES_URL = "/policy/en/Policy/Values"
+        const val POLICY_INVESTMENTS_URL = "/policy/en/Policy/Investments"
 
         private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+        private const val PAYEE = "Equitable Life of Canada"
 
         const val ASPXAUTH = ".ASPXAUTH"
     }
@@ -148,6 +150,7 @@ class EquitableLifePlugin(
         val connection = getConnection(budgetAccountIds)
         return when (val type = connection.getAccountType()) {
             AccountType.INSURANCE -> getInsuranceTransaction(connection)
+            AccountType.INVESTMENT -> getInvestmentTransaction(connection)
             AccountType.LIABILITY -> getInsuranceLiabilityTransaction(connection)
             else -> throw IllegalArgumentException("$type unsupported!")
         }
@@ -159,7 +162,7 @@ class EquitableLifePlugin(
         return listOf(
             BanyPluginAccountBalance(
                 date = OffsetDateTime.now(ZoneOffset.UTC),
-                payee = "Equitable Life of Canada",
+                payee = PAYEE,
                 amount = details.loadAvailable + details.loanBalance
             )
         )
@@ -197,14 +200,18 @@ class EquitableLifePlugin(
         )
     }
 
-    private fun Element.getDollarValue() = select("div.grid_8.omega > p").text()
-        .filter { char ->
+    private fun Element.getDollarValue() = select("div.grid_8.omega > p")
+        .text()
+        .getDollarValue()
+
+    private fun String?.getDollarValue() = this
+        ?.filter { char ->
             char.toInt().let {
                 // a .. z      ||    .
                 (it in 48..57) || it == 46
             }
         }
-        .takeIf(String::isNotBlank)
+        ?.takeIf(String::isNotBlank)
         ?.let(::BigDecimal)
 
     private fun getInsuranceLiabilityTransaction(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
@@ -216,9 +223,61 @@ class EquitableLifePlugin(
         return listOf(
             BanyPluginAccountBalance(
                 date = OffsetDateTime.now(ZoneOffset.UTC),
-                payee = "Equitable Life of Canada",
+                payee = PAYEE,
                 amount = totalLiabilities
             )
+        )
+    }
+
+    private fun getInvestmentTransaction(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
+        val details = getInvestmentDetails(connection)
+
+        return listOf(
+            BanyPluginAccountBalance(
+                date = OffsetDateTime.now(ZoneOffset.UTC),
+                payee = PAYEE,
+                amount = details.marketValue
+            )
+        )
+    }
+
+    private fun getInvestmentDetails(connection: BanyPlugin.Connection): InvestmentDetails {
+        val getAccountDetailsResponse = Jsoup
+            .connect(getUrl(POLICY_INVESTMENTS_URL, connection.thirdPartyAccountId))
+            .method(Connection.Method.GET)
+            .cookies(sessionCookies)
+            .followRedirects(false)
+            .appendTimestamp()
+            .execute { code, msg -> "GET to $POLICY_INVESTMENTS_URL failed: $code $msg" }
+
+        val getAccountDetailsDoc = getAccountDetailsResponse.parse()
+        val table = getAccountDetailsDoc.selectFirst(".tbl_total_investments")
+        val headings = table.select("thead > tr > th")
+        val values = table.select("tbody > tr > td")
+
+        val headingToValue = mutableMapOf<String, String>()
+        headings.forEachIndexed { i, element ->
+            headingToValue[element.text().toLowerCase()] = values[i].text()
+        }
+
+        val totalDeposits = checkNotNull(headingToValue["total deposits"].getDollarValue()) {
+            "Unable to identify total deposits!"
+        }
+        val totalWithdrawals = checkNotNull(headingToValue["total withdrawals"].getDollarValue()) {
+            "Unable to identify total withdrawals!"
+        }
+        val netDeposits = checkNotNull(headingToValue["net deposits"].getDollarValue()) {
+            "Unable to identify net deposits!"
+        }
+        val marketValue = checkNotNull(headingToValue["total market value"].getDollarValue()) {
+            "Unable to identify market value!"
+        }
+
+        return InvestmentDetails(
+            totalDeposits = totalDeposits,
+            totalWithdrawals = totalWithdrawals,
+            netDeposits = netDeposits,
+            marketValue = marketValue
         )
     }
 
@@ -253,6 +312,13 @@ class EquitableLifePlugin(
     private data class InsuranceDetails(
         val loadAvailable: BigDecimal,
         val loanBalance: BigDecimal
+    )
+
+    private data class InvestmentDetails(
+        val totalDeposits: BigDecimal,
+        val totalWithdrawals: BigDecimal,
+        val netDeposits: BigDecimal,
+        val marketValue: BigDecimal,
     )
 
     inner class TestBackdoor {

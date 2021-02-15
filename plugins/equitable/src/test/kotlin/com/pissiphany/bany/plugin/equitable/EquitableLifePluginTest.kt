@@ -20,6 +20,7 @@ private const val LOG_ON = "01-LogOn.html"
 private const val LOG_ON_SECURITY = "02-LogOnAskSecurityQuestion.html"
 private const val POLICY_VALUES_01 = "03-PolicyValues.html"
 private const val POLICY_VALUES_02 = "04-PolicyValues.html"
+private const val GIA_POLICY_VALUES = "05-PolicyInvestments.html"
 private const val TIMEOUT = 0L
 
 private const val LOG_IN_URL = "/client/en/Account/LogIn"
@@ -48,6 +49,12 @@ class EquitableLifePluginTest {
                 ynabAccountId = "account3",
                 thirdPartyAccountId = "",
                 data = mutableMapOf("accountType" to "liability")
+            ),
+            Connection(
+                ynabBudgetId = "budget1",
+                ynabAccountId = "account4",
+                thirdPartyAccountId = "thirdPartyAccount3",
+                data = mutableMapOf("accountType" to "investment")
             )
         ),
         data = mapOf("question" to "answer")
@@ -287,6 +294,35 @@ class EquitableLifePluginTest {
         getPolicyValuesRequest2.headers.assertCookie(
             EquitableLifePlugin.ASPXAUTH to "baz"
         )
+    }
+
+    @Test
+    fun `getNewBanyPluginTransactionsSince - investment account`() {
+        // GET 200 /policy/en/Policy/Investments/<AccountNo>
+        server.enqueue(MockResponse().setBody(getHtml(GIA_POLICY_VALUES)))
+
+        server.start()
+
+        val plugin = EquitableLifePlugin(credentials, server.url("/").toUrl())
+        plugin.TestBackdoor()
+            .apply {
+                sessionCookies = mapOf(EquitableLifePlugin.ASPXAUTH to "baz")
+            }
+
+        val results = plugin.getNewBanyPluginTransactionsSince(
+            BanyPluginBudgetAccountIds(ynabBudgetId = "budget1", ynabAccountId = "account4"), null
+        )
+
+        assertEquals(1, results.size)
+        val transaction = results.first() as BanyPluginAccountBalance
+        assertEquals(BigDecimal("21500.01"), transaction.amount)
+
+        val regex = """^${EquitableLifePlugin.POLICY_INVESTMENTS_URL}/thirdPartyAccount\d\?_=\d+$""".toRegex()
+
+        // GET 200 /policy/en/Policy/Investments/thirdPartyAccount3
+        val getPolicyInvestments = server.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
+        assertTrue(getPolicyInvestments.path?.matches(regex) ?: false)
+        assertEquals("GET", getPolicyInvestments.method)
     }
 
     @JsonClass(generateAdapter = true)

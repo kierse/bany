@@ -47,6 +47,13 @@ class EquitableLifePluginIntegrationTest {
                         println(transactions.first())
                         println()
                     }
+                getNewBanyPluginTransactionsSince(BanyPluginBudgetAccountIds("budgetId", "accountId4"), null)
+                    .let { transactions ->
+                        println()
+                        println("Account 04: investment")
+                        println(transactions.first())
+                        println()
+                    }
 
                 tearDown()
             }

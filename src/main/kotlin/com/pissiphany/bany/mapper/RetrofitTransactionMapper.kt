@@ -15,7 +15,7 @@ class RetrofitTransactionMapper {
             id = transaction.id,
             accountId = budgetAccountIds.ynabAccountId,
             date = OffsetDateTime.of(transaction.date, LocalTime.MIN, ZoneOffset.UTC),
-            payee = transaction.payee_name,
+            payee = transaction.payee_name ?: "",
             memo = transaction.memo ?: "",
             amountInMilliUnits = transaction.amount
         )

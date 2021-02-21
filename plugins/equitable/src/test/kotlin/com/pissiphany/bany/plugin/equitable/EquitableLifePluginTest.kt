@@ -325,6 +325,7 @@ class EquitableLifePluginTest {
         assertEquals("GET", getPolicyInvestments.method)
     }
 
+    // Adapter used by integration test
     @JsonClass(generateAdapter = true)
     data class Credentials(
         override val username: String,
@@ -333,6 +334,7 @@ class EquitableLifePluginTest {
         override val data: Map<String, String> = emptyMap()
     ) : BanyPlugin.Credentials
 
+    // Adapter used by integration test
     @JsonClass(generateAdapter = true)
     data class Connection(
         override val ynabBudgetId: String,

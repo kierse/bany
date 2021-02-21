@@ -27,7 +27,12 @@ object Versions {
         }
 
         object OkHttp : Dependency {
-            override val dependency = "com.squareup.okhttp3:mockwebserver:4.9.0"
+            private const val version = "4.9.1"
+            override val dependency = "com.squareup.okhttp3:okhttp:$version"
+
+            object MockWebServer : Dependency {
+                override val dependency = "com.squareup.okhttp3:mockwebserver:$version"
+            }
         }
     }
 
@@ -40,17 +45,22 @@ object Versions {
     }
 
     object Junit {
+        private const val project = "org.junit.jupiter"
         private const val version = "5.7.0"
 
         object Jupiter : Dependency {
-            override val dependency = "org.junit.jupiter:junit-jupiter:$version"
+            override val dependency = "$project:junit-jupiter:$version"
 
             object Api : Dependency {
-                override val dependency = "org.junit.jupiter:junit-jupiter-api:$version"
+                override val dependency = "$project:junit-jupiter-api:$version"
             }
 
             object Engine : Dependency {
-                override val dependency = "org.junit.jupiter:junit-jupiter-engine:$version"
+                override val dependency = "$project:junit-jupiter-engine:$version"
+            }
+
+            object Params : Dependency {
+                override val dependency = "$project:junit-jupiter-params:$version"
             }
         }
     }

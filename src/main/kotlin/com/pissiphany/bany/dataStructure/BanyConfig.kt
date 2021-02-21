@@ -7,8 +7,8 @@ class BanyConfig(val ynabApiToken: String, val plugins: Map<String, List<Service
 
 @JsonClass(generateAdapter = true)
 class ServiceCredentials(
-    val username: String,
-    val password: String,
+    val username: String = "",
+    val password: String = "",
     val connections: Map<String, List<ServiceConnection>>,
     val enabled: Boolean = true,
     val description: String = "",
@@ -19,7 +19,7 @@ class ServiceCredentials(
 class ServiceConnection(
     val name: String,
     val ynabAccountId: String,
-    val thirdPartyAccountId: String,
+    val thirdPartyAccountId: String = "",
     val enabled: Boolean = true,
     val data: Map<String, String> = emptyMap(),
 )

@@ -7,6 +7,7 @@ include 'domain', 'adapter'
 include ':api'
 include 'plugins:sample'
 include 'plugins:equitable'
+include 'plugins:bitcoin'
 
 findProject(':api')?.name = 'bany-plugin-api'
 

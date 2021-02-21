@@ -20,7 +20,7 @@ dependencies {
 
     kaptTest(Versions.Square.Moshi.KotlinCodegen.dependency)
     testImplementation(Versions.Square.Moshi.dependency)
-    testImplementation(Versions.Square.OkHttp.dependency)
+    testImplementation(Versions.Square.OkHttp.MockWebServer.dependency)
     testImplementation(Versions.Junit.Jupiter.dependency)
     testImplementation(Versions.Junit.Jupiter.Api.dependency)
     testRuntimeOnly(Versions.Junit.Jupiter.Engine.dependency)
@@ -33,7 +33,6 @@ tasks.named<Test>("test") {
             if (project.hasProperty("includeIntegration")) {
                 println("Running integration tests...")
             } else {
-                println("Skipping integration tests...")
                 exclude("**/*Integration*.class")
             }
         }

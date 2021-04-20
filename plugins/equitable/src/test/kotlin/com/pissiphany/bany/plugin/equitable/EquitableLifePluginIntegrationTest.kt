@@ -1,6 +1,7 @@
 package com.pissiphany.bany.plugin.equitable
 
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
+import com.pissiphany.bany.plugin.equitable.client.EquitableClientImpl
 import com.squareup.moshi.Moshi
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -22,7 +23,7 @@ class EquitableLifePluginIntegrationTest {
     fun integration() {
         checkNotNull(credentials) { "Unable to initialize config! Does file exist at $CONFIG_FILE?" }
 
-        EquitableLifePlugin(credentials)
+        EquitableLifePlugin(EquitableClientImpl(), credentials)
             .apply {
                 check(setup()) { "Unable to configure plugin!" }
 

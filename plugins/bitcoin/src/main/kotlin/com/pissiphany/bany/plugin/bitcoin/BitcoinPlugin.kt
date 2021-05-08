@@ -24,7 +24,7 @@ private const val AMOUNT = "amount"
 private const val CURRENCY = "currency"
 private const val ROOT_URL = "https://api.coingecko.com"
 
-private val supportedCoins = setOf("bitcoin", "bitcoin-cash")
+private val supportedCoins = setOf("bitcoin", "bitcoin-cash", "ethereum")
 
 class BitcoinPlugin(
     private val credentials: BanyPlugin.Credentials,
@@ -76,7 +76,9 @@ class BitcoinPlugin(
 
             val calculatedValue = when(connection.data[COIN_ID]) {
                 "bitcoin-cash" -> calculateValue(simplePrice.bitcoinCash, amount, currency)
-                else /* bitcoin */ -> calculateValue(simplePrice.bitcoin, amount, currency)
+                "bitcoin" -> calculateValue(simplePrice.bitcoin, amount, currency)
+                "ethereum" -> calculateValue(simplePrice.ethereum, amount, currency)
+                else -> throw IllegalArgumentException("Unsupported crypto: $COIN_ID")
             }
 
             return listOf(
@@ -91,8 +93,7 @@ class BitcoinPlugin(
 
     private fun getConnection(budgetAccountIds: BanyPluginBudgetAccountIds): BanyPlugin.Connection {
         return credentials.connections
-            .filter { it.ynabBudgetId == budgetAccountIds.ynabBudgetId }
-            .first { it.ynabAccountId == budgetAccountIds.ynabAccountId }
+            .first { it.ynabBudgetId == budgetAccountIds.ynabBudgetId && it.ynabAccountId == budgetAccountIds.ynabAccountId }
     }
 }
 
@@ -107,5 +108,7 @@ internal data class SimplePrice(
     val bitcoin: Map<String, BigDecimal> = emptyMap(),
 
     @Json(name = "bitcoin-cash")
-    val bitcoinCash: Map<String, BigDecimal> = emptyMap()
+    val bitcoinCash: Map<String, BigDecimal> = emptyMap(),
+
+    val ethereum: Map<String, BigDecimal> = emptyMap(),
 )

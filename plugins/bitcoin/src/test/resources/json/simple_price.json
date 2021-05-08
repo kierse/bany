@@ -1,8 +1,14 @@
 {
-  "bitcoin-cash": {
-    "usd": 900.9
-  },
   "bitcoin": {
-    "cad": 72211
+    "cad": 71859,
+    "usd": 59213
+  },
+  "bitcoin-cash": {
+    "cad": 1684.52,
+    "usd": 1388.08
+  },
+  "ethereum": {
+    "cad": 4642.04,
+    "usd": 3825.15
   }
 }

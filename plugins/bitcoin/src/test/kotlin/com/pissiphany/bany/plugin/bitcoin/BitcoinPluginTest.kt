@@ -20,6 +20,10 @@ private const val COIN_ID = "coinId"
 private const val AMOUNT = "amount"
 private const val CURRENCY = "currency"
 
+/**
+ *  API query for test data:
+ *  https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,bitcoin-cash,ethereum&vs_currencies=cad,usd
+ */
 private val RESOURCES_FILE = File("src/test/resources/json")
 
 private const val TIMEOUT = 0L
@@ -61,7 +65,16 @@ class BitcoinPluginTest {
                         AMOUNT to "0.5",
                         CURRENCY to "usd",
                     )
-                )
+                ),
+                Connection(
+                    ynabBudgetId = "budget1",
+                    ynabAccountId = "account3",
+                    data = mutableMapOf(
+                        COIN_ID to "ethereum",
+                        AMOUNT to "2",
+                        CURRENCY to "cad",
+                    )
+                ),
             )
         )
     }
@@ -97,14 +110,19 @@ class BitcoinPluginTest {
                 BanyPluginBudgetAccountIds(
                     ynabBudgetId = "budget1",
                     ynabAccountId = "account2"
+                ),
+
+                BanyPluginBudgetAccountIds(
+                    ynabBudgetId = "budget1",
+                    ynabAccountId = "account3"
                 )
             ),
             results
         )
     }
 
-    @ParameterizedTest
-    @ValueSource(ints = [0,1])
+    @ParameterizedTest(name = "[{index}] connection {0}")
+    @ValueSource(ints = [0,1,2])
     fun getNewBanyPluginTransactionsSince(index: Int) {
         val json = File(RESOURCES_FILE, "simple_price.json").readText()
         val priceModel = moshi.adapter(SimplePrice::class.java).run { fromJson(json) } ?: fail()
@@ -117,7 +135,9 @@ class BitcoinPluginTest {
             val expectedCurrency = data.getValue(CURRENCY)
             val givenAmount = when(expectedCoinId) {
                 "bitcoin" -> priceModel.bitcoin.getValue(expectedCurrency)
-                else -> priceModel.bitcoinCash.getValue(expectedCurrency)
+                "bitcoin-cash" -> priceModel.bitcoinCash.getValue(expectedCurrency)
+                "ethereum" -> priceModel.ethereum.getValue(expectedCurrency)
+                else -> fail("unsupported crypto: $expectedCoinId")
             }
             val expectedAmount = BigDecimal(data.getValue(AMOUNT)) * givenAmount
 

@@ -31,7 +31,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":adapter"))
     implementation(project(":plugins:equitable"))
-    implementation(project(":plugins:bitcoin"))
+    implementation(project(":plugins:crypto"))
 
     implementation(Versions.Square.Retrofit.dependency)
     implementation(Versions.Square.Retrofit.Converters.Moshi.dependency)

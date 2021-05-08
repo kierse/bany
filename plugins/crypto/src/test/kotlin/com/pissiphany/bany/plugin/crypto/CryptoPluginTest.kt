@@ -1,7 +1,7 @@
-package com.pissiphany.bany.plugin.bitcoin
+package com.pissiphany.bany.plugin.crypto
 
 import com.pissiphany.bany.plugin.BanyPlugin
-import com.pissiphany.bany.plugin.bitcoin.adapter.BigDecimalAdapter
+import com.pissiphany.bany.plugin.crypto.adapter.BigDecimalAdapter
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
@@ -28,7 +28,7 @@ private val RESOURCES_FILE = File("src/test/resources/json")
 
 private const val TIMEOUT = 0L
 
-class BitcoinPluginTest {
+class CryptoPluginTest {
     private lateinit var server: MockWebServer
     private lateinit var client: OkHttpClient
     private lateinit var moshi: Moshi
@@ -87,19 +87,19 @@ class BitcoinPluginTest {
     @Test
     fun `constructor - unsupported coin type`() {
         credentials.connections.last().data[COIN_ID] = "foo"
-        assertThrows<IllegalStateException> { BitcoinPlugin(credentials, client, moshi) }
+        assertThrows<IllegalStateException> { CryptoPlugin(credentials, client, moshi) }
     }
 
     @ParameterizedTest
     @ValueSource(strings = [AMOUNT, CURRENCY, COIN_ID])
     fun `constructor - missing config property`(missing: String) {
         credentials.connections.last().data.remove(missing)
-        assertThrows<IllegalStateException> { BitcoinPlugin(credentials, client, moshi) }
+        assertThrows<IllegalStateException> { CryptoPlugin(credentials, client, moshi) }
     }
 
     @Test
     fun getBanyPluginBudgetAccountIds() {
-        val results = BitcoinPlugin(credentials, client, moshi).getBanyPluginBudgetAccountIds()
+        val results = CryptoPlugin(credentials, client, moshi).getBanyPluginBudgetAccountIds()
 
         assertEquals(
             listOf(
@@ -141,7 +141,7 @@ class BitcoinPluginTest {
             }
             val expectedAmount = BigDecimal(data.getValue(AMOUNT)) * givenAmount
 
-            val plugin = BitcoinPlugin(credentials, client, moshi, server.url("/"))
+            val plugin = CryptoPlugin(credentials, client, moshi, server.url("/"))
 
             val results = plugin.getNewBanyPluginTransactionsSince(
                 BanyPluginBudgetAccountIds(ynabBudgetId = ynabBudgetId, ynabAccountId = ynabAccountId), null

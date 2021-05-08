@@ -1,4 +1,4 @@
-package com.pissiphany.bany.plugin.bitcoin
+package com.pissiphany.bany.plugin.crypto
 
 import com.pissiphany.bany.plugin.BanyConfigurablePlugin
 import com.pissiphany.bany.plugin.BanyPlugin
@@ -26,7 +26,7 @@ private const val ROOT_URL = "https://api.coingecko.com"
 
 private val supportedCoins = setOf("bitcoin", "bitcoin-cash", "ethereum")
 
-class BitcoinPlugin(
+class CryptoPlugin(
     private val credentials: BanyPlugin.Credentials,
     private val client: OkHttpClient,
     moshi: Moshi,

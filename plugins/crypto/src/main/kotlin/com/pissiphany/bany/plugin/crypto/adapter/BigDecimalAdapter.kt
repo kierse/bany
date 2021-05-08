@@ -1,4 +1,4 @@
-package com.pissiphany.bany.plugin.bitcoin.adapter
+package com.pissiphany.bany.plugin.crypto.adapter
 
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.JsonReader

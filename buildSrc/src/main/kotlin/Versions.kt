@@ -3,7 +3,7 @@ interface Dependency {
 }
 
 object Versions {
-    const val kotlin = "1.4.30"
+    const val kotlin = "1.4.32"
 
     object Square {
         object Retrofit : Dependency {

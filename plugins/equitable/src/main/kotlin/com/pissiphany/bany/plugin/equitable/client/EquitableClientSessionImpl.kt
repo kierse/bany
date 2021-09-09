@@ -35,14 +35,7 @@ class EquitableClientSessionImpl(
     override fun checkSession() = check(isValid()) { "Missing $ASPXAUTH session token!" }
 
     override fun getInsuranceDetails(connection: BanyPlugin.Connection): EquitableClientSession.InsuranceDetails {
-        val getAccountDetailsResponse = Jsoup
-            .connect(root.addToPath(POLICY_VALUES_URL, connection.thirdPartyAccountId))
-            .method(Connection.Method.GET)
-            .cookies(sessionCookies)
-            .followRedirects(false)
-            .appendTimestamp()
-            .execute { code, msg -> "GET to $POLICY_VALUES_URL failed: $code $msg" }
-
+        val getAccountDetailsResponse = fetchInsuranceData(connection, POLICY_VALUES_URL)
         val getAccountDetailsDoc = getAccountDetailsResponse.parse()
         val rows = getAccountDetailsDoc.select("div.details_row")
 
@@ -122,11 +115,13 @@ class EquitableClientSessionImpl(
 
     private fun Connection.appendTimestamp() = this.data("_", Date().time.toString())
 
-//    inner class TestBackdoor {
-//        var sessionCookies: Cookies
-//            get() = this@EquitableClientSession.sessionCookies
-//            set(value) {
-//                this@EquitableClientSession.sessionCookies = value
-//            }
-//    }
+    private fun fetchInsuranceData(connection: BanyPlugin.Connection, relativeUrl: String): Connection.Response {
+        return Jsoup
+            .connect(root.addToPath(relativeUrl, connection.thirdPartyAccountId))
+            .method(Connection.Method.GET)
+            .cookies(sessionCookies)
+            .followRedirects(false)
+            .appendTimestamp()
+            .execute { code, msg -> "GET to $relativeUrl failed: $code $msg" }
+    }
 }

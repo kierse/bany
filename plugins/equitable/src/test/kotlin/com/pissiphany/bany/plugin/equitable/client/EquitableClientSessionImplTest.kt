@@ -72,12 +72,12 @@ class EquitableClientSessionImplTest {
 
         server.start()
 
-    val results = EquitableClientSessionImpl(server.url("/").toUrl(), cookies)
-        .getInsuranceDetails(connection)
+        val results = EquitableClientSessionImpl(server.url("/").toUrl(), cookies)
+            .getInsuranceDetails(connection)
 
         // GET 200 /policy/en/Policy/Values/<AccountNo>
         val getPolicyValuesRequest = server.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
-        val regex = """^$POLICY_VALUES_URL/thirdPartyAccount1\?_=\d+$""".toRegex()
+        val regex = """^$POLICY_VALUES_URL/${connection.thirdPartyAccountId}\?_=\d+$""".toRegex()
         assertTrue(getPolicyValuesRequest.path?.matches(regex) ?: false)
         assertEquals("GET", getPolicyValuesRequest.method)
         getPolicyValuesRequest.headers.assertCookie(ASPXAUTH to "baz")

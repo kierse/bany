@@ -11,9 +11,9 @@ interface EquitableClient {
     ): EquitableClientSession
 
     interface EquitableClientSession {
-        fun terminateSession(): Unit
+        fun terminateSession()
         fun isValid(): Boolean
-        fun checkSession(): Unit
+        fun checkSession()
         fun getInsuranceDetails(connection: BanyPlugin.Connection): InsuranceDetails
         fun getInvestmentDetails(connection: BanyPlugin.Connection): InvestmentDetails
 

@@ -5,9 +5,10 @@ include 'domain', 'adapter'
 
 // PLUGIN MODULES
 include ':api'
-include 'plugins:sample'
-include 'plugins:equitable'
 include 'plugins:crypto'
+include 'plugins:equitable'
+include 'plugins:sample'
+include 'plugins:stock'
 
 findProject(':api')?.name = 'bany-plugin-api'
 

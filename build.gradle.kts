@@ -30,8 +30,9 @@ dependencies {
     implementation(project(":bany-plugin-api"))
     implementation(project(":domain"))
     implementation(project(":adapter"))
-    implementation(project(":plugins:equitable"))
     implementation(project(":plugins:crypto"))
+    implementation(project(":plugins:equitable"))
+    implementation(project(":plugins:stock"))
 
     implementation(Versions.Square.Retrofit.dependency)
     implementation(Versions.Square.Retrofit.Converters.Moshi.dependency)

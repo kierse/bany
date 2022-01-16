@@ -1,15 +1,18 @@
 package com.pissiphany.bany.dataStructure
 
+import com.pissiphany.bany.plugin.PluginName
 import com.squareup.moshi.JsonClass
 
+typealias YnabBudgetId = String
+
 @JsonClass(generateAdapter = true)
-class BanyConfig(val ynabApiToken: String, val plugins: Map<String, List<ServiceCredentials>>)
+class BanyConfig(val ynabApiToken: String, val plugins: Map<PluginName, List<ServiceCredentials>>)
 
 @JsonClass(generateAdapter = true)
 class ServiceCredentials(
     val username: String = "",
     val password: String = "",
-    val connections: Map<String, List<ServiceConnection>>,
+    val connections: Map<YnabBudgetId, List<ServiceConnection>>,
     val enabled: Boolean = true,
     val description: String = "",
     val data: Map<String, String> = emptyMap()

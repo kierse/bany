@@ -27,6 +27,7 @@ import com.pissiphany.bany.plugin.BanyPluginFactory
 import com.pissiphany.bany.factory.RetrofitFactory
 import com.pissiphany.bany.mapper.BanyPluginDataMapper
 import com.pissiphany.bany.plugin.ConfigurablePlugin
+import com.pissiphany.bany.plugin.PluginName
 import com.pissiphany.bany.service.RetrofitYnabService
 import com.pissiphany.bany.service.RetrofitYnabApiService
 import com.pissiphany.bany.service.ThirdPartyTransactionServiceImpl
@@ -168,7 +169,7 @@ internal fun mapToYnabCredentials(credentials: ServiceCredentials): YnabCredenti
     )
 }
 
-private fun buildFactoryMap(factories: List<BanyPluginFactory>): Map<String, BanyPluginFactory> {
+private fun buildFactoryMap(factories: List<BanyPluginFactory>): Map<PluginName, BanyPluginFactory> {
     val map = mutableMapOf<String, BanyPluginFactory>()
     for (factory in factories) {
         for (pluginName in factory.pluginNames) {

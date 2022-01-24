@@ -3,7 +3,7 @@ interface Dependency {
 }
 
 object Versions {
-    const val kotlin = "1.4.32"
+    const val kotlin = "1.6.10"
 
     object Square {
         object Retrofit : Dependency {
@@ -18,7 +18,7 @@ object Versions {
         }
 
         object Moshi : Dependency {
-            private const val version = "1.11.0"
+            private const val version = "1.13.0"
             override val dependency = "com.squareup.moshi:moshi:$version"
 
             object KotlinCodegen : Dependency {
@@ -36,12 +36,16 @@ object Versions {
         }
     }
 
+    object KotlinLogging: Dependency {
+        override val dependency = "io.github.microutils:kotlin-logging-jvm:2.1.20"
+    }
+
     object Pf4j : Dependency {
         override val dependency = "org.pf4j:pf4j:3.4.1"
     }
 
     object Slf4j : Dependency {
-        override val dependency = "org.slf4j:slf4j-simple:1.7.30"
+        override val dependency = "org.slf4j:slf4j-simple:1.7.33"
     }
 
     object Junit {

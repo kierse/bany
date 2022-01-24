@@ -39,6 +39,8 @@ dependencies {
     implementation(Versions.Square.Moshi.dependency)
     kapt(Versions.Square.Moshi.KotlinCodegen.dependency)
 
+    implementation(Versions.KotlinLogging.dependency)
+
     // pf4j
     implementation(Versions.Pf4j.dependency)
     implementation(Versions.Slf4j.dependency)

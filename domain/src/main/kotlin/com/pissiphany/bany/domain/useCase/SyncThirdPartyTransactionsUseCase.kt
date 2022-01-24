@@ -2,6 +2,7 @@ package com.pissiphany.bany.domain.useCase
 
 import com.pissiphany.bany.domain.dataStructure.*
 import com.pissiphany.bany.domain.repository.ConfigurationRepository
+import com.pissiphany.bany.shared.logger
 import java.time.LocalDate
 import java.time.OffsetDateTime
 
@@ -29,6 +30,8 @@ class SyncThirdPartyTransactionsUseCase(
         fun saveTransactions(budgetAccountIds: BudgetAccountIds, transactions: List<AccountTransaction>)
     }
 
+    private val logger by logger()
+
     fun sync() {
         val results = mutableListOf<SyncTransactionsResult>()
         for (budgetAccountIds in repo.getBudgetAccountIds()) {
@@ -49,7 +52,10 @@ class SyncThirdPartyTransactionsUseCase(
         val newTransactions = newThirdPartyTransactions.getTransactions(budgetAccountIds, date?.toLocalDate())
             .map { processNewTransaction.processTransaction(account, it) }
             .filter { it.amountInCents != 0 }
-            .also { saveTransactions.saveTransactions(budgetAccountIds, it) }
+            .also { transactions ->
+                logger.debug { "Saving the following to ${budgetAccountIds.name}: $transactions" }
+                saveTransactions.saveTransactions(budgetAccountIds, transactions)
+            }
 
         return Pair(date, newTransactions)
     }

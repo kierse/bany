@@ -8,7 +8,8 @@ version = "1.0-SNAPSHOT"
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
-    implementation(project(":shared"))
+    api(Versions.KotlinLogging.dependency)
+    implementation(Versions.Slf4j.dependency)
 
     testImplementation(Versions.Junit.Jupiter.dependency)
     testImplementation(Versions.Junit.Jupiter.Api.dependency)

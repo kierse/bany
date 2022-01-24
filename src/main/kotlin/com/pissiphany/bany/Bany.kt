@@ -32,9 +32,12 @@ import com.pissiphany.bany.service.RetrofitYnabService
 import com.pissiphany.bany.service.RetrofitYnabApiService
 import com.pissiphany.bany.service.ThirdPartyTransactionServiceImpl
 import com.squareup.moshi.Moshi
+import mu.KotlinLogging
 import org.pf4j.DefaultPluginManager
 
 fun main() {
+    val logger = KotlinLogging.logger {}
+
     val moshi = Moshi.Builder()
         .add(DataEnvelopeFactory())
         .add(LocalDateAdapter())
@@ -42,6 +45,8 @@ fun main() {
         .build()
 
     val adapter = moshi.adapter(BanyConfig::class.java)
+
+    logger.info { "Parsing config file at: ${CONFIG_FILE.absoluteFile}" }
     val config = checkNotNull(adapter.fromJson(CONFIG_FILE.readText())) {
         "Unable to parse and instantiate application config!"
     }
@@ -50,6 +55,8 @@ fun main() {
         .mapValues { (_, credentialList) -> credentialList.filter(ServiceCredentials::enabled) }
         .filter { it.value.isNotEmpty() }
     check(enabledPlugins.isNotEmpty()) { "No enabled plugins found!" }
+
+    logger.info { "Found plugin configuration for: ${enabledPlugins.keys.sorted().joinToString(", ")}" }
 
     val credentialsMap: Map<ServiceCredentials, YnabCredentials> = enabledPlugins
         .values
@@ -88,12 +95,17 @@ fun main() {
     try {
         val initializedServices = mutableListOf<ThirdPartyTransactionService>()
         enabledPlugins.forEach(
-            fun(pluginName, credentialList) {
-                val factory = factoryMap[pluginName] ?: return // TODO log skipping this set of credentials
+            fun(pluginName, serviceCredentialsList) {
+                val factory = factoryMap[pluginName]
+                if (factory == null) {
+                    logger.warn { "Unable to find plugin factory for '$pluginName', skipping!" }
+                    return
+                }
 
-                for (credentials in credentialList) {
-                    val plugin = factory.createPlugin(pluginName, credentialsMap.getValue(credentials))
+                for (serviceCredentials in serviceCredentialsList) {
+                    val plugin = factory.createPlugin(pluginName, credentialsMap.getValue(serviceCredentials))
                     if (plugin.setup()) {
+                        logger.debug { "Initialized '$pluginName' plugin: '${serviceCredentials.description}'" }
                         initializedServices.add(ThirdPartyTransactionServiceImpl(plugin, BanyPluginDataMapper()))
                         initializedPlugins.add(plugin)
                     }
@@ -123,10 +135,12 @@ fun main() {
         // persist any changes to disk
         lastKnowledgeOfServerRepository.saveChanges()
     } finally {
+        logger.info("Tearing down plugins")
         initializedPlugins.forEach(ConfigurablePlugin::tearDown)
     }
 
     // stop all active plugins
+    logger.info("Stopping plugins")
     pluginManager.stopPlugins()
 }
 

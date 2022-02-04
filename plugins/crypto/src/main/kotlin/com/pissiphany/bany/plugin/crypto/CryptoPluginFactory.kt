@@ -16,16 +16,20 @@ class CryptoPluginFactory : BanyPluginFactory {
     override val pluginNames = setOf(CRYPTO_TRACKER)
     private val logger by logger()
 
-    private val client = OkHttpClient
-        .Builder()
-        .build()
+    private val client = lazy {
+        OkHttpClient
+            .Builder()
+            .build()
+    }
 
-    private val moshi = Moshi.Builder()
-        .add(BigDecimalAdapter())
-        .build()
+    private val moshi = lazy {
+        Moshi.Builder()
+            .add(BigDecimalAdapter())
+            .build()
+    }
 
     override fun createPlugin(pluginName: String, credentials: BanyPlugin.Credentials): BanyConfigurablePlugin {
         logger.debug("Creating CryptoPlugin")
-        return CryptoPlugin(credentials, client, moshi)
+        return CryptoPlugin(client, moshi, credentials)
     }
 }

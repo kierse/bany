@@ -5,10 +5,12 @@ import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountBalance
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
+import com.pissiphany.bany.shared.logger
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
+import mu.KLogger
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
@@ -27,27 +29,33 @@ private const val ROOT_URL = "https://api.coingecko.com"
 private val supportedCoins = setOf("bitcoin", "bitcoin-cash", "ethereum")
 
 class CryptoPlugin(
-    private val credentials: BanyPlugin.Credentials,
-    private val client: OkHttpClient,
-    moshi: Moshi,
+    private val client: Lazy<OkHttpClient>,
+    private val moshi: Lazy<Moshi>,
+    credentials: BanyPlugin.Credentials,
     serverRoot: HttpUrl? = null
 ) : BanyConfigurablePlugin {
-    private val adapter: JsonAdapter<SimplePrice>
     private val root = serverRoot ?: ROOT_URL.toHttpUrl()
+    private val logger by logger()
 
-    init {
-        credentials.connections.forEach { con ->
-            checkNotNull(con.data[AMOUNT]) { "Must provide $AMOUNT!" }
-            checkNotNull(con.data[CURRENCY]) { "Must indicate desired $CURRENCY!" }
-            checkNotNull(con.data[COIN_ID]) { "Must indicate $COIN_ID!" }
-            check(supportedCoins.contains(con.data[COIN_ID])) { "Unsupported $COIN_ID!" }
+    private val connections: List<BanyPlugin.Connection> = credentials.connections
+        .filter { verifyRequiredData(it, logger) }
+
+    private lateinit var adapter: JsonAdapter<SimplePrice>
+
+    override fun setup(): Boolean {
+        super.setup()
+
+        if (connections.isEmpty()) {
+            logger.info("Skipping ${javaClass.simpleName}, no usable connections")
+            return false
         }
 
-        adapter = moshi.adapter(SimplePrice::class.java)
+        adapter = moshi.value.adapter(SimplePrice::class.java)
+        return true
     }
 
     override fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
-        return credentials.connections
+        return connections
             .map { BanyPluginBudgetAccountIds(ynabBudgetId = it.ynabBudgetId, ynabAccountId = it.ynabAccountId) }
     }
 
@@ -69,7 +77,7 @@ class CryptoPlugin(
             .url(getPrice)
             .build()
 
-        client.newCall(request).execute().use { response ->
+        client.value.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("Unable to fetch currency conversion: $response")
             val body = response.body ?: throw IOException("No body found!")
             val simplePrice = adapter.fromJson(body.source()) ?: throw IOException("Unable to parse response!")
@@ -92,7 +100,7 @@ class CryptoPlugin(
     }
 
     private fun getConnection(budgetAccountIds: BanyPluginBudgetAccountIds): BanyPlugin.Connection {
-        return credentials.connections
+        return connections
             .first { it.ynabBudgetId == budgetAccountIds.ynabBudgetId && it.ynabAccountId == budgetAccountIds.ynabAccountId }
     }
 }
@@ -101,6 +109,21 @@ private fun calculateValue(currencyToPrice: Map<String, BigDecimal>, amount: Big
     return currencyToPrice[currency]
         ?.let { it * amount }
         ?: throw IOException("Requested currency missing: $currency")
+}
+
+private fun verifyRequiredData(con: BanyPlugin.Connection, logger: KLogger): Boolean {
+    for (key in listOf(AMOUNT, CURRENCY, COIN_ID)) {
+        if (!con.data[key].isNullOrBlank()) continue
+        logger.warn { "Skipping connection '${con.name}'. Must provide value for: '$key'" }
+        return false
+    }
+
+    if (!supportedCoins.contains(con.data[COIN_ID])) {
+        logger.warn { "Skipping connection '${con.name}'. '$COIN_ID' must be one of '$supportedCoins'" }
+        return false
+    }
+
+    return true
 }
 
 @JsonClass(generateAdapter = true)

@@ -11,17 +11,19 @@ import org.pf4j.Extension
 private const val STOCK_TRACKER = "stock-tracker"
 
 @Extension
-class EtradePluginFactory : BanyPluginFactory {
+class StockTrackerPluginFactory : BanyPluginFactory {
     override val pluginNames = setOf(STOCK_TRACKER)
 
     override fun createPlugin(
         pluginName: String,
         credentials: BanyPlugin.Credentials
     ): BanyConfigurablePlugin {
-        val client = OkHttpClient.Builder().build()
-        val moshi = Moshi.Builder()
-            .add(BigDecimalAdapter)
-            .build()
+        val client = lazy { OkHttpClient.Builder().build() }
+        val moshi = lazy {
+            Moshi.Builder()
+                .add(BigDecimalAdapter)
+                .build()
+        }
 
         return StockTrackerPlugin(credentials, client, moshi)
     }

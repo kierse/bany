@@ -10,6 +10,7 @@ group = "com.pissiphany.bany.plugin.stock"
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
+    api(project(":shared"))
     api(project(":bany-plugin-api"))
 
     implementation(Versions.Square.OkHttp.dependency)

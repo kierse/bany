@@ -5,10 +5,12 @@ import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountBalance
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
+import com.pissiphany.bany.shared.logger
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import mu.KLogger
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
@@ -30,30 +32,41 @@ private const val ROOT_CURRENCY_URL = "https://free.currconv.com"
 
 class StockTrackerPlugin(
     private val credentials: BanyPlugin.Credentials,
-    private val client: OkHttpClient,
-    moshi: Moshi,
+    private val client: Lazy<OkHttpClient>,
+    private val moshi: Lazy<Moshi>,
     stockServerRoot: HttpUrl? = null,
     currencyServerRoot: HttpUrl? = null
 ) : BanyConfigurablePlugin {
     private val stockRoot = stockServerRoot ?: ROOT_STOCK_URL.toHttpUrl()
     private val currencyRoot = currencyServerRoot ?: ROOT_CURRENCY_URL.toHttpUrl()
+    private val logger by logger()
 
-    private val profileAdapter: JsonAdapter<GetProfile>
-    private val currencyAdapter: JsonAdapter<Map<String, BigDecimal>>
+    private val connections: List<BanyPlugin.Connection> = credentials.connections
+        .filter { verifyRequiredData(it, logger) }
 
-    init {
-        checkNotNull(credentials.data[STOCK_API_TOKEN]) { "Must indicate stock api $STOCK_API_TOKEN!" }
-        checkNotNull(credentials.data[CURRENCY_API_TOKEN]) { "Must indicate currency api $CURRENCY_API_TOKEN!" }
-        credentials.connections.forEach { con ->
-            checkNotNull(con.data[TICKER]) { "Must indicate stock $TICKER!" }
-            checkNotNull(con.data[COUNT]) { "Must indicate stock $COUNT!" }
-            checkNotNull(con.data[CURRENCY]) { "Must indicate desired $CURRENCY!" }
+    private lateinit var profileAdapter: JsonAdapter<GetProfile>
+    private lateinit var currencyAdapter: JsonAdapter<Map<String, BigDecimal>>
+
+    override fun setup(): Boolean {
+        super.setup()
+
+        for (key in listOf(CURRENCY_API_TOKEN, STOCK_API_TOKEN)) {
+            if (!credentials.data[key].isNullOrEmpty()) continue
+            logger.warn { "Skipping ${javaClass.simpleName}. Must provide value for: '$key'" }
+            return false
         }
 
-        profileAdapter = moshi.adapter(GetProfile::class.java)
+        if (connections.isEmpty()) {
+            logger.info("Skipping ${javaClass.simpleName}, no usable connections")
+            return false
+        }
+
+        profileAdapter = moshi.value.adapter(GetProfile::class.java)
         currencyAdapter = Types
             .newParameterizedType(Map::class.java, String::class.java, BigDecimal::class.java)
-            .let(moshi::adapter)
+            .let(moshi.value::adapter)
+
+        return true
     }
 
     override fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
@@ -107,7 +120,7 @@ class StockTrackerPlugin(
             .addHeader("x-rapidapi-host", "apidojo-yahoo-finance-v1.p.rapidapi.com")
             .addHeader("x-rapidapi-key", credentials.data.getValue(STOCK_API_TOKEN))
             .build()
-        return client.newCall(getProfileRequest).execute().use { response ->
+        return client.value.newCall(getProfileRequest).execute().use { response ->
             if (!response.isSuccessful) throw IOException("Unable to fetch ticker profile: $response")
             val body = response.body ?: throw IOException("No body found!")
             profileAdapter.fromJson(body.source()) ?: throw IOException("Unable to parse response!")
@@ -125,12 +138,22 @@ class StockTrackerPlugin(
             .get()
             .url(getCurrencyConversionUrl)
             .build()
-        return client.newCall(getCurrencyRequestRequest).execute().use { response ->
+        return client.value.newCall(getCurrencyRequestRequest).execute().use { response ->
             if (!response.isSuccessful) throw IOException("Unable to fetch currency map: $response")
             val body = response.body ?: throw IOException("No body found!")
             currencyAdapter.fromJson(body.source()) ?: throw IOException("Unable to parse response!")
         }
     }
+}
+
+private fun verifyRequiredData(con: BanyPlugin.Connection, logger: KLogger): Boolean {
+    for (key in listOf(COUNT, CURRENCY, TICKER)) {
+        if (!con.data[key].isNullOrEmpty()) continue
+        logger.warn { "Skipping connection '${con.name}'. Must provide value for: '$key'" }
+        return false
+    }
+
+    return true
 }
 
 @JsonClass(generateAdapter = true)

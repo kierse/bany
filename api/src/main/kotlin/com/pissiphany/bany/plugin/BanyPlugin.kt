@@ -18,6 +18,7 @@ interface BanyPlugin {
     }
 
     interface Connection {
+        val name: String
         val ynabBudgetId: String
         val ynabAccountId: String
         val thirdPartyAccountId: String

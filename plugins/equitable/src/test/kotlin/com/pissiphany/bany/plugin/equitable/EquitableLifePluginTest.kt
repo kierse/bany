@@ -275,6 +275,7 @@ class EquitableLifePluginTest {
     // Adapter used by integration test
     @JsonClass(generateAdapter = true)
     data class Connection(
+        override val name: String,
         override val ynabBudgetId: String,
         override val ynabAccountId: String,
         override val thirdPartyAccountId: String,

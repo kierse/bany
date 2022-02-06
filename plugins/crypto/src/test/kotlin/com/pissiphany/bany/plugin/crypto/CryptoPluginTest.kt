@@ -29,54 +29,58 @@ private val RESOURCES_FILE = File("src/test/resources/json")
 private const val TIMEOUT = 0L
 
 class CryptoPluginTest {
+    private val client = lazy {
+        OkHttpClient
+            .Builder()
+            .build()
+    }
+
+    private val moshi = lazy {
+        Moshi.Builder()
+            .add(BigDecimalAdapter())
+            .build()
+    }
+
+    private val validConnection1 = Connection(
+        name = "name1",
+        ynabBudgetId = "budget1",
+        ynabAccountId = "account1",
+        data = mutableMapOf(
+            COIN_ID to "bitcoin",
+            AMOUNT to "1.5",
+            CURRENCY to "cad",
+        )
+    )
+
+    private val validConnection2 = Connection(
+        name = "name2",
+        ynabBudgetId = "budget1",
+        ynabAccountId = "account2",
+        data = mutableMapOf(
+            COIN_ID to "bitcoin-cash",
+            AMOUNT to "0.5",
+            CURRENCY to "usd",
+        )
+    )
+
+    private val validConnection3 = Connection(
+        name = "name3",
+        ynabBudgetId = "budget1",
+        ynabAccountId = "account3",
+        data = mutableMapOf(
+            COIN_ID to "ethereum",
+            AMOUNT to "2",
+            CURRENCY to "cad",
+        )
+    )
+
+    private val credentials = Credentials(connections = listOf(validConnection1, validConnection2, validConnection3))
+
     private lateinit var server: MockWebServer
-    private lateinit var client: OkHttpClient
-    private lateinit var moshi: Moshi
-    private lateinit var credentials: Credentials
 
     @BeforeEach
     fun setup() {
         server = MockWebServer()
-
-        client = OkHttpClient
-            .Builder()
-            .build()
-
-        moshi = Moshi.Builder()
-            .add(BigDecimalAdapter())
-            .build()
-
-        credentials = Credentials(
-            connections = listOf(
-                Connection(
-                    ynabBudgetId = "budget1",
-                    ynabAccountId = "account1",
-                    data = mutableMapOf(
-                        COIN_ID to "bitcoin",
-                        AMOUNT to "1.5",
-                        CURRENCY to "cad",
-                    )
-                ),
-                Connection(
-                    ynabBudgetId = "budget1",
-                    ynabAccountId = "account2",
-                    data = mutableMapOf(
-                        COIN_ID to "bitcoin-cash",
-                        AMOUNT to "0.5",
-                        CURRENCY to "usd",
-                    )
-                ),
-                Connection(
-                    ynabBudgetId = "budget1",
-                    ynabAccountId = "account3",
-                    data = mutableMapOf(
-                        COIN_ID to "ethereum",
-                        AMOUNT to "2",
-                        CURRENCY to "cad",
-                    )
-                ),
-            )
-        )
     }
 
     @AfterEach
@@ -85,21 +89,23 @@ class CryptoPluginTest {
     }
 
     @Test
-    fun `constructor - unsupported coin type`() {
-        credentials.connections.last().data[COIN_ID] = "foo"
-        assertThrows<IllegalStateException> { CryptoPlugin(credentials, client, moshi) }
+    fun `setup - required data and at least one valid connection`() {
+        assertTrue(CryptoPlugin(client, moshi, credentials).setup())
     }
 
     @ParameterizedTest
     @ValueSource(strings = [AMOUNT, CURRENCY, COIN_ID])
-    fun `constructor - missing config property`(missing: String) {
-        credentials.connections.last().data.remove(missing)
-        assertThrows<IllegalStateException> { CryptoPlugin(credentials, client, moshi) }
+    fun `setup - return false when connection missing required data`(key: String) {
+        val connection = validConnection1.copy(data = validConnection1.data.minus(key))
+        val credentials = credentials.copy(connections = listOf(connection))
+
+        assertFalse(CryptoPlugin(client, moshi, credentials).setup())
     }
 
     @Test
     fun getBanyPluginBudgetAccountIds() {
-        val results = CryptoPlugin(credentials, client, moshi).getBanyPluginBudgetAccountIds()
+        val credentials = credentials.copy(connections = listOf(validConnection1, validConnection2, validConnection3))
+        val results = CryptoPlugin(client, moshi, credentials).getBanyPluginBudgetAccountIds()
 
         assertEquals(
             listOf(
@@ -125,7 +131,7 @@ class CryptoPluginTest {
     @ValueSource(ints = [0,1,2])
     fun getNewBanyPluginTransactionsSince(index: Int) {
         val json = File(RESOURCES_FILE, "simple_price.json").readText()
-        val priceModel = moshi.adapter(SimplePrice::class.java).run { fromJson(json) } ?: fail()
+        val priceModel = moshi.value.adapter(SimplePrice::class.java).run { fromJson(json) } ?: fail()
 
         server.enqueue(MockResponse().setBody(json))
         server.start()
@@ -141,11 +147,12 @@ class CryptoPluginTest {
             }
             val expectedAmount = BigDecimal(data.getValue(AMOUNT)) * givenAmount
 
-            val plugin = CryptoPlugin(credentials, client, moshi, server.url("/"))
-
-            val results = plugin.getNewBanyPluginTransactionsSince(
-                BanyPluginBudgetAccountIds(ynabBudgetId = ynabBudgetId, ynabAccountId = ynabAccountId), null
-            )
+            val results = with(CryptoPlugin(client, moshi, credentials, server.url("/"))) {
+                setup()
+                getNewBanyPluginTransactionsSince(
+                    BanyPluginBudgetAccountIds(ynabBudgetId = ynabBudgetId, ynabAccountId = ynabAccountId), null
+                )
+            }
 
             assertEquals(1, results.size)
             assertEquals(expectedAmount, results.first().amount)
@@ -174,7 +181,7 @@ class CryptoPluginTest {
         override val name: String,
         override val ynabBudgetId: String,
         override val ynabAccountId: String,
-        override val data: MutableMap<String, String> = mutableMapOf()
+        override val data: Map<String, String> = mutableMapOf()
     ) : BanyPlugin.Connection {
         override val thirdPartyAccountId: String = ""
     }

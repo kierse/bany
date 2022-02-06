@@ -14,24 +14,28 @@ class CryptoPluginIntegrationTest {
     private val plugin: CryptoPlugin
     private val connections: List<CryptoPluginTest.Connection>
 
+    private val client = lazy {
+        OkHttpClient
+            .Builder()
+            .build()
+    }
+
+    private val moshi = lazy {
+        Moshi.Builder()
+            .add(BigDecimalAdapter())
+            .build()
+    }
+
     init {
         val file = checkNotNull(CONFIG_FILE.takeIf(File::isFile)) {
             "Unable to initialize config! $CONFIG_FILE does not exist / is not a file"
         }
 
-        val client = OkHttpClient
-            .Builder()
-            .build()
-
-        val moshi = Moshi.Builder()
-            .add(BigDecimalAdapter())
-            .build()
-
-        val adapter = moshi.adapter(CryptoPluginTest.Credentials::class.java)
+        val adapter = moshi.value.adapter(CryptoPluginTest.Credentials::class.java)
         val credentials = checkNotNull(adapter.fromJson(file.readText()))
 
         connections = credentials.connections
-        plugin = CryptoPlugin(credentials, client, moshi)
+        plugin = CryptoPlugin(client, moshi, credentials)
     }
 
     @Test

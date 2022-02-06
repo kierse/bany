@@ -28,9 +28,9 @@ private const val ROOT_STOCK_URL = "https://apidojo-yahoo-finance-v1.p.rapidapi.
 private const val ROOT_CURRENCY_URL = "https://free.currconv.com"
 
 class StockTrackerPlugin(
-    private val credentials: BanyPlugin.Credentials,
     private val client: Lazy<OkHttpClient>,
     private val moshi: Lazy<Moshi>,
+    credentials: BanyPlugin.Credentials,
     stockServerRoot: HttpUrl? = null,
     currencyServerRoot: HttpUrl? = null
 ) : BanyConfigurablePlugin {
@@ -46,6 +46,7 @@ class StockTrackerPlugin(
     private val currencyRoot = currencyServerRoot ?: ROOT_CURRENCY_URL.toHttpUrl()
     private val logger by logger()
 
+    private val credentialsData = credentials.data
     private val connections: List<BanyPlugin.Connection> = credentials.connections
         .filter { verifyRequiredData(it, logger) }
 
@@ -56,7 +57,7 @@ class StockTrackerPlugin(
         super.setup()
 
         for (key in listOf(CURRENCY_API_TOKEN, STOCK_API_TOKEN)) {
-            if (!credentials.data[key].isNullOrEmpty()) continue
+            if (!credentialsData[key].isNullOrEmpty()) continue
             logger.warn { "Skipping ${javaClass.simpleName}. Must provide value for: '$key'" }
             return false
         }
@@ -82,7 +83,7 @@ class StockTrackerPlugin(
         budgetAccountIds: BanyPluginBudgetAccountIds, date: LocalDate?
     ): List<BanyPluginTransaction> {
         val connection = with(budgetAccountIds) {
-            credentials.connections.first { it.ynabBudgetId == ynabBudgetId && it.ynabAccountId == ynabAccountId }
+            connections.first { it.ynabBudgetId == ynabBudgetId && it.ynabAccountId == ynabAccountId }
         }
 
         val profile = fetchProfile(connection)
@@ -112,7 +113,7 @@ class StockTrackerPlugin(
             .get()
             .url(getProfileUrl)
             .addHeader("x-rapidapi-host", "apidojo-yahoo-finance-v1.p.rapidapi.com")
-            .addHeader("x-rapidapi-key", credentials.data.getValue(STOCK_API_TOKEN))
+            .addHeader("x-rapidapi-key", credentialsData.getValue(STOCK_API_TOKEN))
             .build()
         return client.value.newCall(getProfileRequest).execute().use { response ->
             if (!response.isSuccessful) throw IOException("Unable to fetch ticker profile: $response")
@@ -125,7 +126,7 @@ class StockTrackerPlugin(
         val getCurrencyConversionUrl = currencyRoot.newBuilder()
             .addPathSegments("api/v7/convert")
             .addQueryParameter("compact", "ultra")
-            .addQueryParameter("apiKey", credentials.data[CURRENCY_API_TOKEN])
+            .addQueryParameter("apiKey", credentialsData[CURRENCY_API_TOKEN])
             .addQueryParameter("q", currencyPair)
             .build()
         val getCurrencyRequestRequest = Request.Builder()

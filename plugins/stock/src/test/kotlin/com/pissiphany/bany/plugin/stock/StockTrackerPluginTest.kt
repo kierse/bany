@@ -23,12 +23,15 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.io.File
 import java.io.IOException
 import java.math.BigDecimal
+import java.util.concurrent.TimeUnit
 
 /**
  *  API query for test data:
  *
  */
 private val RESOURCES_FILE = File("src/test/resources/json")
+
+private const val TIMEOUT = 0L
 
 class StockTrackerPluginTest {
     private val client = lazy {
@@ -81,7 +84,7 @@ class StockTrackerPluginTest {
     fun `setup - return false when connection missing required data param`(token: String) {
         val credentials = credentials.copy(data = credentials.data.minus(token))
 
-        assertFalse(StockTrackerPlugin(credentials, client, moshi).setup())
+        assertFalse(StockTrackerPlugin(client, moshi, credentials).setup())
     }
 
     @Test
@@ -95,12 +98,12 @@ class StockTrackerPluginTest {
         val invalidConnections = listOf(invalid1, invalid2, invalid3, invalid4, invalid5)
         val credentials = credentials.copy(connections = invalidConnections)
 
-        assertFalse(StockTrackerPlugin(credentials, client, moshi).setup())
+        assertFalse(StockTrackerPlugin(client, moshi, credentials).setup())
     }
 
     @Test
     fun `setup - required data and at least one valid connection`() {
-        assertTrue(StockTrackerPlugin(credentials, client, moshi).setup())
+        assertTrue(StockTrackerPlugin(client, moshi, credentials).setup())
     }
 
     @Test
@@ -110,7 +113,7 @@ class StockTrackerPluginTest {
             ynabAccountId = validConnection.ynabAccountId,
         )
 
-        val plugin = StockTrackerPlugin(credentials, client, moshi)
+        val plugin = StockTrackerPlugin(client, moshi, credentials)
             .apply { setup() }
 
         assertEquals(listOf(expected), plugin.getBanyPluginBudgetAccountIds())
@@ -133,9 +136,9 @@ class StockTrackerPluginTest {
 
         val results = with(
             StockTrackerPlugin(
-                credentials,
                 client,
                 moshi,
+                credentials,
                 getProfileServer.url("/"),
                 currencyConversionServer.url("/")
             )
@@ -155,6 +158,16 @@ class StockTrackerPluginTest {
 
         assertEquals(1, results.size)
         assertEquals(expected, results.first().amount)
+
+        // GET 200 /stock/v2/get-profile
+        val getProfile = getProfileServer.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
+        assertEquals("GET", getProfile.method)
+        assertTrue(getProfile.path?.contains("symbol=${validConnection.data[TICKER]}") ?: false)
+
+        // GET 200 /api/v7/convert
+        val getConversion = currencyConversionServer.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
+        assertEquals("GET", getConversion.method)
+        assertTrue(getConversion.path?.contains("q=USD_${validConnection.data[CURRENCY]?.uppercase()}") ?: false)
     }
 
     @Test
@@ -169,9 +182,9 @@ class StockTrackerPluginTest {
 
         with(
             StockTrackerPlugin(
-                credentials,
                 client,
                 moshi,
+                credentials,
                 getProfileServer.url("/"),
                 currencyConversionServer.url("/")
             )
@@ -202,9 +215,9 @@ class StockTrackerPluginTest {
 
         with(
             StockTrackerPlugin(
-                credentials,
                 client,
                 moshi,
+                credentials,
                 getProfileServer.url("/"),
                 currencyConversionServer.url("/")
             )
@@ -235,9 +248,9 @@ class StockTrackerPluginTest {
 
         with(
             StockTrackerPlugin(
-                credentials,
                 client,
                 moshi,
+                credentials,
                 getProfileServer.url("/"),
                 currencyConversionServer.url("/")
             )
@@ -268,9 +281,9 @@ class StockTrackerPluginTest {
 
         with(
             StockTrackerPlugin(
-                credentials,
                 client,
                 moshi,
+                credentials,
                 getProfileServer.url("/"),
                 currencyConversionServer.url("/")
             )
@@ -303,9 +316,9 @@ class StockTrackerPluginTest {
 
         with(
             StockTrackerPlugin(
-                credentials,
                 client,
                 moshi,
+                credentials,
                 getProfileServer.url("/"),
                 currencyConversionServer.url("/")
             )
@@ -338,9 +351,9 @@ class StockTrackerPluginTest {
 
         with(
             StockTrackerPlugin(
-                credentials,
                 client,
                 moshi,
+                credentials,
                 getProfileServer.url("/"),
                 currencyConversionServer.url("/")
             )
@@ -372,9 +385,9 @@ class StockTrackerPluginTest {
 
         with(
             StockTrackerPlugin(
-                credentials,
                 client,
                 moshi,
+                credentials,
                 getProfileServer.url("/"),
                 currencyConversionServer.url("/")
             )

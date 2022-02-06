@@ -25,6 +25,6 @@ class StockTrackerPluginFactory : BanyPluginFactory {
                 .build()
         }
 
-        return StockTrackerPlugin(credentials, client, moshi)
+        return StockTrackerPlugin(client, moshi, credentials)
     }
 }

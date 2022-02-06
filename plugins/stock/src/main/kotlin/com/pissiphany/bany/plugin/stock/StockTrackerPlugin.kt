@@ -5,6 +5,9 @@ import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountBalance
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
+import com.pissiphany.bany.plugin.stock.StockTrackerPlugin.Companion.COUNT
+import com.pissiphany.bany.plugin.stock.StockTrackerPlugin.Companion.CURRENCY
+import com.pissiphany.bany.plugin.stock.StockTrackerPlugin.Companion.TICKER
 import com.pissiphany.bany.shared.logger
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonClass
@@ -21,12 +24,6 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-private const val STOCK_API_TOKEN = "stockApiToken"
-private const val CURRENCY_API_TOKEN = "currencyApiToken"
-private const val TICKER = "ticker"
-private const val COUNT = "count"
-private const val CURRENCY = "currency"
-
 private const val ROOT_STOCK_URL = "https://apidojo-yahoo-finance-v1.p.rapidapi.com"
 private const val ROOT_CURRENCY_URL = "https://free.currconv.com"
 
@@ -37,6 +34,14 @@ class StockTrackerPlugin(
     stockServerRoot: HttpUrl? = null,
     currencyServerRoot: HttpUrl? = null
 ) : BanyConfigurablePlugin {
+    internal companion object {
+        const val TICKER = "ticker"
+        const val COUNT = "count"
+        const val CURRENCY = "currency"
+        const val STOCK_API_TOKEN = "stockApiToken"
+        const val CURRENCY_API_TOKEN = "currencyApiToken"
+    }
+
     private val stockRoot = stockServerRoot ?: ROOT_STOCK_URL.toHttpUrl()
     private val currencyRoot = currencyServerRoot ?: ROOT_CURRENCY_URL.toHttpUrl()
     private val logger by logger()
@@ -70,8 +75,7 @@ class StockTrackerPlugin(
     }
 
     override fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
-        return credentials.connections
-            .map { BanyPluginBudgetAccountIds(ynabBudgetId = it.ynabBudgetId, ynabAccountId = it.ynabAccountId) }
+        return connections.map { BanyPluginBudgetAccountIds(ynabBudgetId = it.ynabBudgetId, ynabAccountId = it.ynabAccountId) }
     }
 
     override fun getNewBanyPluginTransactionsSince(
@@ -81,24 +85,14 @@ class StockTrackerPlugin(
             credentials.connections.first { it.ynabBudgetId == ynabBudgetId && it.ynabAccountId == ynabAccountId }
         }
 
-        val count = BigDecimal(connection.data[COUNT])
-        if (count == BigDecimal.ZERO) {
-            return listOf(
-                BanyPluginAccountBalance(
-                    date = OffsetDateTime.now(ZoneOffset.UTC),
-                    payee = "",
-                    amount = BigDecimal.ZERO
-                )
-            )
-        }
-
         val profile = fetchProfile(connection)
-        val currencyPair = "${profile.price.currency}_${connection.data[CURRENCY]}"
+        val currencyPair = "${profile.price.currency.uppercase()}_${connection.data.getValue(CURRENCY).uppercase()}"
         val currencyMap = fetchCurrencyMap(currencyPair)
 
         val conversion = currencyMap[currencyPair]
             ?: throw IOException("Currency pair '$currencyPair' not found in response!")
 
+        val count = BigDecimal(connection.data[COUNT])
         return listOf(
             BanyPluginAccountBalance(
                 date = OffsetDateTime.now(ZoneOffset.UTC),
@@ -150,6 +144,17 @@ private fun verifyRequiredData(con: BanyPlugin.Connection, logger: KLogger): Boo
     for (key in listOf(COUNT, CURRENCY, TICKER)) {
         if (!con.data[key].isNullOrEmpty()) continue
         logger.warn { "Skipping connection '${con.name}'. Must provide value for: '$key'" }
+        return false
+    }
+
+    val count = try {
+        BigDecimal(con.data[COUNT])
+    } catch (_: NumberFormatException) {
+        BigDecimal.ZERO
+    }
+
+    if (count <= BigDecimal.ZERO) {
+        logger.warn { "Skipping connection '${con.name}'. Count must be a valid number greater than 0!" }
         return false
     }
 

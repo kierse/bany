@@ -5,6 +5,16 @@ interface Dependency {
 object Versions {
     const val kotlin = "1.6.10"
 
+    object KotlinX {
+        object Coroutines {
+            private const val version = "1.6.0"
+
+            object Test : Dependency {
+                override val dependency = "org.jetbrains.kotlinx:kotlinx-coroutines-test:$version"
+            }
+        }
+    }
+
     object Square {
         object Retrofit : Dependency {
             private const val version = "2.9.0"

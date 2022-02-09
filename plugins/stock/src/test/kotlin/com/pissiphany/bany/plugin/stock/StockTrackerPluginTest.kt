@@ -10,18 +10,18 @@ import com.pissiphany.bany.plugin.stock.StockTrackerPlugin.Companion.TICKER
 import com.pissiphany.bany.plugin.stock.adapter.BigDecimalAdapter
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import java.io.File
-import java.io.IOException
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 
@@ -33,6 +33,7 @@ private val RESOURCES_FILE = File("src/test/resources/json")
 
 private const val TIMEOUT = 0L
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class StockTrackerPluginTest {
     private val client = lazy {
         OkHttpClient
@@ -79,21 +80,21 @@ class StockTrackerPluginTest {
         currencyConversionServer.shutdown()
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "setup - [${ParameterizedTest.INDEX_PLACEHOLDER}] missing ${ParameterizedTest.ARGUMENTS_WITH_NAMES_PLACEHOLDER}")
     @ValueSource(strings = [CURRENCY_API_TOKEN, STOCK_API_TOKEN])
-    fun `setup - return false when connection missing required data param`(token: String) {
+    fun `setup - return false when connection missing required data param`(token: String) = runTest {
         val credentials = credentials.copy(data = credentials.data.minus(token))
 
         assertFalse(StockTrackerPlugin(client, moshi, credentials).setup())
     }
 
     @Test
-    fun `setup - return false when no usable connections`() {
-        val invalid1 = validConnection.copy(data = validConnection.data.minus(COUNT))
-        val invalid2 = validConnection.copy(data = validConnection.data.minus(CURRENCY))
-        val invalid3 = validConnection.copy(data = validConnection.data.minus(TICKER))
-        val invalid4 = validConnection.copy(data = validConnection.data.plus(COUNT to "-10"))
-        val invalid5 = validConnection.copy(data = validConnection.data.plus(COUNT to "abc"))
+    fun `setup - return false when no usable connections`() = runTest {
+        val invalid1 = validConnection.copy(name = "name1", data = validConnection.data.minus(COUNT))
+        val invalid2 = validConnection.copy(name = "name2", data = validConnection.data.minus(CURRENCY))
+        val invalid3 = validConnection.copy(name = "name3", data = validConnection.data.minus(TICKER))
+        val invalid4 = validConnection.copy(name = "name4", data = validConnection.data.plus(COUNT to "-10"))
+        val invalid5 = validConnection.copy(name = "name5", data = validConnection.data.plus(COUNT to "abc"))
 
         val invalidConnections = listOf(invalid1, invalid2, invalid3, invalid4, invalid5)
         val credentials = credentials.copy(connections = invalidConnections)
@@ -102,12 +103,12 @@ class StockTrackerPluginTest {
     }
 
     @Test
-    fun `setup - required data and at least one valid connection`() {
+    fun `setup - required data and at least one valid connection`() = runTest {
         assertTrue(StockTrackerPlugin(client, moshi, credentials).setup())
     }
 
     @Test
-    fun getBanyPluginBudgetAccountIds() {
+    fun getBanyPluginBudgetAccountIds() = runTest {
         val expected = BanyPluginBudgetAccountIds(
             ynabBudgetId = validConnection.ynabBudgetId,
             ynabAccountId = validConnection.ynabAccountId,
@@ -120,7 +121,7 @@ class StockTrackerPluginTest {
     }
 
     @Test
-    fun getNewBanyPluginTransactionsSince() {
+    fun getNewBanyPluginTransactionsSince() = runTest {
         val marketPrice = BigDecimal("219.23")
         val conversion = BigDecimal("1.275715")
         val count = BigDecimal(validConnection.data.getValue(COUNT))
@@ -171,7 +172,7 @@ class StockTrackerPluginTest {
     }
 
     @Test
-    fun `getNewBanyPluginTransactionsSince - throw when currency mapping is unavailable`() {
+    fun `getNewBanyPluginTransactionsSince - return empty list when currency pair not found in response`() = runTest {
         val getProfileJson = File(RESOURCES_FILE, "get-profile.json").readText()
         getProfileServer.enqueue(MockResponse().setBody(getProfileJson))
         getProfileServer.start(8080)
@@ -180,7 +181,7 @@ class StockTrackerPluginTest {
         currencyConversionServer.enqueue(MockResponse().setBody(currencyConversionJson))
         currencyConversionServer.start(8081)
 
-        with(
+        val results = with(
             StockTrackerPlugin(
                 client,
                 moshi,
@@ -190,30 +191,29 @@ class StockTrackerPluginTest {
             )
         ) {
             setup()
-
-            assertThrows<IOException> {
-                getNewBanyPluginTransactionsSince(
-                    BanyPluginBudgetAccountIds(
-                        ynabBudgetId = validConnection.ynabBudgetId,
-                        ynabAccountId = validConnection.ynabAccountId
-                    ),
-                    null
-                )
-            }
+            getNewBanyPluginTransactionsSince(
+                BanyPluginBudgetAccountIds(
+                    ynabBudgetId = validConnection.ynabBudgetId,
+                    ynabAccountId = validConnection.ynabAccountId
+                ),
+                null
+            )
         }
 
         assertEquals(1, getProfileServer.requestCount)
         assertEquals(1, currencyConversionServer.requestCount)
+
+        assertTrue(results.isEmpty())
     }
 
     @Test
-    fun `getNewBanyPluginTransactionsSince - throw when get-profile GET unsuccessful`() {
+    fun `getNewBanyPluginTransactionsSince - return empty list when get-profile GET unsuccessful`() = runTest {
         getProfileServer.enqueue(MockResponse().setResponseCode(401))
         getProfileServer.start(8080)
 
         currencyConversionServer.start(8081)
 
-        with(
+        val results = with(
             StockTrackerPlugin(
                 client,
                 moshi,
@@ -223,30 +223,29 @@ class StockTrackerPluginTest {
             )
         ) {
             setup()
-
-            assertThrows<IOException> {
-                getNewBanyPluginTransactionsSince(
-                    BanyPluginBudgetAccountIds(
-                        ynabBudgetId = validConnection.ynabBudgetId,
-                        ynabAccountId = validConnection.ynabAccountId
-                    ),
-                    null
-                )
-            }
+            getNewBanyPluginTransactionsSince(
+                BanyPluginBudgetAccountIds(
+                    ynabBudgetId = validConnection.ynabBudgetId,
+                    ynabAccountId = validConnection.ynabAccountId
+                ),
+                null
+            )
         }
 
         assertEquals(1, getProfileServer.requestCount)
         assertEquals(0, currencyConversionServer.requestCount)
+
+        assertTrue(results.isEmpty())
     }
 
     @Test
-    fun `getNewBanyPluginTransactionsSince - throw when get-profile response has no body`() {
+    fun `getNewBanyPluginTransactionsSince - return empty list when get-profile response has no body`() = runTest {
         getProfileServer.enqueue(MockResponse().setResponseCode(200))
         getProfileServer.start(8080)
 
         currencyConversionServer.start(8081)
 
-        with(
+        val results = with(
             StockTrackerPlugin(
                 client,
                 moshi,
@@ -256,30 +255,29 @@ class StockTrackerPluginTest {
             )
         ) {
             setup()
-
-            assertThrows<IOException> {
-                getNewBanyPluginTransactionsSince(
-                    BanyPluginBudgetAccountIds(
-                        ynabBudgetId = validConnection.ynabBudgetId,
-                        ynabAccountId = validConnection.ynabAccountId
-                    ),
-                    null
-                )
-            }
+            getNewBanyPluginTransactionsSince(
+                BanyPluginBudgetAccountIds(
+                    ynabBudgetId = validConnection.ynabBudgetId,
+                    ynabAccountId = validConnection.ynabAccountId
+                ),
+                null
+            )
         }
 
         assertEquals(1, getProfileServer.requestCount)
         assertEquals(0, currencyConversionServer.requestCount)
+
+        assertTrue(results.isEmpty())
     }
 
     @Test
-    fun `getNewBanyPluginTransactionsSince - throw when unable to parse get-profile json response`() {
+    fun `getNewBanyPluginTransactionsSince - return empty list when unable to parse get-profile json response`() = runTest {
         getProfileServer.enqueue(MockResponse().setBody("foo"))
         getProfileServer.start(8080)
 
         currencyConversionServer.start(8081)
 
-        with(
+        val results = with(
             StockTrackerPlugin(
                 client,
                 moshi,
@@ -289,24 +287,23 @@ class StockTrackerPluginTest {
             )
         ) {
             setup()
-
-            assertThrows<IOException> {
-                getNewBanyPluginTransactionsSince(
-                    BanyPluginBudgetAccountIds(
-                        ynabBudgetId = validConnection.ynabBudgetId,
-                        ynabAccountId = validConnection.ynabAccountId
-                    ),
-                    null
-                )
-            }
+            getNewBanyPluginTransactionsSince(
+                BanyPluginBudgetAccountIds(
+                    ynabBudgetId = validConnection.ynabBudgetId,
+                    ynabAccountId = validConnection.ynabAccountId
+                ),
+                null
+            )
         }
 
         assertEquals(1, getProfileServer.requestCount)
         assertEquals(0, currencyConversionServer.requestCount)
+
+        assertTrue(results.isEmpty())
     }
 
     @Test
-    fun `getNewBanyPluginTransactionsSince - throw when currency-conversion GET unsuccessful `() {
+    fun `getNewBanyPluginTransactionsSince - return empty list when currency-conversion GET unsuccessful`() = runTest {
         val getProfileJson = File(RESOURCES_FILE, "get-profile.json").readText()
         getProfileServer.enqueue(MockResponse().setBody(getProfileJson))
         getProfileServer.start(8080)
@@ -314,7 +311,7 @@ class StockTrackerPluginTest {
         currencyConversionServer.enqueue(MockResponse().setResponseCode(401))
         currencyConversionServer.start(8081)
 
-        with(
+        val results = with(
             StockTrackerPlugin(
                 client,
                 moshi,
@@ -324,24 +321,23 @@ class StockTrackerPluginTest {
             )
         ) {
             setup()
-
-            assertThrows<IOException> {
-                getNewBanyPluginTransactionsSince(
-                    BanyPluginBudgetAccountIds(
-                        ynabBudgetId = validConnection.ynabBudgetId,
-                        ynabAccountId = validConnection.ynabAccountId
-                    ),
-                    null
-                )
-            }
+            getNewBanyPluginTransactionsSince(
+                BanyPluginBudgetAccountIds(
+                    ynabBudgetId = validConnection.ynabBudgetId,
+                    ynabAccountId = validConnection.ynabAccountId
+                ),
+                null
+            )
         }
 
         assertEquals(1, getProfileServer.requestCount)
         assertEquals(1, currencyConversionServer.requestCount)
+
+        assertTrue(results.isEmpty())
     }
 
     @Test
-    fun `getNewBanyPluginTransactionsSince - throw when currency-conversion has no body`() {
+    fun `getNewBanyPluginTransactionsSince - return empty list when currency-conversion has no body`() = runTest {
         val getProfileJson = File(RESOURCES_FILE, "get-profile.json").readText()
         getProfileServer.enqueue(MockResponse().setBody(getProfileJson))
         getProfileServer.start(8080)
@@ -349,7 +345,7 @@ class StockTrackerPluginTest {
         currencyConversionServer.enqueue(MockResponse().setResponseCode(200))
         currencyConversionServer.start(8081)
 
-        with(
+        val results = with(
             StockTrackerPlugin(
                 client,
                 moshi,
@@ -359,23 +355,23 @@ class StockTrackerPluginTest {
             )
         ) {
             setup()
-
-            assertThrows<IOException> {
-                getNewBanyPluginTransactionsSince(
-                    BanyPluginBudgetAccountIds(
-                        ynabBudgetId = validConnection.ynabBudgetId,
-                        ynabAccountId = validConnection.ynabAccountId
-                    ),
-                    null
-                )
-            }
+            getNewBanyPluginTransactionsSince(
+                BanyPluginBudgetAccountIds(
+                    ynabBudgetId = validConnection.ynabBudgetId,
+                    ynabAccountId = validConnection.ynabAccountId
+                ),
+                null
+            )
         }
 
         assertEquals(1, getProfileServer.requestCount)
         assertEquals(1, currencyConversionServer.requestCount)
+
+        assertTrue(results.isEmpty())
     }
+
     @Test
-    fun `getNewBanyPluginTransactionsSince - throw when unable to parse currency-conversion json response`() {
+    fun `getNewBanyPluginTransactionsSince - return empty list when unable to parse currency-conversion json response`() = runTest {
         val getProfileJson = File(RESOURCES_FILE, "get-profile.json").readText()
         getProfileServer.enqueue(MockResponse().setBody(getProfileJson))
         getProfileServer.start(8080)
@@ -383,7 +379,7 @@ class StockTrackerPluginTest {
         currencyConversionServer.enqueue(MockResponse().setBody("foo"))
         currencyConversionServer.start(8081)
 
-        with(
+        val results = with(
             StockTrackerPlugin(
                 client,
                 moshi,
@@ -393,20 +389,19 @@ class StockTrackerPluginTest {
             )
         ) {
             setup()
-
-            assertThrows<IOException> {
-                getNewBanyPluginTransactionsSince(
-                    BanyPluginBudgetAccountIds(
-                        ynabBudgetId = validConnection.ynabBudgetId,
-                        ynabAccountId = validConnection.ynabAccountId
-                    ),
-                    null
-                )
-            }
+            getNewBanyPluginTransactionsSince(
+                BanyPluginBudgetAccountIds(
+                    ynabBudgetId = validConnection.ynabBudgetId,
+                    ynabAccountId = validConnection.ynabAccountId
+                ),
+                null
+            )
         }
 
         assertEquals(1, getProfileServer.requestCount)
         assertEquals(1, currencyConversionServer.requestCount)
+
+        assertTrue(results.isEmpty())
     }
 
     // Adapter used by integration test

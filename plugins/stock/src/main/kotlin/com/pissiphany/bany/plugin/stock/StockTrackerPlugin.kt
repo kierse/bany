@@ -1,7 +1,7 @@
 package com.pissiphany.bany.plugin.stock
 
-import com.pissiphany.bany.plugin.BanyConfigurablePlugin
 import com.pissiphany.bany.plugin.BanyPlugin
+import com.pissiphany.bany.plugin.SuspendableBanyConfigurablePlugin
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountBalance
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
@@ -14,15 +14,16 @@ import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import mu.KLogger
-import okhttp3.HttpUrl
+import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import okio.IOException
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 private const val ROOT_STOCK_URL = "https://apidojo-yahoo-finance-v1.p.rapidapi.com"
 private const val ROOT_CURRENCY_URL = "https://free.currconv.com"
@@ -33,7 +34,7 @@ class StockTrackerPlugin(
     credentials: BanyPlugin.Credentials,
     stockServerRoot: HttpUrl? = null,
     currencyServerRoot: HttpUrl? = null
-) : BanyConfigurablePlugin {
+) : SuspendableBanyConfigurablePlugin {
     internal companion object {
         const val TICKER = "ticker"
         const val COUNT = "count"
@@ -53,7 +54,7 @@ class StockTrackerPlugin(
     private lateinit var profileAdapter: JsonAdapter<GetProfile>
     private lateinit var currencyAdapter: JsonAdapter<Map<String, BigDecimal>>
 
-    override fun setup(): Boolean {
+    override suspend fun setup(): Boolean {
         super.setup()
 
         for (key in listOf(CURRENCY_API_TOKEN, STOCK_API_TOKEN)) {
@@ -75,23 +76,26 @@ class StockTrackerPlugin(
         return true
     }
 
-    override fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
+    override suspend fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
         return connections.map { BanyPluginBudgetAccountIds(ynabBudgetId = it.ynabBudgetId, ynabAccountId = it.ynabAccountId) }
     }
 
-    override fun getNewBanyPluginTransactionsSince(
+    override suspend fun getNewBanyPluginTransactionsSince(
         budgetAccountIds: BanyPluginBudgetAccountIds, date: LocalDate?
     ): List<BanyPluginTransaction> {
         val connection = with(budgetAccountIds) {
             connections.first { it.ynabBudgetId == ynabBudgetId && it.ynabAccountId == ynabAccountId }
         }
 
-        val profile = fetchProfile(connection)
+        val profile = fetchProfile(connection) ?: return emptyList()
         val currencyPair = "${profile.price.currency.uppercase()}_${connection.data.getValue(CURRENCY).uppercase()}"
         val currencyMap = fetchCurrencyMap(currencyPair)
 
         val conversion = currencyMap[currencyPair]
-            ?: throw IOException("Currency pair '$currencyPair' not found in response!")
+        if (conversion == null) {
+            logger.warn("Unable to get currency conversion: $currencyPair not found in response!")
+            return emptyList()
+        }
 
         val count = BigDecimal(connection.data[COUNT])
         return listOf(
@@ -103,7 +107,7 @@ class StockTrackerPlugin(
         )
     }
 
-    private fun fetchProfile(connection: BanyPlugin.Connection): GetProfile {
+    private suspend fun fetchProfile(connection: BanyPlugin.Connection): GetProfile? {
         val getProfileUrl = stockRoot.newBuilder()
             .addPathSegments("stock/v2/get-profile")
             .addQueryParameter("region", "US")
@@ -115,14 +119,18 @@ class StockTrackerPlugin(
             .addHeader("x-rapidapi-host", "apidojo-yahoo-finance-v1.p.rapidapi.com")
             .addHeader("x-rapidapi-key", credentialsData.getValue(STOCK_API_TOKEN))
             .build()
-        return client.value.newCall(getProfileRequest).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("Unable to fetch ticker profile: $response")
-            val body = response.body ?: throw IOException("No body found!")
-            profileAdapter.fromJson(body.source()) ?: throw IOException("Unable to parse response!")
+
+        val response = try {
+            fetch(getProfileRequest)
+        } catch (e: IOException) {
+            logger.warn("Unable to GET stock profile: ${e.message}")
+            return null
         }
+
+        return profileAdapter.process(response)
     }
 
-    private fun fetchCurrencyMap(currencyPair: String): Map<String, BigDecimal> {
+    private suspend fun fetchCurrencyMap(currencyPair: String): Map<String, BigDecimal> {
         val getCurrencyConversionUrl = currencyRoot.newBuilder()
             .addPathSegments("api/v7/convert")
             .addQueryParameter("compact", "ultra")
@@ -133,11 +141,56 @@ class StockTrackerPlugin(
             .get()
             .url(getCurrencyConversionUrl)
             .build()
-        return client.value.newCall(getCurrencyRequestRequest).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("Unable to fetch currency map: $response")
-            val body = response.body ?: throw IOException("No body found!")
-            currencyAdapter.fromJson(body.source()) ?: throw IOException("Unable to parse response!")
+
+        val response = try {
+            fetch(getCurrencyRequestRequest)
+        } catch (e: IOException) {
+            logger.warn("Unable to GET currency conversion: ${e.message}")
+            return emptyMap()
         }
+
+        return currencyAdapter.process(response) ?: emptyMap()
+    }
+
+    private fun <T> JsonAdapter<T>.process(response: Response): T? {
+        response.use {
+            if (!it.isSuccessful) {
+                logger.warn("Request unsuccessful: (HTTP ${it.code}) ${it.message}")
+                return null
+            }
+
+            val bodySource = it.body?.source()
+            if (bodySource == null) {
+                logger.warn("Response has empty body!")
+                return null
+            }
+
+            val result = try {
+                fromJson(bodySource)
+            } catch(e: IOException) {
+                logger.error("Unable to parse response body: ${e.message}")
+                return null
+            }
+
+            if (result == null) {
+                logger.warn("Unable to parse response body!")
+                return null
+            }
+
+            return result
+        }
+    }
+
+    private suspend fun fetch(request: Request): Response = suspendCoroutine { cont ->
+        client.value.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: java.io.IOException) {
+                cont.resumeWithException(e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                cont.resume(response)
+            }
+        })
     }
 }
 

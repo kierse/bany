@@ -9,6 +9,10 @@ object Versions {
         object Coroutines {
             private const val version = "1.6.0"
 
+            object Core : Dependency {
+                override val dependency = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$version"
+            }
+
             object Test : Dependency {
                 override val dependency = "org.jetbrains.kotlinx:kotlinx-coroutines-test:$version"
             }

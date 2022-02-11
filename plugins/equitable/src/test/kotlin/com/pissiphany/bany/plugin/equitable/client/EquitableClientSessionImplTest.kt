@@ -20,6 +20,7 @@ class EquitableClientSessionImplTest {
     private val cookies = mapOf(ASPXAUTH to "baz")
 
     private val connection = EquitableLifePluginTest.Connection(
+        name = "connection1",
         ynabBudgetId = "budget1",
         ynabAccountId = "account1",
         thirdPartyAccountId = "thirdPartyAccount1"

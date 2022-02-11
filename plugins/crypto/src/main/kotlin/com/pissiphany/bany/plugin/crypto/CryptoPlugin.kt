@@ -42,7 +42,7 @@ class CryptoPlugin(
 
     private lateinit var adapter: JsonAdapter<SimplePrice>
 
-    override fun setup(): Boolean {
+    override suspend fun setup(): Boolean {
         super.setup()
 
         if (connections.isEmpty()) {
@@ -54,12 +54,12 @@ class CryptoPlugin(
         return true
     }
 
-    override fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
+    override suspend fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
         return connections
             .map { BanyPluginBudgetAccountIds(ynabBudgetId = it.ynabBudgetId, ynabAccountId = it.ynabAccountId) }
     }
 
-    override fun getNewBanyPluginTransactionsSince(
+    override suspend fun getNewBanyPluginTransactionsSince(
         budgetAccountIds: BanyPluginBudgetAccountIds,
         date: LocalDate?
     ): List<BanyPluginTransaction> {

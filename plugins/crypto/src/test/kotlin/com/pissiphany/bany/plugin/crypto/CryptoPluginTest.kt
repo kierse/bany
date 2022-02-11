@@ -5,6 +5,8 @@ import com.pissiphany.bany.plugin.crypto.adapter.BigDecimalAdapter
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -28,6 +30,7 @@ private val RESOURCES_FILE = File("src/test/resources/json")
 
 private const val TIMEOUT = 0L
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class CryptoPluginTest {
     private val client = lazy {
         OkHttpClient
@@ -89,13 +92,13 @@ class CryptoPluginTest {
     }
 
     @Test
-    fun `setup - required data and at least one valid connection`() {
+    fun `setup - required data and at least one valid connection`() = runTest {
         assertTrue(CryptoPlugin(client, moshi, credentials).setup())
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "setup - [${ParameterizedTest.INDEX_PLACEHOLDER}] missing ${ParameterizedTest.ARGUMENTS_WITH_NAMES_PLACEHOLDER}")
     @ValueSource(strings = [AMOUNT, CURRENCY, COIN_ID])
-    fun `setup - return false when connection missing required data`(key: String) {
+    fun `setup - return false when connection missing required data`(key: String) = runTest {
         val connection = validConnection1.copy(data = validConnection1.data.minus(key))
         val credentials = credentials.copy(connections = listOf(connection))
 
@@ -103,7 +106,7 @@ class CryptoPluginTest {
     }
 
     @Test
-    fun getBanyPluginBudgetAccountIds() {
+    fun getBanyPluginBudgetAccountIds() = runTest {
         val credentials = credentials.copy(connections = listOf(validConnection1, validConnection2, validConnection3))
         val results = CryptoPlugin(client, moshi, credentials).getBanyPluginBudgetAccountIds()
 
@@ -127,9 +130,9 @@ class CryptoPluginTest {
         )
     }
 
-    @ParameterizedTest(name = "[{index}] connection {0}")
+    @ParameterizedTest(name = "getNewBanyPluginTransactionsSince - [${ParameterizedTest.INDEX_PLACEHOLDER}] connection ${ParameterizedTest.ARGUMENTS_WITH_NAMES_PLACEHOLDER}")
     @ValueSource(ints = [0,1,2])
-    fun getNewBanyPluginTransactionsSince(index: Int) {
+    fun getNewBanyPluginTransactionsSince(index: Int) = runTest {
         val json = File(RESOURCES_FILE, "simple_price.json").readText()
         val priceModel = moshi.value.adapter(SimplePrice::class.java).run { fromJson(json) } ?: fail()
 

@@ -3,12 +3,15 @@ package com.pissiphany.bany.plugin.equitable
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.equitable.client.EquitableClientImpl
 import com.squareup.moshi.Moshi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import java.io.File
 
 private val CONFIG_DIR = File(System.getProperty("user.home"), ".bany")
 private val CONFIG_FILE = File(CONFIG_DIR, "equitable-life-integration.config")
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class EquitableLifePluginIntegrationTest {
     private val credentials: EquitableLifePluginTest.Credentials? =
         CONFIG_FILE
@@ -20,7 +23,7 @@ class EquitableLifePluginIntegrationTest {
             }
 
     @Test
-    fun integration() {
+    fun integration() = runTest {
         checkNotNull(credentials) { "Unable to initialize config! Does file exist at $CONFIG_FILE?" }
 
         EquitableLifePlugin(EquitableClientImpl(), credentials)

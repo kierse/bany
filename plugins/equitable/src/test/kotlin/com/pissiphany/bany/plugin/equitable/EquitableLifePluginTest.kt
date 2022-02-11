@@ -6,34 +6,41 @@ import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountBalance
 import com.pissiphany.bany.plugin.equitable.client.*
 import com.squareup.moshi.JsonClass
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import java.math.BigDecimal
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class EquitableLifePluginTest {
     private val credentials = Credentials(
         username = "username",
         password = "password",
         connections = listOf(
             Connection(
+                name = "connection1",
                 ynabBudgetId = "budget1",
                 ynabAccountId = "account1",
                 thirdPartyAccountId = "thirdPartyAccount1"
             ),
             Connection(
+                name = "connection2",
                 ynabBudgetId = "budget1",
                 ynabAccountId = "account2",
                 thirdPartyAccountId = "thirdPartyAccount2"
             ),
             Connection(
+                name = "connection3",
                 ynabBudgetId = "budget1",
                 ynabAccountId = "account3",
                 thirdPartyAccountId = "",
                 data = mutableMapOf("accountType" to "liability")
             ),
             Connection(
+                name = "connection4",
                 ynabBudgetId = "budget1",
                 ynabAccountId = "account4",
                 thirdPartyAccountId = "thirdPartyAccount3",
@@ -43,7 +50,7 @@ class EquitableLifePluginTest {
     )
 
     @Test
-    fun setup() {
+    fun setup() = runTest {
         val client = TestClient(TestClientSession())
         val plugin = EquitableLifePlugin(client, credentials)
 
@@ -54,7 +61,7 @@ class EquitableLifePluginTest {
     }
 
     @Test
-    fun tearDown() {
+    fun tearDown() = runTest {
         val session = TestClientSession()
         val plugin = EquitableLifePlugin(TestClient(session), credentials)
 
@@ -66,7 +73,7 @@ class EquitableLifePluginTest {
     }
 
     @Test
-    fun getBanyPluginBudgetAccountIds() {
+    fun getBanyPluginBudgetAccountIds() = runTest {
         val results = EquitableLifePlugin(TestClient(TestClientSession()), credentials)
             .getBanyPluginBudgetAccountIds()
 
@@ -76,7 +83,7 @@ class EquitableLifePluginTest {
     }
 
     @Test
-    fun `getNewBanyPluginTransactionsSince - throw on unknown connection`() {
+    fun `getNewBanyPluginTransactionsSince - throw on unknown connection`() = runTest {
         assertThrows<NoSuchElementException> {
             EquitableLifePlugin(TestClient(TestClientSession()), credentials).getNewBanyPluginTransactionsSince(
                 BanyPluginBudgetAccountIds(ynabBudgetId = "foo", ynabAccountId = "bar"), null
@@ -85,17 +92,19 @@ class EquitableLifePluginTest {
     }
 
     @Test
-    fun `getNewBanyPluginTransactionsSince - throw on multiple matching connection`() {
+    fun `getNewBanyPluginTransactionsSince - throw on multiple matching connection`() = runTest {
         val credentials = Credentials(
             username = "username",
             password = "password",
             connections = listOf(
                 Connection(
+                    name = "connection1",
                     ynabBudgetId = "budget1",
                     ynabAccountId = "account1",
                     thirdPartyAccountId = "thirdPartyAccount1"
                 ),
                 Connection(
+                    name = "connection2",
                     ynabBudgetId = "budget1",
                     ynabAccountId = "account1",
                     thirdPartyAccountId = "thirdPartyAccount1"
@@ -116,7 +125,7 @@ class EquitableLifePluginTest {
         "budget1,account3", // investment
         "budget1,account4"  // liability
     )
-    fun `getNewBanyPluginTransactionsSince - throw on null session`(budgetId: String, accountId: String) {
+    fun `getNewBanyPluginTransactionsSince - throw on null session`(budgetId: String, accountId: String) = runTest {
         assertThrows<IllegalStateException> {
             EquitableLifePlugin(TestClient(TestClientSession()), credentials).getNewBanyPluginTransactionsSince(
                 BanyPluginBudgetAccountIds(ynabBudgetId = budgetId, ynabAccountId = accountId), null
@@ -130,7 +139,7 @@ class EquitableLifePluginTest {
         "budget1,account3", // investment
         "budget1,account4"  // liability
     )
-    fun `getNewBanyPluginTransactionsSince - throw on invalid session`(budgetId: String, accountId: String) {
+    fun `getNewBanyPluginTransactionsSince - throw on invalid session`(budgetId: String, accountId: String) = runTest {
         assertThrows<IllegalStateException> {
             with(EquitableLifePlugin(TestClient(TestClientSession()), credentials)) {
                 setup()
@@ -142,7 +151,7 @@ class EquitableLifePluginTest {
     }
 
     @Test
-    fun `getNewBanyPluginTransactionsSince - insurance`() {
+    fun `getNewBanyPluginTransactionsSince - insurance`() = runTest {
         val session = TestClientSession(
             true,
             insurance = listOf(
@@ -167,7 +176,7 @@ class EquitableLifePluginTest {
     }
 
     @Test
-    fun `getNewBanyPluginTransactionsSince - liability`() {
+    fun `getNewBanyPluginTransactionsSince - liability`() = runTest {
         val session = TestClientSession(
             true,
             insurance = listOf(
@@ -196,7 +205,7 @@ class EquitableLifePluginTest {
     }
 
     @Test
-    fun `getNewBanyPluginTransactionsSince - investment account`() {
+    fun `getNewBanyPluginTransactionsSince - investment account`() = runTest {
         val session = TestClientSession(
             true,
             investment = EquitableClientSession.InvestmentDetails(

@@ -12,7 +12,7 @@ internal const val EQUITABLE_LIFE = "equitable-life"
 class EquitableLifePluginFactory : BanyPluginFactory {
     override val pluginNames = setOf(EQUITABLE_LIFE)
 
-    override fun createPlugin(pluginName: String, credentials: BanyPlugin.Credentials): BanyConfigurablePlugin {
+    override suspend fun createPlugin(pluginName: String, credentials: BanyPlugin.Credentials): BanyConfigurablePlugin {
         return EquitableLifePlugin(EquitableClientImpl(), credentials)
     }
 }

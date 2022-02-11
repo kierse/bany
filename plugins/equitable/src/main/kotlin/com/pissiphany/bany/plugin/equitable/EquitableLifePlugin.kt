@@ -23,7 +23,7 @@ class EquitableLifePlugin(
 
     private var clientSession: EquitableClient.EquitableClientSession? = null
 
-    override fun setup(): Boolean {
+    override suspend fun setup(): Boolean {
         clientSession = client.createSession(
             credentials.username,
             credentials.password,
@@ -32,12 +32,12 @@ class EquitableLifePlugin(
         return true
     }
 
-    override fun tearDown() {
+    override suspend fun tearDown() {
         clientSession?.terminateSession()
         clientSession = null
     }
 
-    override fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
+    override suspend fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
         return credentials.connections
             .map { BanyPluginBudgetAccountIds(
                 ynabAccountId = it.ynabAccountId,
@@ -45,7 +45,7 @@ class EquitableLifePlugin(
             ) }
     }
 
-    override fun getNewBanyPluginTransactionsSince(
+    override suspend fun getNewBanyPluginTransactionsSince(
         budgetAccountIds: BanyPluginBudgetAccountIds,
         date: LocalDate?
     ): List<BanyPluginTransaction> {

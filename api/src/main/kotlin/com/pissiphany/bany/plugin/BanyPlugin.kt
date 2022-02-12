@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 interface BanyPlugin {
     fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds>
-    fun getNewBanyPluginTransactionsSince(
+    suspend fun getNewBanyPluginTransactionsSince(
         budgetAccountIds: BanyPluginBudgetAccountIds, date: LocalDate?
     ): List<BanyPluginTransaction>
 
@@ -29,20 +29,6 @@ interface BanyPlugin {
 interface BanyConfigurablePlugin : BanyPlugin, ConfigurablePlugin
 
 interface ConfigurablePlugin {
-    fun setup(): Boolean = true
-    fun tearDown() = Unit
-}
-
-interface SuspendableBanyPlugin {
-    suspend fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds>
-    suspend fun getNewBanyPluginTransactionsSince(
-        budgetAccountIds: BanyPluginBudgetAccountIds, date: LocalDate?
-    ): List<BanyPluginTransaction>
-}
-
-interface SuspendableBanyConfigurablePlugin : SuspendableBanyPlugin, SuspendableConfigurablePlugin
-
-interface SuspendableConfigurablePlugin {
     suspend fun setup(): Boolean = true
     suspend fun tearDown() = Unit
 }

@@ -32,10 +32,11 @@ import com.pissiphany.bany.service.RetrofitYnabService
 import com.pissiphany.bany.service.RetrofitYnabApiService
 import com.pissiphany.bany.service.ThirdPartyTransactionServiceImpl
 import com.squareup.moshi.Moshi
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.pf4j.DefaultPluginManager
 
-fun main() {
+fun main() = runBlocking {
     val logger = KotlinLogging.logger {}
 
     val moshi = Moshi.Builder()
@@ -51,7 +52,7 @@ fun main() {
         "Unable to parse and instantiate application config!"
     }
 
-    val enabledPlugins: Map<String, List<ServiceCredentials>> = config.plugins
+    val enabledPlugins: Map<PluginName, List<ServiceCredentials>> = config.plugins
         .mapValues { (_, credentialList) -> credentialList.filter(ServiceCredentials::enabled) }
         .filter { it.value.isNotEmpty() }
     check(enabledPlugins.isNotEmpty()) { "No enabled plugins found!" }
@@ -68,17 +69,17 @@ fun main() {
     val retrofitService = serviceBuilder.create(RetrofitYnabService::class.java)
     val ynabApiService = RetrofitYnabApiService(retrofitService, RetrofitAccountMapper(), RetrofitTransactionMapper())
 
-    // Step2GetAccountDetails
+    // Step1GetAccountDetails
     val lastKnowledgeOfServerRepository = PropertiesLastKnowledgeOfServerRepository(LAST_KNOWLEDGE_OF_SERVER_FILE)
     val accountDetailsGateway = YnabAccountDetailsGatewayImpl(
         ynabApiService, YnabBudgetAccountIdsMapper(), YnabAccountMapper(), YnabTransactionMapper()
     )
     val getAccountDetails = GetAccountDetails(lastKnowledgeOfServerRepository, accountDetailsGateway)
 
-    // Step4ProcessNewTransaction
+    // Step3ProcessNewTransaction
     val processNewTransaction = ProcessNewTransaction()
 
-    // Step5SaveNewTransactions
+    // Step4SaveNewTransactions
     val saveTransactionsGateway = YnabSaveTransactionsGatewayImpl(
         ynabApiService, YnabBudgetAccountIdsMapper(), YnabTransactionMapper()
     )
@@ -94,28 +95,26 @@ fun main() {
     val initializedPlugins = mutableListOf<ConfigurablePlugin>()
     try {
         val initializedServices = mutableListOf<ThirdPartyTransactionService>()
-        enabledPlugins.forEach(
-            fun(pluginName, serviceCredentialsList) {
-                val factory = factoryMap[pluginName]
-                if (factory == null) {
-                    logger.warn { "Unable to find plugin factory for '$pluginName', skipping!" }
-                    return
-                }
-
-                for (serviceCredentials in serviceCredentialsList) {
-                    val plugin = factory.createPlugin(pluginName, credentialsMap.getValue(serviceCredentials))
-                    if (plugin.setup()) {
-                        logger.debug { "Initialized '$pluginName' plugin: '${serviceCredentials.description}'" }
-                        initializedServices.add(ThirdPartyTransactionServiceImpl(plugin, BanyPluginDataMapper()))
-                        initializedPlugins.add(plugin)
-                    }
-                }
+        for ((pluginName, serviceCredentialsList) in enabledPlugins) {
+            val factory = factoryMap[pluginName]
+            if (factory == null) {
+                logger.warn { "Unable to find plugin factory for '$pluginName', skipping!" }
+                continue
             }
-        )
+
+            for (serviceCredentials in serviceCredentialsList) {
+                val plugin = factory.createPlugin(pluginName, credentialsMap.getValue(serviceCredentials))
+                if (!plugin.setup()) continue
+
+                logger.debug { "Initialized '$pluginName' plugin: '${serviceCredentials.description}'" }
+                initializedServices.add(ThirdPartyTransactionServiceImpl(plugin, BanyPluginDataMapper()))
+                initializedPlugins.add(plugin)
+            }
+        }
 
         check(initializedServices.isNotEmpty()) { "No enabled plugins found!" }
 
-        // Step3GetNewTransactions
+        // Step2GetNewTransactions
         val gatewayFactory = ThirdPartyTransactionGatewayFactoryImpl(
             initializedServices, YnabBudgetAccountIdsMapper(), YnabTransactionMapper()
         )
@@ -136,7 +135,7 @@ fun main() {
         lastKnowledgeOfServerRepository.saveChanges()
     } finally {
         logger.info("Tearing down plugins")
-        initializedPlugins.forEach(ConfigurablePlugin::tearDown)
+        initializedPlugins.forEach { it.tearDown() }
     }
 
     // stop all active plugins

@@ -14,19 +14,14 @@ class ThirdPartyTransactionGatewayFactoryImpl(
     private val budgetAccountIdsMapper: YnabBudgetAccountIdsMapper,
     private val transactionMapper: YnabTransactionMapper
 ) : ThirdPartyTransactionGatewayFactory {
-    private val idsToService: Map<YnabBudgetAccountIds, ThirdPartyTransactionService>
-
-    init {
-        // TODO can't this be built in Bany when we are building services???
-        // TODO moving this to Bany means BanyPlugins wouldn't need to have getBanyPluginBudgetAccountIds at all
-        val map = mutableMapOf<YnabBudgetAccountIds, ThirdPartyTransactionService>()
-        for (service in services) {
-            for (ids in service.getYnabBudgetAccountIds()) {
-                map[ids] = service
+    private val idsToService: Map<YnabBudgetAccountIds, ThirdPartyTransactionService> by lazy {
+        services
+            .flatMap { service ->
+                service
+                    .getYnabBudgetAccountIds()
+                    .map { id -> id to service }
             }
-        }
-
-        idsToService = map
+            .toMap()
     }
 
     override suspend fun getGateway(budgetAccountIds: BudgetAccountIds): ThirdPartyTransactionGateway {

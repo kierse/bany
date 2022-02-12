@@ -10,7 +10,7 @@ class GetNewTransactions(
     private val gatewayFactory: ThirdPartyTransactionGatewayFactory
 ) : SyncThirdPartyTransactionsUseCase.Step2GetNewTransactions {
 
-    override fun getTransactions(budgetAccountIds: BudgetAccountIds, date: LocalDate?): List<Transaction> {
+    override suspend fun getTransactions(budgetAccountIds: BudgetAccountIds, date: LocalDate?): List<Transaction> {
         val gateway = gatewayFactory.getGateway(budgetAccountIds)
         return gateway.getNewTransactionSince(date)
     }

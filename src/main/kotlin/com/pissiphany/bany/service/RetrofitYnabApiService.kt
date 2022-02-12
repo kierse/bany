@@ -11,7 +11,7 @@ class RetrofitYnabApiService(
     private val accountMapper: RetrofitAccountMapper,
     private val transactionMapper: RetrofitTransactionMapper
 ) : YnabApiService {
-    override fun getAccount(budgetAccountIds: YnabBudgetAccountIds): YnabAccount? {
+    override suspend fun getAccount(budgetAccountIds: YnabBudgetAccountIds): YnabAccount? {
         val call = service.getAccount(budgetAccountIds.ynabBudgetId, budgetAccountIds.ynabAccountId)
         val response = call.execute()
         val account = response.body() ?: return null
@@ -19,7 +19,7 @@ class RetrofitYnabApiService(
         return accountMapper.toYnabAccount(account)
     }
 
-    override fun getTransactions(
+    override suspend fun getTransactions(
         budgetAccountIds: YnabBudgetAccountIds, serverKnowledge: Int?
     ): YnabUpdatedTransactions {
         val call = service.getTransactions(budgetAccountIds.ynabBudgetId, budgetAccountIds.ynabAccountId, serverKnowledge)
@@ -33,7 +33,7 @@ class RetrofitYnabApiService(
         return YnabUpdatedTransactions(transactions, transactionsWrapper.server_knowledge)
     }
 
-    override fun saveTransactions(
+    override suspend fun saveTransactions(
         budgetAccountIds: YnabBudgetAccountIds, ynabTransactions: List<YnabAccountTransaction>
     ): Boolean {
         val transactions = ynabTransactions.map { transaction ->

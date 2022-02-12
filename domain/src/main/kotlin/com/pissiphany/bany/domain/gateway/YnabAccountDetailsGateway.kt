@@ -5,6 +5,6 @@ import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
 import com.pissiphany.bany.domain.dataStructure.UpdatedTransactions
 
 interface YnabAccountDetailsGateway {
-    fun getAccount(budgetAccountIds: BudgetAccountIds): Account?
-    fun getUpdatedTransactions(budgetAccountIds: BudgetAccountIds, lastKnowledgeOfServer: Int): UpdatedTransactions
+    suspend fun getAccount(budgetAccountIds: BudgetAccountIds): Account?
+    suspend fun getUpdatedTransactions(budgetAccountIds: BudgetAccountIds, lastKnowledgeOfServer: Int): UpdatedTransactions
 }

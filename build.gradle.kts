@@ -34,6 +34,8 @@ dependencies {
     implementation(project(":plugins:equitable"))
     implementation(project(":plugins:stock"))
 
+    implementation(Versions.KotlinX.Coroutines.Core.dependency)
+
     implementation(Versions.Square.Retrofit.dependency)
     implementation(Versions.Square.Retrofit.Converters.Moshi.dependency)
     implementation(Versions.Square.Moshi.dependency)

@@ -10,7 +10,7 @@ class GetAccountDetails(
     private val ynabCache: YnabLastKnowledgeOfServerRepository,
     private val ynabGateway: YnabAccountDetailsGateway
 ) : SyncThirdPartyTransactionsUseCase.Step1GetAccountDetails {
-    override fun getAccountAndLastTransaction(budgetAccountIds: BudgetAccountIds): AccountAndTransaction {
+    override suspend fun getAccountAndLastTransaction(budgetAccountIds: BudgetAccountIds): AccountAndTransaction {
         val account = checkNotNull(ynabGateway.getAccount(budgetAccountIds)) { "Unable to fetch account: $budgetAccountIds" }
 
         val cachedLastKnowledge = ynabCache.getLastKnowledgeOfServer(budgetAccountIds)

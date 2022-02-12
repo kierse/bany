@@ -11,7 +11,7 @@ class SamplePlugin : BanyConfigurablePlugin {
         return true
     }
 
-    override suspend fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
+    override fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
         println("sample plugin getYnabBudgetAccountIds")
         return emptyList()
     }

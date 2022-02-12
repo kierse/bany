@@ -54,7 +54,7 @@ class CryptoPlugin(
         return true
     }
 
-    override suspend fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
+    override fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
         return connections
             .map { BanyPluginBudgetAccountIds(ynabBudgetId = it.ynabBudgetId, ynabAccountId = it.ynabAccountId) }
     }

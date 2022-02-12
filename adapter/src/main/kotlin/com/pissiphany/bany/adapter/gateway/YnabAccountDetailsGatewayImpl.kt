@@ -15,13 +15,13 @@ class YnabAccountDetailsGatewayImpl(
     private val accountMapper: YnabAccountMapper,
     private val transactionMapper: YnabTransactionMapper
 ) : YnabAccountDetailsGateway {
-    override fun getAccount(budgetAccountIds: BudgetAccountIds): Account? {
+    override suspend fun getAccount(budgetAccountIds: BudgetAccountIds): Account? {
         val ids = budgetAccountIdsMapper.toYnabBudgetAccountIds(budgetAccountIds)
         return service.getAccount(ids)
             ?.let { accountMapper.toAccount(it) }
     }
 
-    override fun getUpdatedTransactions(
+    override suspend fun getUpdatedTransactions(
         budgetAccountIds: BudgetAccountIds, lastKnowledgeOfServer: Int
     ): UpdatedTransactions {
         val ids = budgetAccountIdsMapper.toYnabBudgetAccountIds(budgetAccountIds)

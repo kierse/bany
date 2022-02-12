@@ -15,11 +15,11 @@ class SyncThirdPartyTransactionsUseCase(
     private val outputBoundary: SyncThirdPartyTransactionsOutputBoundary
 ) {
     interface Step1GetAccountDetails {
-        fun getAccountAndLastTransaction(budgetAccountIds: BudgetAccountIds): AccountAndTransaction
+        suspend fun getAccountAndLastTransaction(budgetAccountIds: BudgetAccountIds): AccountAndTransaction
     }
 
     interface Step2GetNewTransactions {
-        fun getTransactions(budgetAccountIds: BudgetAccountIds, date: LocalDate?): List<Transaction>
+        suspend fun getTransactions(budgetAccountIds: BudgetAccountIds, date: LocalDate?): List<Transaction>
     }
 
     interface Step3ProcessNewTransaction {
@@ -27,12 +27,12 @@ class SyncThirdPartyTransactionsUseCase(
     }
 
     interface Step4SaveNewTransactions {
-        fun saveTransactions(budgetAccountIds: BudgetAccountIds, transactions: List<AccountTransaction>)
+        suspend fun saveTransactions(budgetAccountIds: BudgetAccountIds, transactions: List<AccountTransaction>)
     }
 
     private val logger by logger()
 
-    fun sync() {
+    suspend fun sync() {
         val results = mutableListOf<SyncTransactionsResult>()
         for (budgetAccountIds in repo.getBudgetAccountIds()) {
             val (dateOfLastTransaction, transactions) = syncNewThirdPartyTransactions(budgetAccountIds)
@@ -43,7 +43,7 @@ class SyncThirdPartyTransactionsUseCase(
         outputBoundary.present(results)
     }
 
-    private fun syncNewThirdPartyTransactions(
+    private suspend fun syncNewThirdPartyTransactions(
         budgetAccountIds: BudgetAccountIds
     ): Pair<OffsetDateTime?, List<Transaction>> {
         val (account, lastTransaction) = getAccountDetails.getAccountAndLastTransaction(budgetAccountIds)

@@ -37,7 +37,7 @@ class EquitableLifePlugin(
         clientSession = null
     }
 
-    override suspend fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
+    override fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
         return credentials.connections
             .map { BanyPluginBudgetAccountIds(
                 ynabAccountId = it.ynabAccountId,

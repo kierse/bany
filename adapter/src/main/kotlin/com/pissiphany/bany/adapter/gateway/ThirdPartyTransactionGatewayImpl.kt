@@ -13,7 +13,7 @@ class ThirdPartyTransactionGatewayImpl(
     private val mapper: YnabTransactionMapper
 ) : ThirdPartyTransactionGateway {
     // TODO test
-    override fun getNewTransactionSince(date: LocalDate?): List<Transaction> {
+    override suspend fun getNewTransactionSince(date: LocalDate?): List<Transaction> {
         return service
             .getNewYnabTransactionsSince(budgetAccountIds, date)
             .map { mapper.toTransaction(it) }

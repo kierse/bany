@@ -8,7 +8,7 @@ import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase
 class SaveNewTransactions(
     private val ynabGateway: YnabSaveTransactionsGateway
 ) : SyncThirdPartyTransactionsUseCase.Step4SaveNewTransactions {
-    override fun saveTransactions(budgetAccountIds: BudgetAccountIds, transactions: List<AccountTransaction>) {
+    override suspend fun saveTransactions(budgetAccountIds: BudgetAccountIds, transactions: List<AccountTransaction>) {
         ynabGateway.saveTransactions(budgetAccountIds, transactions)
     }
 }

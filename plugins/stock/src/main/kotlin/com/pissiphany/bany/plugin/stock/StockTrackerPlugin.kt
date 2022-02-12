@@ -1,7 +1,7 @@
 package com.pissiphany.bany.plugin.stock
 
+import com.pissiphany.bany.plugin.BanyConfigurablePlugin
 import com.pissiphany.bany.plugin.BanyPlugin
-import com.pissiphany.bany.plugin.SuspendableBanyConfigurablePlugin
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountBalance
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
@@ -34,7 +34,7 @@ class StockTrackerPlugin(
     credentials: BanyPlugin.Credentials,
     stockServerRoot: HttpUrl? = null,
     currencyServerRoot: HttpUrl? = null
-) : SuspendableBanyConfigurablePlugin {
+) : BanyConfigurablePlugin {
     internal companion object {
         const val TICKER = "ticker"
         const val COUNT = "count"
@@ -76,7 +76,7 @@ class StockTrackerPlugin(
         return true
     }
 
-    override suspend fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
+    override fun getBanyPluginBudgetAccountIds(): List<BanyPluginBudgetAccountIds> {
         return connections.map { BanyPluginBudgetAccountIds(ynabBudgetId = it.ynabBudgetId, ynabAccountId = it.ynabAccountId) }
     }
 

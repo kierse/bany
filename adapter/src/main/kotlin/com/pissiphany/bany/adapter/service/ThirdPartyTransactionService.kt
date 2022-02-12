@@ -6,5 +6,5 @@ import java.time.LocalDate
 
 interface ThirdPartyTransactionService {
     fun getYnabBudgetAccountIds(): List<YnabBudgetAccountIds>
-    fun getNewYnabTransactionsSince(budgetAccountIds: YnabBudgetAccountIds, date: LocalDate?): List<YnabTransaction>
+    suspend fun getNewYnabTransactionsSince(budgetAccountIds: YnabBudgetAccountIds, date: LocalDate?): List<YnabTransaction>
 }

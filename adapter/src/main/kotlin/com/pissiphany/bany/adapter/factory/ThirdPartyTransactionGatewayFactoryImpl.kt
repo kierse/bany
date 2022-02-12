@@ -29,7 +29,7 @@ class ThirdPartyTransactionGatewayFactoryImpl(
         idsToService = map
     }
 
-    override fun getGateway(budgetAccountIds: BudgetAccountIds): ThirdPartyTransactionGateway {
+    override suspend fun getGateway(budgetAccountIds: BudgetAccountIds): ThirdPartyTransactionGateway {
         val ids = budgetAccountIdsMapper.toYnabBudgetAccountIds(budgetAccountIds)
         val service = checkNotNull(idsToService[ids]) { "Unable to find transaction gateway: $ids" }
         return ThirdPartyTransactionGatewayImpl(service, ids, transactionMapper)

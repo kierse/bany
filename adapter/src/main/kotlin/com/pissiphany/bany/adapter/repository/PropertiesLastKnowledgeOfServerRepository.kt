@@ -20,11 +20,11 @@ class PropertiesLastKnowledgeOfServerRepository(private val pathToProperties: Fi
         }
     }
 
-    override fun getLastKnowledgeOfServer(budgetAccountIds: BudgetAccountIds): Int {
+    override suspend fun getLastKnowledgeOfServer(budgetAccountIds: BudgetAccountIds): Int {
         return properties.getProperty(budgetAccountIds.accountId, "0").toInt()
     }
 
-    override fun saveLastKnowledgeOfServer(budgetAccountIds: BudgetAccountIds, lastKnowledgeOfServer: Int) {
+    override suspend fun saveLastKnowledgeOfServer(budgetAccountIds: BudgetAccountIds, lastKnowledgeOfServer: Int) {
         properties.setProperty(budgetAccountIds.accountId, lastKnowledgeOfServer.toString())
     }
 

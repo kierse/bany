@@ -12,7 +12,7 @@ class YnabSaveTransactionsGatewayImpl(
     private val budgetAccountIdsMapper: YnabBudgetAccountIdsMapper,
     private val transactionMapper: YnabTransactionMapper
 ) : YnabSaveTransactionsGateway {
-    override fun saveTransactions(budgetAccountIds: BudgetAccountIds, transactions: List<AccountTransaction>): Boolean {
+    override suspend fun saveTransactions(budgetAccountIds: BudgetAccountIds, transactions: List<AccountTransaction>): Boolean {
         val ids = budgetAccountIdsMapper.toYnabBudgetAccountIds(budgetAccountIds)
 
         return transactions

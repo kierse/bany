@@ -5,7 +5,7 @@ import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase
 class SyncTransactionsWithYnabController(
     private val syncTransactionsUseCase: SyncThirdPartyTransactionsUseCase
 ) {
-    fun sync() {
+    suspend fun sync() {
         syncTransactionsUseCase.sync()
     }
 }

@@ -15,7 +15,7 @@ class ThirdPartyTransactionServiceImpl(
             .map { mapper.toYnabBudgetAccountIds(it) }
     }
 
-    override fun getNewYnabTransactionsSince(
+    override suspend fun getNewYnabTransactionsSince(
         budgetAccountIds: YnabBudgetAccountIds, date: LocalDate?
     ): List<YnabTransaction> {
         val banyPluginBudgetAccountIds = mapper.toBanyPluginBudgetAccountIds(budgetAccountIds)

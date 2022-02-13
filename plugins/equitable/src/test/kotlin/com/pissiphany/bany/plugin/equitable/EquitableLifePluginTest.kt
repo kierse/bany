@@ -234,7 +234,7 @@ class EquitableLifePluginTest {
         lateinit var password: String private set
         lateinit var securityQuestions: Map<String, String> private set
 
-        override fun createSession(
+        override suspend fun createSession(
             username: String,
             password: String,
             securityQuestions: Map<String, String>
@@ -255,7 +255,7 @@ class EquitableLifePluginTest {
 
         var terminateSessionCallCount: Int = 0
             private set
-        override fun terminateSession() {
+        override suspend fun terminateSession() {
             terminateSessionCallCount++
         }
 
@@ -263,11 +263,11 @@ class EquitableLifePluginTest {
 
         override fun checkSession() = check(isValid())
 
-        override fun getInsuranceDetails(connection: BanyPlugin.Connection): EquitableClientSession.InsuranceDetails {
+        override suspend fun getInsuranceDetails(connection: BanyPlugin.Connection): EquitableClientSession.InsuranceDetails {
             return insurance[insuranceCount++]
         }
 
-        override fun getInvestmentDetails(connection: BanyPlugin.Connection): EquitableClientSession.InvestmentDetails {
+        override suspend fun getInvestmentDetails(connection: BanyPlugin.Connection): EquitableClientSession.InvestmentDetails {
             return checkNotNull(investment)
         }
     }

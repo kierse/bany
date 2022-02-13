@@ -2,6 +2,8 @@ package com.pissiphany.bany.plugin.equitable.client
 
 import com.pissiphany.bany.plugin.equitable.EquitableLifePluginTest
 import com.pissiphany.bany.plugin.equitable.client.EquitableClient.EquitableClientSession
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
@@ -15,6 +17,7 @@ private const val TIMEOUT = 0L
 
 private const val INDEX_URL = "/client/en"
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class EquitableClientSessionImplTest {
     private lateinit var server: MockWebServer
     private val cookies = mapOf(ASPXAUTH to "baz")
@@ -37,7 +40,7 @@ class EquitableClientSessionImplTest {
     }
 
     @Test
-    fun terminateSession() {
+    fun terminateSession() = runTest {
         // GET 302 /client/en/Account/LogOut
         server.enqueue(
             MockResponse()
@@ -61,13 +64,13 @@ class EquitableClientSessionImplTest {
     }
 
     @Test
-    fun `checkSession - throw exception when token is missing`() {
+    fun `checkSession - throw exception when token is missing`() = runTest {
         val clientSession = EquitableClientSessionImpl(server.url("/").toUrl(), emptyMap())
         assertThrows<IllegalStateException> { clientSession.checkSession() }
     }
 
     @Test
-    fun getInsuranceDetails() {
+    fun getInsuranceDetails() = runTest {
         // GET 200 /policy/en/Policy/Values/<AccountNo>
         server.enqueue(MockResponse().setBody(getHtml(POLICY_VALUES_01)))
 
@@ -93,7 +96,7 @@ class EquitableClientSessionImplTest {
     }
 
     @Test
-    fun getInvestmentDetails() {
+    fun getInvestmentDetails() = runTest {
         // GET 200 /policy/en/Policy/Investments/<AccountNo>
         server.enqueue(MockResponse().setBody(getHtml(GIA_POLICY_VALUES)))
 

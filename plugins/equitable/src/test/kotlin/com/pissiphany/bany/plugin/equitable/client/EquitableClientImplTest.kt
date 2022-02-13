@@ -1,6 +1,8 @@
 package com.pissiphany.bany.plugin.equitable.client
 
 import com.pissiphany.bany.plugin.equitable.EquitableLifePluginTest
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import okhttp3.Headers
 import okhttp3.HttpUrl
 import okhttp3.mockwebserver.MockResponse
@@ -20,6 +22,7 @@ private const val LOG_IN_URL = "/client/en/Account/LogIn"
 private const val LOG_IN_ANSWER_SECURITY_URL = "/client/en/Account/LogInAnswerSecurityQuestion"
 private const val INDEX_URL = "/client/en"
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class EquitableClientImplTest {
     private lateinit var server: MockWebServer
 
@@ -41,7 +44,7 @@ class EquitableClientImplTest {
     }
 
     @Test
-    fun createSession() {
+    fun createSession() = runTest {
         // GET 200 /client/en/Account/LogOn
         server.enqueue(
             MockResponse()
@@ -129,7 +132,7 @@ class EquitableClientImplTest {
     }
 
     @Test
-    fun `createSession - missing session token`() {
+    fun `createSession - missing session token`() = runTest {
         // GET 200 /client/en/Account/LogOn
         server.enqueue(
             MockResponse()

@@ -58,7 +58,7 @@ class EquitableLifePlugin(
         }
     }
 
-    private fun getInsuranceTransaction(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
+    private suspend fun getInsuranceTransaction(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
         val details = checkSession(clientSession)
             .getInsuranceDetails(connection)
 
@@ -71,12 +71,12 @@ class EquitableLifePlugin(
         )
     }
 
-    private fun getInsuranceLiabilityTransaction(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
+    private suspend fun getInsuranceLiabilityTransaction(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
         val clientSession = checkSession(clientSession)
 
         val totalLiabilities = credentials.connections
             .filter { it != connection && it.getAccountType() == AccountType.INSURANCE }
-            .map(clientSession::getInsuranceDetails)
+            .map { clientSession.getInsuranceDetails(it) }
             .fold(BigDecimal(0)) { total, account -> total - account.loanBalance }
 
         return listOf(
@@ -88,7 +88,7 @@ class EquitableLifePlugin(
         )
     }
 
-    private fun getInvestmentTransaction(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
+    private suspend fun getInvestmentTransaction(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
         val details = checkSession(clientSession)
             .getInvestmentDetails(connection)
 

@@ -18,7 +18,7 @@ class EquitableClientSessionImpl(
     private val root: URL,
     private var sessionCookies: Cookies
 ) : EquitableClientSession {
-    override fun terminateSession() {
+    override suspend fun terminateSession() {
         checkSession()
 
         Jsoup
@@ -34,7 +34,7 @@ class EquitableClientSessionImpl(
     override fun isValid() = sessionCookies.containsKey(ASPXAUTH)
     override fun checkSession() = check(isValid()) { "Missing $ASPXAUTH session token!" }
 
-    override fun getInsuranceDetails(connection: BanyPlugin.Connection): EquitableClientSession.InsuranceDetails {
+    override suspend fun getInsuranceDetails(connection: BanyPlugin.Connection): EquitableClientSession.InsuranceDetails {
         val getAccountDetailsResponse = fetchInsuranceData(connection, POLICY_VALUES_URL)
         val getAccountDetailsDoc = getAccountDetailsResponse.parse()
         val rows = getAccountDetailsDoc.select("div.details_row")
@@ -59,7 +59,7 @@ class EquitableClientSessionImpl(
         )
     }
 
-    override fun getInvestmentDetails(connection: BanyPlugin.Connection): EquitableClientSession.InvestmentDetails {
+    override suspend fun getInvestmentDetails(connection: BanyPlugin.Connection): EquitableClientSession.InvestmentDetails {
         val getAccountDetailsResponse = Jsoup
             .connect(root.addToPath(POLICY_INVESTMENTS_URL, connection.thirdPartyAccountId))
             .method(Connection.Method.GET)

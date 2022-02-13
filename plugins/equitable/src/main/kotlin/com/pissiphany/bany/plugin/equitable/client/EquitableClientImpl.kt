@@ -14,7 +14,7 @@ internal const val LOG_ON_ASK_SECURITY_URL = "/client/en/Account/LogOnAskSecurit
 class EquitableClientImpl(domain: URL? = null) : EquitableClient {
     private val root = domain ?: URL(EQUITABLE_ROOT)
 
-    override fun createSession(
+    override suspend fun createSession(
         username: String,
         password: String,
         securityQuestions: Map<String, String>

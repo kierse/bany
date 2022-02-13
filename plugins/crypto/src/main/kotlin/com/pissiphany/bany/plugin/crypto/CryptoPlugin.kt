@@ -11,15 +11,16 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import mu.KLogger
-import okhttp3.HttpUrl
+import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import okio.IOException
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 private const val COIN_ID = "coinId"
 private const val AMOUNT = "amount"
@@ -77,38 +78,83 @@ class CryptoPlugin(
             .url(getPrice)
             .build()
 
-        client.value.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("Unable to fetch currency conversion: $response")
-            val body = response.body ?: throw IOException("No body found!")
-            val simplePrice = adapter.fromJson(body.source()) ?: throw IOException("Unable to parse response!")
+        val response = try {
+            request.fetch()
+        } catch (e: IOException) {
+            logger.warn("Unable to GET crypto price: ${e.message}")
+            return emptyList()
+        }
+        val simplePrice = response.process(adapter) ?: return emptyList()
 
-            val calculatedValue = when(connection.data[COIN_ID]) {
-                "bitcoin-cash" -> calculateValue(simplePrice.bitcoinCash, amount, currency)
-                "bitcoin" -> calculateValue(simplePrice.bitcoin, amount, currency)
-                "ethereum" -> calculateValue(simplePrice.ethereum, amount, currency)
-                else -> throw IllegalArgumentException("Unsupported crypto: $COIN_ID")
+        val calculatedValue = calculateValue(simplePrice, connection.data.getValue(COIN_ID), currency, amount)
+            ?: return emptyList()
+
+        return listOf(
+            BanyPluginAccountBalance(
+                date = OffsetDateTime.now(ZoneOffset.UTC),
+                payee = "",
+                amount = calculatedValue
+            )
+        )
+    }
+
+    private suspend fun Request.fetch(): Response = suspendCoroutine { cont ->
+        client.value.newCall(this).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: java.io.IOException) {
+                cont.resumeWithException(e)
             }
 
-            return listOf(
-                BanyPluginAccountBalance(
-                    date = OffsetDateTime.now(ZoneOffset.UTC),
-                    payee = "",
-                    amount = calculatedValue
-                )
-            )
+            override fun onResponse(call: Call, response: Response) {
+                cont.resume(response)
+            }
+        })
+    }
+
+    private fun <T> Response.process(adapter: JsonAdapter<T>): T? = use { resp ->
+        if (!resp.isSuccessful) {
+            logger.warn("Request unsuccessful: (HTTP ${resp.code}) ${resp.message}")
+            return null
         }
+
+        val bodySource = resp.body?.source()
+        if (bodySource == null) {
+            logger.warn("Response has empty body!")
+            return null
+        }
+
+        val result = try {
+            adapter.fromJson(bodySource)
+        } catch(e: java.io.IOException) {
+            logger.error("Unable to parse response body: ${e.message}")
+            return null
+        }
+
+        if (result == null) {
+            logger.warn("Unable to parse response body!")
+            return null
+        }
+
+        return result
+    }
+
+    private fun calculateValue(simplePrice: SimplePrice, coin: String, currency: String, amount: BigDecimal): BigDecimal? {
+        val price = when(coin) {
+            "bitcoin-cash" -> simplePrice.bitcoinCash[currency]
+            "bitcoin" -> simplePrice.bitcoin[currency]
+            "ethereum" -> simplePrice.ethereum[currency]
+            else -> {
+                logger.error("Unknown/unsupported coin type: '$coin'")
+                null
+            }
+        } ?: return null
+
+        return price * amount
     }
 
     private fun getConnection(budgetAccountIds: BanyPluginBudgetAccountIds): BanyPlugin.Connection {
         return connections
             .first { it.ynabBudgetId == budgetAccountIds.ynabBudgetId && it.ynabAccountId == budgetAccountIds.ynabAccountId }
     }
-}
-
-private fun calculateValue(currencyToPrice: Map<String, BigDecimal>, amount: BigDecimal, currency: String): BigDecimal {
-    return currencyToPrice[currency]
-        ?.let { it * amount }
-        ?: throw IOException("Requested currency missing: $currency")
 }
 
 private fun verifyRequiredData(con: BanyPlugin.Connection, logger: KLogger): Boolean {

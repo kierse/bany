@@ -26,8 +26,10 @@ internal fun Connection.execute(expected: Int = 200, err: (code: Int, msg: Strin
         }
 }
 
-internal fun List<Connection.KeyVal>.toRequestBody() =
-    joinToString("&") { keyVal -> "${keyVal.key()}=${keyVal.value()}" }.toRequestBody()
+internal fun List<Connection.KeyVal>.toRequestBody() = with(FormBody.Builder()) {
+    forEach { keyVal -> add(keyVal.key(), keyVal.value()) }
+    build()
+}
 
 internal fun Request.Builder.cookies(cookies: Cookies): Request.Builder = apply {
     addHeader("Cookie", cookies.joinToString(";"))

@@ -122,11 +122,7 @@ class EquitableClientImplTest {
         assertEquals(LOG_IN_ANSWER_SECURITY_URL, postSecurityRequest.path)
         assertEquals("POST", postSecurityRequest.method)
 
-        val postSecurityRequestUrl = postSecurityRequest.requestUrl
-            ?.newBuilder()
-            ?.encodedQuery(postSecurityRequest.body.readUtf8())
-            ?.build()
-            ?: fail()
+        val postSecurityRequestUrl = postSecurityRequest.urlWithQueryParams()
         val locale = Locale.getDefault()
         assertEquals(
             credentials.data["question"]?.lowercase(locale),

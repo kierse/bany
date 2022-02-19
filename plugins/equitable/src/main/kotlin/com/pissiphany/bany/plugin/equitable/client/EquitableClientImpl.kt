@@ -1,101 +1,233 @@
 package com.pissiphany.bany.plugin.equitable.client
 
-import org.jsoup.Connection
+import com.pissiphany.bany.shared.logger
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okio.IOException
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.jsoup.nodes.FormElement
-import java.net.URL
+import java.util.*
 
-typealias Cookies = Map<String, String>
+typealias Cookies = List<String>
 
 private const val EQUITABLE_ROOT = "https://client.equitable.ca"
-internal const val LOG_ON_URL = "/client/en/Account/LogOn"
-internal const val LOG_ON_ASK_SECURITY_URL = "/client/en/Account/LogOnAskSecurityQuestion"
+internal const val LOG_ON_URL = "client/en/Account/LogOn"
+internal const val LOG_ON_ASK_SECURITY_URL = "client/en/Account/LogOnAskSecurityQuestion"
 
-class EquitableClientImpl(domain: URL? = null) : EquitableClient {
-    private val root = domain ?: URL(EQUITABLE_ROOT)
+class EquitableClientImpl(
+    private val client: Lazy<OkHttpClient>,
+    private val root: HttpUrl = EQUITABLE_ROOT.toHttpUrl()
+) : EquitableClient {
+    private val logger by logger()
 
     override suspend fun createSession(
         username: String,
         password: String,
         securityQuestions: Map<String, String>
-    ): EquitableClient.EquitableClientSession {
-        val getLogOnResponse = getLogOnPage()
-        val cookies = getLogOnResponse.cookies().toMutableMap()
+    ): EquitableClient.EquitableClientSession? {
+        val getLogOnResponseData = getLogOnPage()
+        if (getLogOnResponseData == null) {
+            logger.error("Failed to fetch login page!")
+            return null
+        }
 
-        val postLogInResponse = postToLogIn(getLogOnResponse, cookies, username, password)
-        cookies.putAll(postLogInResponse.cookies())
+        val cookies = mutableListOf<String>()
+        cookies.addAll(getLogOnResponseData.cookies)
 
-        val getLogOnAskSecurityQuestion = getLogOnAskSecurityQuestionPage(cookies)
-        cookies.putAll(getLogOnAskSecurityQuestion.cookies())
+        val postLogInResponseCookies = postToLogIn(getLogOnResponseData.document, username, password, cookies)
+        if (postLogInResponseCookies.isEmpty()) {
+            logger.error("Failed to login!")
+            return null
+        }
+        cookies.addAll(postLogInResponseCookies)
 
-        val postAnswerSecurityResponse = postToLogInAnswerSecurityAnswer(
-            getLogOnAskSecurityQuestion, cookies, securityQuestions
+        val getSecurityQuestionResponseData = getLogOnAskSecurityQuestionPage(cookies)
+        if (getSecurityQuestionResponseData == null) {
+            logger.error("Failed to fetch security question page!")
+            return null
+        }
+        cookies.addAll(getSecurityQuestionResponseData.cookies)
+
+        val postAnswerSecurityQuestionCookies = postToLogInAnswerSecurityQuestion(
+            getSecurityQuestionResponseData.document, securityQuestions, cookies
         )
+        if (!postAnswerSecurityQuestionCookies.any { it.startsWith(ASPXAUTH) }) {
+            logger.error("Failed to send security question answer and complete login!")
+            return null
+        }
         cookies.clear()
-        cookies.putAll(postAnswerSecurityResponse.cookies())
-
-        checkNotNull(postAnswerSecurityResponse.cookie(ASPXAUTH)) { "Session token missing!" }
+        cookies.addAll(postAnswerSecurityQuestionCookies)
 
         return EquitableClientSessionImpl(root, cookies)
     }
 
-    private fun getLogOnPage() = Jsoup
-        .connect(root.addToPath(LOG_ON_URL))
-        .execute { code, msg -> "GET to LogOn failed: $code $msg" }
+    private suspend fun getLogOnPage(): ResponseData? {
+        val getLogInUrl = root.newBuilder()
+            .addPathSegments(LOG_ON_URL)
+            .build()
+        val getLogInRequest = Request.Builder()
+            .get()
+            .url(getLogInUrl)
+            .build()
 
-    private fun postToLogIn(
-        getLogOnResponse: Connection.Response,
-        cookies: Cookies,
-        username: String,
-        password: String
-    ): Connection.Response {
-        val getLogOnDoc = getLogOnResponse.parse()
-        val logOnForm = getLogOnDoc.getElementById("sign_in") as FormElement
+        val response = try {
+            client.value.fetch(getLogInRequest)
+        } catch (e: IOException) {
+            logger.warn("Unable to GET login page: ${e.message}")
+            return null
+        }
 
-        // populate username and password
-        val usernameElement = logOnForm.getElementById("UserName")
-        usernameElement.`val`(username)
-        val passwordElement = logOnForm.getElementById("Password")
-        passwordElement.`val`(password)
+        val document = try {
+            response.process { stream, charset ->
+                Jsoup.parse(stream, charset.name(), root.toString())
+            }
+        } catch (e: IOException) {
+            logger.warn("Unable to parse GET login page response: ${e.message}")
+            null
+        } ?: return null
 
-        // submit
-        return logOnForm
-            .submit()
-            .followRedirects(false)
-            .cookies(cookies)
-            .execute(302) { code, msg -> "POST to LogIn failed: $code $msg" }
+        return ResponseData(document, response.cookies())
     }
 
-    private fun getLogOnAskSecurityQuestionPage(cookies: Cookies) = Jsoup
-        .connect(root.addToPath(LOG_ON_ASK_SECURITY_URL))
-        .method(Connection.Method.GET)
-        .cookies(cookies)
-        .execute { code, msg -> "GET to LogOnAskSecurityQuestion failed: $code $msg" }
+    private suspend fun postToLogIn(
+        getLogInDoc: Document,
+        username: String,
+        password: String,
+        cookies: Cookies
+    ): Cookies {
+        val logInForm = getLogInDoc.getElementById("sign_in") as? FormElement
+        if (logInForm == null) {
+            logger.warn("Unable to find login form!")
+            return emptyList()
+        }
 
-    private fun postToLogInAnswerSecurityAnswer(
-        getLogOnAskSecurityQuestion: Connection.Response,
+        val usernameElement = logInForm.getElementById("UserName")
+        if (usernameElement == null) {
+            logger.warn("Unable to find username form element!")
+            return emptyList()
+        }
+
+        val passwordElement = logInForm.getElementById("Password")
+        if (passwordElement == null) {
+            logger.warn("Unable to find password form element!")
+            return emptyList()
+        }
+
+        // populate username and password
+        usernameElement.value = username
+        passwordElement.value = password
+
+        val postLogInUrl = logInForm.absUrl("action").toHttpUrl()
+        val body = logInForm.formData().toRequestBody()
+        val postLogInRequest = Request.Builder()
+            .url(postLogInUrl)
+            .post(body)
+            .cookies(cookies)
+            .build()
+
+        val response = try {
+            client.value.fetch(postLogInRequest)
+        } catch (e: IOException) {
+            logger.warn("Unable to POST login request: ${e.message}")
+            return emptyList()
+        }
+
+        response.use { resp ->
+            if (!resp.isRedirect) {
+                logger.warn("Login POST request unsuccessful: (HTTP ${resp.code}) ${resp.message}")
+                return emptyList()
+            }
+
+            return resp.cookies()
+        }
+    }
+
+    private suspend fun getLogOnAskSecurityQuestionPage(cookies: Cookies): ResponseData? {
+        val getLogInAskSecurityQuestionUrl = root.newBuilder()
+            .addPathSegments(LOG_ON_ASK_SECURITY_URL)
+            .build()
+        val getLogInAskSecurityQuestionRequest = Request.Builder()
+            .url(getLogInAskSecurityQuestionUrl)
+            .get()
+            .cookies(cookies)
+            .build()
+
+        val response = try {
+            client.value.fetch(getLogInAskSecurityQuestionRequest)
+        } catch (e: IOException) {
+            logger.warn("Unable to GET security question page: ${e.message}")
+            return null
+        }
+
+        val document = try {
+            response.process { stream, charset ->
+                Jsoup.parse(stream, charset.name(), root.toString())
+            }
+        } catch (e: IOException) {
+            logger.warn("Unable to parse GET security question page response: ${e.message}")
+            null
+        } ?: return null
+
+        return ResponseData(document, response.cookies())
+    }
+
+    private suspend fun postToLogInAnswerSecurityQuestion(
+        askSecurityDoc: Document,
+        securityQuestions: Map<String, String>,
         cookies: Cookies,
-        securityQuestions: Map<String, String>
-    ): Connection.Response {
-        val logOnAskSecurityDoc = getLogOnAskSecurityQuestion.parse()
-        val askSecurityForm = logOnAskSecurityDoc.getElementById("sign_in_question") as FormElement
+    ): Cookies {
+        val askSecurityForm = askSecurityDoc.getElementById("sign_in_question") as? FormElement
+        if (askSecurityForm == null) {
+            logger.warn("Unable to find security question form!")
+            return emptyList()
+        }
 
         // populate security answer
         val answer = securityQuestions.getSecurityAnswer(askSecurityForm.selectFirst("p > strong").text())
-            ?: throw IllegalStateException("Unable to identify security question/answer")
+        if (answer == null) {
+            logger.warn("Unable to identify security question!")
+            return emptyList()
+        }
 
         val answerElement = askSecurityForm.getElementById("Answer")
-        answerElement.`val`(answer)
+        if (answerElement == null) {
+            logger.warn("Unable to find answer field!")
+            return emptyList()
+        }
+        answerElement.value = answer
 
         // submit
-        return askSecurityForm
-            .submit()
-            .followRedirects(false)
+        val postSecurityAnswerUrl = askSecurityForm.absUrl("action").toHttpUrl()
+        val body = askSecurityForm.formData().toRequestBody()
+        val postSecurityAnswerRequest = Request.Builder()
+            .url(postSecurityAnswerUrl)
+            .post(body)
             .cookies(cookies)
-            .execute(302) { code, msg -> "POST to LogInAnswerSecurityQuestion failed: $code $msg" }
+            .build()
+
+        val response = try {
+            client.value.fetch(postSecurityAnswerRequest)
+        } catch (e: IOException) {
+            logger.warn("Unable to POST security question response: ${e.message}")
+            return emptyList()
+        }
+
+        response.use { resp ->
+            if (!resp.isRedirect) {
+                logger.warn("Answer security question POST unsuccessful: (HTTP ${resp.code}) ${resp.message}")
+                return emptyList()
+            }
+
+            return resp.cookies()
+        }
     }
 
-    private fun Map<String, String>.getSecurityAnswer(question: String): String? {
-        return mapKeys { (key, _) -> key.toLowerCase() }[question.toLowerCase()]
+    private fun Map<String, String>.getSecurityAnswer(question: String): String? = with(Locale.getDefault()) {
+        mapKeys { (key, _) -> key.lowercase(this) }[question.lowercase(this)]
     }
+
+    private data class ResponseData(val document: Document, val cookies: Cookies)
 }

@@ -5,12 +5,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import okhttp3.Headers
 import okhttp3.HttpUrl
+import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 private val RESOURCES_FILE = File("src/test/resources/html")
@@ -25,6 +27,13 @@ private const val INDEX_URL = "/client/en"
 @OptIn(ExperimentalCoroutinesApi::class)
 class EquitableClientImplTest {
     private lateinit var server: MockWebServer
+
+    private val client = lazy {
+        OkHttpClient
+            .Builder()
+            .followRedirects(false)
+            .build()
+    }
 
     private val credentials = EquitableLifePluginTest.Credentials(
         username = "username",
@@ -75,7 +84,7 @@ class EquitableClientImplTest {
 
         server.start()
 
-        val client = EquitableClientImpl(server.url("/").toUrl())
+        val client = EquitableClientImpl(client, server.url("/"))
 
         val clientSession = client.createSession(
             username = credentials.username,
@@ -85,7 +94,7 @@ class EquitableClientImplTest {
 
         // GET /client/en/Account/LogOn
         val getLogOnRequest = server.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
-        assertEquals(LOG_ON_URL, getLogOnRequest.path)
+        assertEquals("/$LOG_ON_URL", getLogOnRequest.path)
         assertEquals("GET", getLogOnRequest.method)
 
         // POST /client/en/Account/LogIn
@@ -101,7 +110,7 @@ class EquitableClientImplTest {
 
         // GET /client/en/Account/LogOnAskSecurityQuestion
         val getSecurityRequest = server.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
-        assertEquals(LOG_ON_ASK_SECURITY_URL, getSecurityRequest.path)
+        assertEquals("/$LOG_ON_ASK_SECURITY_URL", getSecurityRequest.path)
         assertEquals("GET", getSecurityRequest.method)
         getSecurityRequest.headers.assertCookie(
             "__RequestVerificationToken_FOO__" to "foo",
@@ -118,9 +127,10 @@ class EquitableClientImplTest {
             ?.encodedQuery(postSecurityRequest.body.readUtf8())
             ?.build()
             ?: fail()
+        val locale = Locale.getDefault()
         assertEquals(
-            credentials.data["question"]?.toLowerCase(),
-            postSecurityRequestUrl.queryParameter("Answer")?.toLowerCase()
+            credentials.data["question"]?.lowercase(locale),
+            postSecurityRequestUrl.queryParameter("Answer")?.lowercase(locale)
         )
         assertEquals("token", postLogInRequestUrl.queryParameter("__RequestVerificationToken"))
         getSecurityRequest.headers.assertCookie(
@@ -128,7 +138,7 @@ class EquitableClientImplTest {
             "ASP.NET_SessionId" to "bar"
         )
 
-        assertTrue(clientSession.isValid())
+        assertEquals(true, clientSession?.isValid())
     }
 
     @Test
@@ -162,7 +172,7 @@ class EquitableClientImplTest {
 
         server.start()
 
-        val client = EquitableClientImpl(server.url("/").toUrl())
+        val client = EquitableClientImpl(client, server.url("/"))
 
         assertThrows<IllegalStateException> {
             client.createSession(

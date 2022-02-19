@@ -8,7 +8,7 @@ interface EquitableClient {
         username: String,
         password: String,
         securityQuestions: Map<String, String>
-    ): EquitableClientSession
+    ): EquitableClientSession?
 
     interface EquitableClientSession {
         suspend fun terminateSession()

@@ -2,6 +2,7 @@ package com.pissiphany.bany.plugin.equitable.client
 
 import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.plugin.equitable.client.EquitableClient.EquitableClientSession
+import okhttp3.HttpUrl
 import org.jsoup.Connection
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -16,8 +17,13 @@ internal const val ASPXAUTH = ".ASPXAUTH"
 
 class EquitableClientSessionImpl(
     private val root: URL,
-    private var sessionCookies: Cookies
+    private var sessionCookies: Map<String, String>
 ) : EquitableClientSession {
+    constructor(
+        root: HttpUrl,
+        sessionCookies: Cookies
+    ): this(root.toUrl(), emptyMap())
+
     override suspend fun terminateSession() {
         checkSession()
 

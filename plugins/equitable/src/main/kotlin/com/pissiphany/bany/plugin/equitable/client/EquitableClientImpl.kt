@@ -3,23 +3,19 @@ package com.pissiphany.bany.plugin.equitable.client
 import com.pissiphany.bany.shared.logger
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.OkHttpClient
 import okhttp3.Request
-import okio.IOException
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.FormElement
 import java.util.*
 
 typealias Cookies = List<String>
 
-private const val EQUITABLE_ROOT = "https://client.equitable.ca"
 internal const val LOG_ON_URL = "client/en/Account/LogOn"
 internal const val LOG_ON_ASK_SECURITY_URL = "client/en/Account/LogOnAskSecurityQuestion"
 
 class EquitableClientImpl(
-    private val client: Lazy<OkHttpClient>,
-    private val root: HttpUrl = EQUITABLE_ROOT.toHttpUrl()
+    private val clientWrapper: OkHttpWrapper,
+    private val root: HttpUrl,
 ) : EquitableClient {
     private val logger by logger()
 
@@ -64,7 +60,7 @@ class EquitableClientImpl(
         return EquitableClientSessionImpl(root, cookies)
     }
 
-    private suspend fun getLogOnPage(): ResponseData? {
+    private suspend fun getLogOnPage(): OkHttpWrapper.ResponseData? {
         val getLogInUrl = root.newBuilder()
             .addPathSegments(LOG_ON_URL)
             .build()
@@ -73,23 +69,7 @@ class EquitableClientImpl(
             .url(getLogInUrl)
             .build()
 
-        val response = try {
-            client.value.fetch(getLogInRequest)
-        } catch (e: IOException) {
-            logger.warn("Unable to GET login page: ${e.message}")
-            return null
-        }
-
-        val document = try {
-            response.process { stream, charset ->
-                Jsoup.parse(stream, charset.name(), root.toString())
-            }
-        } catch (e: IOException) {
-            logger.warn("Unable to parse GET login page response: ${e.message}")
-            null
-        } ?: return null
-
-        return ResponseData(document, response.cookies())
+        return clientWrapper.fetchAndProcess(getLogInRequest)
     }
 
     private suspend fun postToLogIn(
@@ -128,24 +108,10 @@ class EquitableClientImpl(
             .cookies(cookies)
             .build()
 
-        val response = try {
-            client.value.fetch(postLogInRequest)
-        } catch (e: IOException) {
-            logger.warn("Unable to POST login request: ${e.message}")
-            return emptyList()
-        }
-
-        response.use { resp ->
-            if (!resp.isRedirect) {
-                logger.warn("Login POST request unsuccessful: (HTTP ${resp.code}) ${resp.message}")
-                return emptyList()
-            }
-
-            return resp.cookies()
-        }
+        return clientWrapper.fetchRedirectCookies(postLogInRequest)
     }
 
-    private suspend fun getLogOnAskSecurityQuestionPage(cookies: Cookies): ResponseData? {
+    private suspend fun getLogOnAskSecurityQuestionPage(cookies: Cookies): OkHttpWrapper.ResponseData? {
         val getLogInAskSecurityQuestionUrl = root.newBuilder()
             .addPathSegments(LOG_ON_ASK_SECURITY_URL)
             .build()
@@ -155,23 +121,7 @@ class EquitableClientImpl(
             .cookies(cookies)
             .build()
 
-        val response = try {
-            client.value.fetch(getLogInAskSecurityQuestionRequest)
-        } catch (e: IOException) {
-            logger.warn("Unable to GET security question page: ${e.message}")
-            return null
-        }
-
-        val document = try {
-            response.process { stream, charset ->
-                Jsoup.parse(stream, charset.name(), root.toString())
-            }
-        } catch (e: IOException) {
-            logger.warn("Unable to parse GET security question page response: ${e.message}")
-            null
-        } ?: return null
-
-        return ResponseData(document, response.cookies())
+        return clientWrapper.fetchAndProcess(getLogInAskSecurityQuestionRequest)
     }
 
     private suspend fun postToLogInAnswerSecurityQuestion(
@@ -185,18 +135,25 @@ class EquitableClientImpl(
             return emptyList()
         }
 
-        // populate security answer
-        val answer = securityQuestions.getSecurityAnswer(askSecurityForm.selectFirst("p > strong").text())
+        val question = askSecurityForm.selectFirst("p > strong")?.text()
+        if (question == null) {
+            logger.warn("Unable to find security question!")
+            return emptyList()
+        }
+
+        val answer = securityQuestions.getSecurityAnswer(question)
         if (answer == null) {
-            logger.warn("Unable to identify security question!")
+            logger.warn("Unable to identify security question answer!")
             return emptyList()
         }
 
         val answerElement = askSecurityForm.getElementById("Answer")
         if (answerElement == null) {
-            logger.warn("Unable to find answer field!")
+            logger.warn("Unable to find security answer field!")
             return emptyList()
         }
+
+        // populate security answer
         answerElement.value = answer
 
         // submit
@@ -208,26 +165,10 @@ class EquitableClientImpl(
             .cookies(cookies)
             .build()
 
-        val response = try {
-            client.value.fetch(postSecurityAnswerRequest)
-        } catch (e: IOException) {
-            logger.warn("Unable to POST security question response: ${e.message}")
-            return emptyList()
-        }
-
-        response.use { resp ->
-            if (!resp.isRedirect) {
-                logger.warn("Answer security question POST unsuccessful: (HTTP ${resp.code}) ${resp.message}")
-                return emptyList()
-            }
-
-            return resp.cookies()
-        }
+        return clientWrapper.fetchRedirectCookies(postSecurityAnswerRequest)
     }
 
     private fun Map<String, String>.getSecurityAnswer(question: String): String? = with(Locale.getDefault()) {
         mapKeys { (key, _) -> key.lowercase(this) }[question.lowercase(this)]
     }
-
-    private data class ResponseData(val document: Document, val cookies: Cookies)
 }

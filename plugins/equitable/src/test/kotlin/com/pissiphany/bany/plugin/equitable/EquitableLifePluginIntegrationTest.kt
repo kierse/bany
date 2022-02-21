@@ -2,11 +2,18 @@ package com.pissiphany.bany.plugin.equitable
 
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.equitable.client.EquitableClientImpl
+import com.pissiphany.bany.plugin.equitable.client.OkHttpWrapper
+import com.pissiphany.bany.plugin.equitable.client.OkHttpWrapperImpl
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.OkHttpClient
+import org.jsoup.Jsoup
 import org.junit.jupiter.api.Test
 import java.io.File
+import java.io.InputStream
+import java.nio.charset.Charset
 
 private val CONFIG_DIR = File(System.getProperty("user.home"), ".bany")
 private val CONFIG_FILE = File(CONFIG_DIR, "equitable-life-integration.config")
@@ -22,11 +29,24 @@ class EquitableLifePluginIntegrationTest {
                 adapter.fromJson(file.readText())
             }
 
+    private val client = lazy {
+        OkHttpClient
+            .Builder()
+            .followRedirects(false)
+            .build()
+    }
+
     @Test
     fun integration() = runTest {
         checkNotNull(credentials) { "Unable to initialize config! Does file exist at $CONFIG_FILE?" }
 
-        EquitableLifePlugin(EquitableClientImpl(), credentials)
+        val root = EQUITABLE_ROOT.toHttpUrl()
+        val processor = { bodyStream: InputStream, charset: Charset ->
+            Jsoup.parse(bodyStream, charset.name(), root.toString())
+        }
+        val clientWrapper: OkHttpWrapper = OkHttpWrapperImpl(client, processor)
+
+        EquitableLifePlugin(EquitableClientImpl(clientWrapper, root), credentials)
             .apply {
                 check(setup()) { "Unable to configure plugin!" }
 

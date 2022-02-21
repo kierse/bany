@@ -3,38 +3,27 @@ package com.pissiphany.bany.plugin.equitable.client
 import com.pissiphany.bany.plugin.equitable.EquitableLifePluginTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import okhttp3.Headers
-import okhttp3.HttpUrl
-import okhttp3.OkHttpClient
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
+import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.mockwebserver.RecordedRequest
+import org.jsoup.Jsoup
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
 import java.util.*
-import java.util.concurrent.TimeUnit
+import kotlin.NoSuchElementException
+
+private const val ROOT = "http://172.0.0.1:8080"
 
 private val RESOURCES_FILE = File("src/test/resources/html")
 private const val LOG_ON = "01-LogOn.html"
 private const val LOG_ON_SECURITY = "02-LogOnAskSecurityQuestion.html"
-private const val TIMEOUT = 0L
 
 private const val LOG_IN_URL = "/client/en/Account/LogIn"
 private const val LOG_IN_ANSWER_SECURITY_URL = "/client/en/Account/LogInAnswerSecurityQuestion"
-private const val INDEX_URL = "/client/en"
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EquitableClientImplTest {
-    private lateinit var server: MockWebServer
-
-    private val client = lazy {
-        OkHttpClient
-            .Builder()
-            .followRedirects(false)
-            .build()
-    }
-
     private val credentials = EquitableLifePluginTest.Credentials(
         username = "username",
         password = "password",
@@ -42,75 +31,65 @@ class EquitableClientImplTest {
         data = mapOf("question" to "answer")
     )
 
-    @BeforeEach
-    fun before() {
-        server = MockWebServer()
-    }
-
-    @AfterEach
-    fun after() {
-        server.shutdown()
-    }
-
     @Test
     fun createSession() = runTest {
-        // GET 200 /client/en/Account/LogOn
-        server.enqueue(
-            MockResponse()
-                .addHeader("Set-Cookie", "__RequestVerificationToken_FOO__=foo")
-                .setBody(getHtml(LOG_ON))
+        val getLogOn = {
+            OkHttpWrapper.ResponseData(
+                document = Jsoup.parse(getHtml(LOG_ON), ROOT),
+                cookies = listOf("__RequestVerificationToken_FOO__=foo")
+            )
+        }
+        val postLogIn = {
+            listOf(
+                "ASP.NET_SessionId=bar",
+            )
+        }
+        val getLogOnSecurityQuestion = {
+            OkHttpWrapper.ResponseData(
+                document = Jsoup.parse(getHtml(LOG_ON_SECURITY), ROOT),
+                cookies = emptyList()
+            )
+        }
+        val postLogInAnswerSecurityQuestion = {
+            listOf(
+                "cookie1=value",
+                "cookie2=value",
+                "$ASPXAUTH=baz",
+            )
+        }
+
+        val wrapper = TestClientWrapper(
+            data = listOf(getLogOn, getLogOnSecurityQuestion),
+            cookies = listOf(postLogIn, postLogInAnswerSecurityQuestion)
         )
-
-        // POST 302 /client/en/Account/LogIn
-        server.enqueue(
-            MockResponse()
-                .setResponseCode(302)
-                .addHeader("Set-Cookie", "ASP.NET_SessionId=bar")
-                .addHeader("Location", LOG_ON_ASK_SECURITY_URL)
-        )
-
-        // GET 200 /client/en/Account/LogOnAskSecurityQuestion
-        server.enqueue(MockResponse().setBody(getHtml(LOG_ON_SECURITY)))
-
-        // POST 302 /client/en/Account/LogInAnswerSecurityQuestion
-        server.enqueue(
-            MockResponse()
-                .setResponseCode(302)
-                .addHeader("Set-Cookie", "cookie1=value")
-                .addHeader("Set-Cookie", "cookie2=value")
-                .addHeader("Set-Cookie", "$ASPXAUTH=baz")
-                .addHeader("Location", INDEX_URL)
-        )
-
-        server.start()
-
-        val client = EquitableClientImpl(client, server.url("/"))
-
-        val clientSession = client.createSession(
-            username = credentials.username,
-            password = credentials.password,
-            securityQuestions = credentials.data
-        )
+        val clientSession = createClientSession(wrapper)
 
         // GET /client/en/Account/LogOn
-        val getLogOnRequest = server.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
-        assertEquals("/$LOG_ON_URL", getLogOnRequest.path)
+        val getLogOnRequest = wrapper.requests[0]
+        assertEquals("/$LOG_ON_URL", getLogOnRequest.url.encodedPath)
         assertEquals("GET", getLogOnRequest.method)
 
         // POST /client/en/Account/LogIn
-        val postLogInRequest = server.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
-        assertEquals(LOG_IN_URL, postLogInRequest.path)
+        val postLogInRequest = wrapper.requests[1]
+        assertEquals(LOG_IN_URL, postLogInRequest.url.encodedPath)
         assertEquals("POST", postLogInRequest.method)
         postLogInRequest.headers.assertCookie("__RequestVerificationToken_FOO__" to "foo")
 
-        val postLogInRequestUrl = postLogInRequest.urlWithQueryParams()
-        assertEquals(credentials.username, postLogInRequestUrl.queryParameter("UserName"))
-        assertEquals(credentials.password, postLogInRequestUrl.queryParameter("Password"))
-        assertEquals("token", postLogInRequestUrl.queryParameter("__RequestVerificationToken"))
+        val expectedLogInData = mapOf(
+            "UserName" to credentials.username,
+            "Password" to credentials.password,
+            "__RequestVerificationToken" to "token"
+        )
+        val postLogInRequestFormBody = postLogInRequest.body as FormBody
+        assertTrue(postLogInRequestFormBody.size <= expectedLogInData.size)
+        (0 until postLogInRequestFormBody.size).forEach { i ->
+            val key = postLogInRequestFormBody.name(i)
+            assertEquals(expectedLogInData[key], postLogInRequestFormBody.value(i))
+        }
 
         // GET /client/en/Account/LogOnAskSecurityQuestion
-        val getSecurityRequest = server.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
-        assertEquals("/$LOG_ON_ASK_SECURITY_URL", getSecurityRequest.path)
+        val getSecurityRequest = wrapper.requests[2]
+        assertEquals("/$LOG_ON_ASK_SECURITY_URL", getSecurityRequest.url.encodedPath)
         assertEquals("GET", getSecurityRequest.method)
         getSecurityRequest.headers.assertCookie(
             "__RequestVerificationToken_FOO__" to "foo",
@@ -118,17 +97,23 @@ class EquitableClientImplTest {
         )
 
         // POST /client/en/Account/LogInAnswerSecurityQuestion
-        val postSecurityRequest = server.takeRequest(TIMEOUT, TimeUnit.SECONDS) ?: fail()
-        assertEquals(LOG_IN_ANSWER_SECURITY_URL, postSecurityRequest.path)
+        val postSecurityRequest = wrapper.requests[3]
+        assertEquals(LOG_IN_ANSWER_SECURITY_URL, postSecurityRequest.url.encodedPath)
         assertEquals("POST", postSecurityRequest.method)
 
-        val postSecurityRequestUrl = postSecurityRequest.urlWithQueryParams()
+        val postSecurityRequestFormBody = postSecurityRequest.body as FormBody
         val locale = Locale.getDefault()
-        assertEquals(
-            credentials.data["question"]?.lowercase(locale),
-            postSecurityRequestUrl.queryParameter("Answer")?.lowercase(locale)
+
+        val expectedPostSecurityData = mapOf(
+            "Answer" to credentials.data["question"]?.lowercase(locale),
+            "__RequestVerificationToken" to "token"
         )
-        assertEquals("token", postLogInRequestUrl.queryParameter("__RequestVerificationToken"))
+
+        assertEquals(expectedPostSecurityData.size, postSecurityRequestFormBody.size)
+        (0 until postSecurityRequestFormBody.size).forEach { i ->
+            val key = postSecurityRequestFormBody.name(i)
+            assertEquals(expectedPostSecurityData[key], postSecurityRequestFormBody.value(i).lowercase(locale))
+        }
         getSecurityRequest.headers.assertCookie(
             "__RequestVerificationToken_FOO__" to "foo",
             "ASP.NET_SessionId" to "bar"
@@ -138,40 +123,89 @@ class EquitableClientImplTest {
     }
 
     @Test
-    fun `createSession - missing session token`() = runTest {
-        // GET 200 /client/en/Account/LogOn
-        server.enqueue(
-            MockResponse()
-                .addHeader("Set-Cookie", "__RequestVerificationToken_FOO__=foo")
-                .setBody(getHtml(LOG_ON))
+    fun `createSession - wrapper returned null for getLogOnPage`() = runTest {
+        val data = { /* GET /client/en/Account/LogOn */ null }
+        val wrapper = TestClientWrapper(
+            data = listOf(data)
         )
 
-        // POST 302 /client/en/Account/LogIn
-        server.enqueue(
-            MockResponse()
-                .setResponseCode(302)
-                .addHeader("Set-Cookie", "ASP.NET_SessionId=bar")
-                .addHeader("Location", LOG_ON_ASK_SECURITY_URL)
+        assertNull(createClientSession(wrapper))
+    }
+
+    @Test
+    fun `createSession - wrapper returned null for postToLogIn`() = runTest {
+        val data = { // GET /client/en/Account/LogOn
+            OkHttpWrapper.ResponseData(
+                document = Jsoup.parse(getHtml(LOG_ON), ROOT),
+                cookies = listOf("__RequestVerificationToken_FOO__=foo")
+            )
+        }
+        val cookies = { /* POST /client/en/Account/LogIn */ emptyList<String>() }
+        val wrapper = TestClientWrapper(
+            data = listOf(data),
+            cookies = listOf(cookies)
         )
 
-        // GET 200 /client/en/Account/LogOnAskSecurityQuestion
-        server.enqueue(MockResponse().setBody(getHtml(LOG_ON_SECURITY)))
+        assertNull(createClientSession(wrapper))
+    }
 
-        // POST 302 /client/en/Account/LogInAnswerSecurityQuestion
-        server.enqueue(
-            MockResponse()
-                .setResponseCode(302)
-                .addHeader("Set-Cookie", "cookie1=value")
-                .addHeader("Set-Cookie", "cookie2=value")
-                .addHeader("Location", INDEX_URL)
+    @Test
+    fun `createSession - wrapper returned null for getLogOnAskSecurityQuestionPage`() = runTest {
+        val getLogOn = { // GET /client/en/Account/LogOn
+            OkHttpWrapper.ResponseData(
+                document = Jsoup.parse(getHtml(LOG_ON), ROOT),
+                cookies = listOf("__RequestVerificationToken_FOO__=foo")
+            )
+        }
+        val getLogOnSecurityQuestion = { // GET /client/en/Account/LogOnAskSecurityQuestion
+            OkHttpWrapper.ResponseData(
+                document = Jsoup.parse(getHtml(LOG_ON_SECURITY), ROOT),
+                cookies = emptyList()
+            )
+        }
+        val postToLogIn = { /* POST /client/en/Account/LogIn */ emptyList<String>() }
+        val wrapper = TestClientWrapper(
+            data = listOf(getLogOn, getLogOnSecurityQuestion),
+            cookies = listOf(postToLogIn)
         )
 
-        server.start()
+        assertNull(createClientSession(wrapper))
+    }
 
-        val client = EquitableClientImpl(client, server.url("/"))
+    @Test
+    fun `createSession - wrapper returned null for postToLogInAnswerSecurityQuestion`() = runTest {
+        val getLogOn = { // GET /client/en/Account/LogOn
+            OkHttpWrapper.ResponseData(
+                document = Jsoup.parse(getHtml(LOG_ON), ROOT),
+                cookies = listOf("__RequestVerificationToken_FOO__=foo")
+            )
+        }
+        val getLogOnSecurityQuestion = { // GET /client/en/Account/LogOnAskSecurityQuestion
+            OkHttpWrapper.ResponseData(
+                document = Jsoup.parse(getHtml(LOG_ON_SECURITY), ROOT),
+                cookies = emptyList()
+            )
+        }
+        val postToLogIn = { // POST /client/en/Account/LogIn
+            listOf(
+                "__RequestVerificationToken_FOO__=foo",
+                "ASP.NET_SessionId=bar"
+            )
+        }
+        val postToLogInAnswerSecurityQuestion = { /* POST /client/en/Account/LogInAnswerSecurityQuestion */ emptyList<String>() }
+        val wrapper = TestClientWrapper(
+            data = listOf(getLogOn, getLogOnSecurityQuestion),
+            cookies = listOf(postToLogIn, postToLogInAnswerSecurityQuestion)
+        )
 
-        assertThrows<IllegalStateException> {
-            client.createSession(
+        assertNull(createClientSession(wrapper))
+    }
+
+    private suspend fun createClientSession(
+        clientWrapper: OkHttpWrapper
+    ): EquitableClient.EquitableClientSession? {
+        return with(EquitableClientImpl(clientWrapper, ROOT.toHttpUrl())) {
+            createSession(
                 username = credentials.username,
                 password = credentials.password,
                 securityQuestions = credentials.data
@@ -204,3 +238,29 @@ internal fun RecordedRequest.urlWithQueryParams(): HttpUrl =
         ?: fail()
 
 internal fun getHtml(name: String) = File(RESOURCES_FILE, name).readText()
+
+private class TestClientWrapper(
+    data: List<() -> OkHttpWrapper.ResponseData?> = emptyList(),
+    cookies: List<() -> Cookies> = emptyList()
+) : OkHttpWrapper {
+    private val data: MutableList<() -> OkHttpWrapper.ResponseData?> = data.reversed().toMutableList()
+    private val cookies: MutableList<() -> Cookies> = cookies.reversed().toMutableList()
+
+    private val _requests = mutableListOf<Request>()
+    val requests: List<Request>
+        get() = _requests
+
+    override suspend fun fetchAndProcess(request: Request): OkHttpWrapper.ResponseData? {
+        _requests.add(request)
+
+        if (data.isEmpty()) throw NoSuchElementException("No lambda for: ${request.url.encodedPath}")
+        return data.removeLast().invoke()
+    }
+
+    override suspend fun fetchRedirectCookies(request: Request): Cookies {
+        _requests.add(request)
+
+        if (cookies.isEmpty()) throw NoSuchElementException("No lambda for: ${request.url.encodedPath}")
+        return cookies.removeLast().invoke()
+    }
+}

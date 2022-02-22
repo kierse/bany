@@ -57,7 +57,7 @@ class EquitableClientImpl(
         cookies.clear()
         cookies.addAll(postAnswerSecurityQuestionCookies)
 
-        return EquitableClientSessionImpl(root, cookies)
+        return EquitableClientSessionImpl(clientWrapper, root, cookies)
     }
 
     private suspend fun getLogOnPage(): OkHttpWrapper.ResponseData? {

@@ -13,7 +13,7 @@ import java.io.File
 import java.util.*
 import kotlin.NoSuchElementException
 
-private const val ROOT = "http://172.0.0.1:8080"
+internal const val TEST_ROOT = "http://172.0.0.1:8080"
 
 private val RESOURCES_FILE = File("src/test/resources/html")
 private const val LOG_ON = "01-LogOn.html"
@@ -35,7 +35,7 @@ class EquitableClientImplTest {
     fun createSession() = runTest {
         val getLogOn = {
             OkHttpWrapper.ResponseData(
-                document = Jsoup.parse(getHtml(LOG_ON), ROOT),
+                document = Jsoup.parse(getHtml(LOG_ON), TEST_ROOT),
                 cookies = listOf("__RequestVerificationToken_FOO__=foo")
             )
         }
@@ -46,7 +46,7 @@ class EquitableClientImplTest {
         }
         val getLogOnSecurityQuestion = {
             OkHttpWrapper.ResponseData(
-                document = Jsoup.parse(getHtml(LOG_ON_SECURITY), ROOT),
+                document = Jsoup.parse(getHtml(LOG_ON_SECURITY), TEST_ROOT),
                 cookies = emptyList()
             )
         }
@@ -136,7 +136,7 @@ class EquitableClientImplTest {
     fun `createSession - wrapper returned null for postToLogIn`() = runTest {
         val data = { // GET /client/en/Account/LogOn
             OkHttpWrapper.ResponseData(
-                document = Jsoup.parse(getHtml(LOG_ON), ROOT),
+                document = Jsoup.parse(getHtml(LOG_ON), TEST_ROOT),
                 cookies = listOf("__RequestVerificationToken_FOO__=foo")
             )
         }
@@ -153,13 +153,13 @@ class EquitableClientImplTest {
     fun `createSession - wrapper returned null for getLogOnAskSecurityQuestionPage`() = runTest {
         val getLogOn = { // GET /client/en/Account/LogOn
             OkHttpWrapper.ResponseData(
-                document = Jsoup.parse(getHtml(LOG_ON), ROOT),
+                document = Jsoup.parse(getHtml(LOG_ON), TEST_ROOT),
                 cookies = listOf("__RequestVerificationToken_FOO__=foo")
             )
         }
         val getLogOnSecurityQuestion = { // GET /client/en/Account/LogOnAskSecurityQuestion
             OkHttpWrapper.ResponseData(
-                document = Jsoup.parse(getHtml(LOG_ON_SECURITY), ROOT),
+                document = Jsoup.parse(getHtml(LOG_ON_SECURITY), TEST_ROOT),
                 cookies = emptyList()
             )
         }
@@ -176,13 +176,13 @@ class EquitableClientImplTest {
     fun `createSession - wrapper returned null for postToLogInAnswerSecurityQuestion`() = runTest {
         val getLogOn = { // GET /client/en/Account/LogOn
             OkHttpWrapper.ResponseData(
-                document = Jsoup.parse(getHtml(LOG_ON), ROOT),
+                document = Jsoup.parse(getHtml(LOG_ON), TEST_ROOT),
                 cookies = listOf("__RequestVerificationToken_FOO__=foo")
             )
         }
         val getLogOnSecurityQuestion = { // GET /client/en/Account/LogOnAskSecurityQuestion
             OkHttpWrapper.ResponseData(
-                document = Jsoup.parse(getHtml(LOG_ON_SECURITY), ROOT),
+                document = Jsoup.parse(getHtml(LOG_ON_SECURITY), TEST_ROOT),
                 cookies = emptyList()
             )
         }
@@ -204,7 +204,7 @@ class EquitableClientImplTest {
     private suspend fun createClientSession(
         clientWrapper: OkHttpWrapper
     ): EquitableClient.EquitableClientSession? {
-        return with(EquitableClientImpl(clientWrapper, ROOT.toHttpUrl())) {
+        return with(EquitableClientImpl(clientWrapper, TEST_ROOT.toHttpUrl())) {
             createSession(
                 username = credentials.username,
                 password = credentials.password,
@@ -239,7 +239,7 @@ internal fun RecordedRequest.urlWithQueryParams(): HttpUrl =
 
 internal fun getHtml(name: String) = File(RESOURCES_FILE, name).readText()
 
-private class TestClientWrapper(
+internal class TestClientWrapper(
     data: List<() -> OkHttpWrapper.ResponseData?> = emptyList(),
     cookies: List<() -> Cookies> = emptyList()
 ) : OkHttpWrapper {
@@ -253,14 +253,14 @@ private class TestClientWrapper(
     override suspend fun fetchAndProcess(request: Request): OkHttpWrapper.ResponseData? {
         _requests.add(request)
 
-        if (data.isEmpty()) throw NoSuchElementException("No lambda for: ${request.url.encodedPath}")
+        if (data.isEmpty()) throw NoSuchElementException("No data lambda for: ${request.url.encodedPath}")
         return data.removeLast().invoke()
     }
 
     override suspend fun fetchRedirectCookies(request: Request): Cookies {
         _requests.add(request)
 
-        if (cookies.isEmpty()) throw NoSuchElementException("No lambda for: ${request.url.encodedPath}")
+        if (cookies.isEmpty()) throw NoSuchElementException("No cookie lambda for: ${request.url.encodedPath}")
         return cookies.removeLast().invoke()
     }
 }

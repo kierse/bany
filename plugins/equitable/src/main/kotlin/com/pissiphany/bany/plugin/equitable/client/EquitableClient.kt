@@ -14,8 +14,8 @@ interface EquitableClient {
         suspend fun terminateSession()
         fun isValid(): Boolean
         fun checkSession()
-        suspend fun getInsuranceDetails(connection: BanyPlugin.Connection): InsuranceDetails
-        suspend fun getInvestmentDetails(connection: BanyPlugin.Connection): InvestmentDetails
+        suspend fun getInsuranceDetails(connection: BanyPlugin.Connection): InsuranceDetails?
+        suspend fun getInvestmentDetails(connection: BanyPlugin.Connection): InvestmentDetails?
 
         data class InsuranceDetails(
             val loanAvailable: BigDecimal,

@@ -6,6 +6,7 @@ import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountBalance
 import com.pissiphany.bany.plugin.equitable.client.EquitableClient
+import com.pissiphany.bany.shared.logger
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -22,6 +23,7 @@ class EquitableLifePlugin(
     private enum class AccountType { INVESTMENT, INSURANCE, LIABILITY }
 
     private var clientSession: EquitableClient.EquitableClientSession? = null
+    private val logger by logger()
 
     override suspend fun setup(): Boolean {
         clientSession = client.createSession(
@@ -50,17 +52,19 @@ class EquitableLifePlugin(
         date: LocalDate?
     ): List<BanyPluginTransaction> {
         val connection = getConnection(budgetAccountIds)
-        return when (val type = connection.getAccountType()) {
+        return when (connection.getAccountType()) {
             AccountType.INSURANCE -> getInsuranceTransaction(connection)
             AccountType.INVESTMENT -> getInvestmentTransaction(connection)
             AccountType.LIABILITY -> getInsuranceLiabilityTransaction(connection)
-            else -> throw IllegalArgumentException("$type unsupported!")
         }
     }
 
     private suspend fun getInsuranceTransaction(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
-        val details = checkSession(clientSession)
-            .getInsuranceDetails(connection)
+        val details = checkSession(clientSession).getInsuranceDetails(connection)
+        if (details == null) {
+            logger.info("No insurance details found for: ${connection.name}")
+            return emptyList()
+        }
 
         return listOf(
             BanyPluginAccountBalance(
@@ -76,7 +80,7 @@ class EquitableLifePlugin(
 
         val totalLiabilities = credentials.connections
             .filter { it != connection && it.getAccountType() == AccountType.INSURANCE }
-            .map { clientSession.getInsuranceDetails(it) }
+            .mapNotNull { clientSession.getInsuranceDetails(it) }
             .fold(BigDecimal(0)) { total, account -> total - account.loanBalance }
 
         return listOf(
@@ -89,8 +93,11 @@ class EquitableLifePlugin(
     }
 
     private suspend fun getInvestmentTransaction(connection: BanyPlugin.Connection): List<BanyPluginTransaction> {
-        val details = checkSession(clientSession)
-            .getInvestmentDetails(connection)
+        val details = checkSession(clientSession).getInvestmentDetails(connection)
+        if (details == null) {
+            logger.info("No investment details found for: ${connection.name}")
+            return emptyList()
+        }
 
         return listOf(
             BanyPluginAccountBalance(

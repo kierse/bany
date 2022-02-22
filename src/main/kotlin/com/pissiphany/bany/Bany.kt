@@ -104,7 +104,10 @@ fun main() = runBlocking {
 
             for (serviceCredentials in serviceCredentialsList) {
                 val plugin = factory.createPlugin(pluginName, credentialsMap.getValue(serviceCredentials))
-                if (!plugin.setup()) continue
+                if (!plugin.setup()) {
+                    logger.info("Skipping service credentials '${serviceCredentials.description}'. Failed to setup plugin")
+                    continue
+                }
 
                 logger.debug { "Initialized '$pluginName' plugin: '${serviceCredentials.description}'" }
                 initializedServices.add(ThirdPartyTransactionServiceImpl(plugin, BanyPluginDataMapper()))

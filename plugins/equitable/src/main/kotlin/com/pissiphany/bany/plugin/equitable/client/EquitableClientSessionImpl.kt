@@ -59,6 +59,10 @@ class EquitableClientSessionImpl(
         }
 
         val rows = getPolicyValuesResponseData.document.select("div.details_row")
+        if (rows.isEmpty()) {
+            logger.error("Unable to find insurance details!")
+            return null
+        }
 
         val loanBalanceRowElem = rows.firstOrNull {
             it.selectFirst("div.grid_4.detail_label > p:contains(loan balance)") != null

@@ -10,7 +10,6 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import org.junit.jupiter.params.provider.ValueSource
 import java.math.BigDecimal
 
 private const val POLICY_VALUES_01 = "03-PolicyValues.html"
@@ -47,6 +46,13 @@ class EquitableClientSessionImplTest {
         assertEquals("/$LOG_OUT_URL", getLogOutRequest.url.encodedPath)
         assertEquals("GET", getLogOutRequest.method)
         getLogOutRequest.headers.assertCookie(ASPXAUTH to "baz")
+    }
+
+    @Test
+    fun `terminateSession - throw exception when token is missing`() = runTest {
+        assertThrows<IllegalStateException> {
+            EquitableClientSessionImpl(TestClientWrapper(), TEST_ROOT.toHttpUrl(), emptyList()).terminateSession()
+        }
     }
 
     @Test
@@ -98,37 +104,48 @@ class EquitableClientSessionImplTest {
         assertNull(results)
     }
 
-    @ParameterizedTest(name = "getInsuranceDetails [${ParameterizedTest.INDEX_PLACEHOLDER}]")
-    @ValueSource(strings = [
-        "",
-        """<html><body><div class="details_row"><div class="grid_4 detail_label"><p>loan balance</p></div></div></body></html>""",
-    ])
-    fun `getInsuranceDetails - unable to find current loan balance`(html: String) = runTest {
+    internal enum class InsuranceField { ALL, BALANCE, AVAILABLE }
+    @ParameterizedTest(name = "getInsuranceDetails [${ParameterizedTest.INDEX_PLACEHOLDER}] ${ParameterizedTest.ARGUMENTS_WITH_NAMES_PLACEHOLDER}")
+    @EnumSource(InsuranceField::class)
+    internal fun `getInsuranceDetails - unable to find required data`(remove: InsuranceField) = runTest {
+        val html = """
+            <html>
+                <body>
+                    <div class="details_row">
+                        <div class="grid_4 detail_label">
+                            <p>loan balance</p>
+                        </div>
+                        <div class="grid_8 omega">
+                            <p>$9,999.99</p>
+                        </div>
+                    </div>
+                    <div class="details_row">
+                        <div class="grid_4 detail_label">
+                            <p>loan available</p>
+                        </div>
+                    </div>
+                </body>
+            </html>
+            """.trimIndent()
         val getPolicyValuesData = { // GET /policy/en/Policy/Values/<AccountNo>
+            val document = Jsoup.parse(html, TEST_ROOT)
+
+            val details = document.select("div.details_row")
+            val balance = details.first {
+                it.selectFirst("div.grid_4.detail_label > p:contains(loan balance)") != null
+            }
+            val available = details.first {
+                it.selectFirst("div.grid_4.detail_label > p:contains(loan available)") != null
+            }
+
+            when (remove) {
+                InsuranceField.ALL -> details.remove()
+                InsuranceField.BALANCE -> balance.remove()
+                InsuranceField.AVAILABLE -> available.remove()
+            }
+
             OkHttpWrapper.ResponseData(
-                document = Jsoup.parse(html.trim(), TEST_ROOT),
-                cookies = emptyList()
-            )
-        }
-        val wrapper = TestClientWrapper(
-            data = listOf(getPolicyValuesData)
-        )
-
-        val results = EquitableClientSessionImpl(wrapper, TEST_ROOT.toHttpUrl(), cookies)
-            .getInsuranceDetails(connection)
-
-        assertNull(results)
-    }
-
-    @ParameterizedTest(name = "getInsuranceDetails [${ParameterizedTest.INDEX_PLACEHOLDER}]")
-    @ValueSource(strings = [
-        """<html><body><div class="details_row"><div class="grid_4 detail_label"><p>loan balance</p></div><div class="grid_8 omega"><p>$9,999.99</p></div></div></body></html>""",
-        """<html><body><div class="details_row"><div class="grid_4 detail_label"><p>loan balance</p></div><div class="grid_8 omega"><p>$9,999.99</p></div></div><div class="details_row"><div class="grid_4 detail_label"><p>loan available</p></div></div></body></html>""",
-    ])
-    fun `getInsuranceDetails - unable to find available loan amount`(html: String) = runTest {
-        val getPolicyValuesData = { // GET /policy/en/Policy/Values/<AccountNo>
-            OkHttpWrapper.ResponseData(
-                document = Jsoup.parse(html, TEST_ROOT),
+                document = document,
                 cookies = emptyList()
             )
         }

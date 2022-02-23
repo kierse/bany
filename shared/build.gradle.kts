@@ -11,6 +11,10 @@ dependencies {
     api(Versions.KotlinLogging.dependency)
     implementation(Versions.Slf4j.dependency)
 
+    implementation(Versions.Square.OkHttp.dependency)
+
+    testImplementation(Versions.Square.OkHttp.MockWebServer.dependency)
+    testImplementation(Versions.KotlinX.Coroutines.Test.dependency)
     testImplementation(Versions.Junit.Jupiter.dependency)
     testImplementation(Versions.Junit.Jupiter.Api.dependency)
     testRuntimeOnly(Versions.Junit.Jupiter.Engine.dependency)

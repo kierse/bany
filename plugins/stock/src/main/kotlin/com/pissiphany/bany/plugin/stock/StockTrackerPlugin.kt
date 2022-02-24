@@ -8,6 +8,7 @@ import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
 import com.pissiphany.bany.plugin.stock.StockTrackerPlugin.Companion.COUNT
 import com.pissiphany.bany.plugin.stock.StockTrackerPlugin.Companion.CURRENCY
 import com.pissiphany.bany.plugin.stock.StockTrackerPlugin.Companion.TICKER
+import com.pissiphany.bany.shared.fetch
 import com.pissiphany.bany.shared.logger
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonClass
@@ -21,9 +22,6 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 private const val ROOT_STOCK_URL = "https://apidojo-yahoo-finance-v1.p.rapidapi.com"
 private const val ROOT_CURRENCY_URL = "https://free.currconv.com"
@@ -121,7 +119,7 @@ class StockTrackerPlugin(
             .build()
 
         val response = try {
-            fetch(getProfileRequest)
+            client.value.fetch(getProfileRequest)
         } catch (e: IOException) {
             logger.warn("Unable to GET stock profile: ${e.message}")
             return null
@@ -143,7 +141,7 @@ class StockTrackerPlugin(
             .build()
 
         val response = try {
-            fetch(getCurrencyRequestRequest)
+            client.value.fetch(getCurrencyRequestRequest)
         } catch (e: IOException) {
             logger.warn("Unable to GET currency conversion: ${e.message}")
             return emptyMap()
@@ -179,18 +177,6 @@ class StockTrackerPlugin(
 
             return result
         }
-    }
-
-    private suspend fun fetch(request: Request): Response = suspendCoroutine { cont ->
-        client.value.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: java.io.IOException) {
-                cont.resumeWithException(e)
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                cont.resume(response)
-            }
-        })
     }
 }
 

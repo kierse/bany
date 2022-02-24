@@ -1,14 +1,12 @@
 package com.pissiphany.bany.plugin.equitable.client
 
+import com.pissiphany.bany.shared.fetch
 import com.pissiphany.bany.shared.logger
 import okhttp3.*
 import org.jsoup.nodes.Document
 import java.io.IOException
 import java.io.InputStream
 import java.nio.charset.Charset
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 interface OkHttpWrapper {
     suspend fun fetchAndProcess(request: Request): ResponseData?
@@ -25,7 +23,7 @@ internal class OkHttpWrapperImpl(
 
     override suspend fun fetchAndProcess(request: Request): OkHttpWrapper.ResponseData? {
         val response = try {
-            fetch(request)
+            client.value.fetch(request)
         } catch (e: IOException) {
             logger.warn("Request failed: ${e.message}")
             return null
@@ -39,18 +37,6 @@ internal class OkHttpWrapperImpl(
         } ?: return null
 
         return OkHttpWrapper.ResponseData(document, response.cookies())
-    }
-
-    private suspend fun fetch(request: Request): Response = suspendCoroutine { cont ->
-        client.value.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                cont.resumeWithException(e)
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                cont.resume(response)
-            }
-        })
     }
 
     private suspend fun process(
@@ -71,7 +57,7 @@ internal class OkHttpWrapperImpl(
 
     override suspend fun fetchRedirectCookies(request: Request): Cookies {
         val response = try {
-            fetch(request)
+            client.value.fetch(request)
         } catch (e: IOException) {
             logger.warn("Request failed: ${e.message}")
             return emptyList()

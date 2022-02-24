@@ -5,6 +5,7 @@ import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginAccountBalance
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
+import com.pissiphany.bany.shared.fetch
 import com.pissiphany.bany.shared.logger
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonAdapter
@@ -18,9 +19,6 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 private const val COIN_ID = "coinId"
 private const val AMOUNT = "amount"
@@ -79,7 +77,7 @@ class CryptoPlugin(
             .build()
 
         val response = try {
-            request.fetch()
+            client.value.fetch(request)
         } catch (e: IOException) {
             logger.warn("Unable to GET crypto price: ${e.message}")
             return emptyList()
@@ -96,18 +94,6 @@ class CryptoPlugin(
                 amount = calculatedValue
             )
         )
-    }
-
-    private suspend fun Request.fetch(): Response = suspendCoroutine { cont ->
-        client.value.newCall(this).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: java.io.IOException) {
-                cont.resumeWithException(e)
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                cont.resume(response)
-            }
-        })
     }
 
     private fun <T> Response.process(adapter: JsonAdapter<T>): T? = use { resp ->

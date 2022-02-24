@@ -81,10 +81,12 @@ class EquitableClientImplTest {
             "__RequestVerificationToken" to "token"
         )
         val postLogInRequestFormBody = postLogInRequest.body as FormBody
-        assertTrue(postLogInRequestFormBody.size <= expectedLogInData.size)
+        assertTrue(expectedLogInData.size <= postLogInRequestFormBody.size)
         (0 until postLogInRequestFormBody.size).forEach { i ->
             val key = postLogInRequestFormBody.name(i)
-            assertEquals(expectedLogInData[key], postLogInRequestFormBody.value(i))
+            if (expectedLogInData.containsKey(key)) {
+                assertEquals(expectedLogInData[key], postLogInRequestFormBody.value(i))
+            }
         }
 
         // GET /client/en/Account/LogOnAskSecurityQuestion
@@ -109,10 +111,12 @@ class EquitableClientImplTest {
             "__RequestVerificationToken" to "token"
         )
 
-        assertEquals(expectedPostSecurityData.size, postSecurityRequestFormBody.size)
+        assertTrue(expectedPostSecurityData.size <= postSecurityRequestFormBody.size)
         (0 until postSecurityRequestFormBody.size).forEach { i ->
             val key = postSecurityRequestFormBody.name(i)
-            assertEquals(expectedPostSecurityData[key], postSecurityRequestFormBody.value(i).lowercase(locale))
+            if (expectedLogInData.containsKey(key)) {
+                assertEquals(expectedPostSecurityData[key], postSecurityRequestFormBody.value(i).lowercase(locale))
+            }
         }
         getSecurityRequest.headers.assertCookie(
             "__RequestVerificationToken_FOO__" to "foo",

@@ -70,7 +70,7 @@ fun main() = runBlocking {
     val ynabApiService = RetrofitYnabApiService(retrofitService, RetrofitAccountMapper(), RetrofitTransactionMapper())
 
     // Step1GetAccountDetails
-    val lastKnowledgeOfServerRepository = PropertiesLastKnowledgeOfServerRepository(LAST_KNOWLEDGE_OF_SERVER_FILE)
+    val lastKnowledgeOfServerRepository = PropertiesLastKnowledgeOfServerRepository(this, LAST_KNOWLEDGE_OF_SERVER_FILE)
     val accountDetailsGateway = YnabAccountDetailsGatewayImpl(
         ynabApiService, YnabBudgetAccountIdsMapper(), YnabAccountMapper(), YnabTransactionMapper()
     )

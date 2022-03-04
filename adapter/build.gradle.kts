@@ -11,6 +11,9 @@ dependencies {
     implementation(project(":bany-plugin-api"))
     implementation(project(":domain"))
 
+    implementation(Versions.KotlinX.Coroutines.Core.dependency)
+
+    testImplementation(Versions.KotlinX.Coroutines.Test.dependency)
     testImplementation(Versions.Junit.Jupiter.dependency)
     testImplementation(Versions.Junit.Jupiter.Api.dependency)
     testRuntimeOnly(Versions.Junit.Jupiter.Engine.dependency)

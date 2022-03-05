@@ -28,6 +28,10 @@ object Versions {
                 object Moshi : Dependency {
                     override val dependency = "com.squareup.retrofit2:converter-moshi:$version"
                 }
+
+                object Scalars : Dependency {
+                    override val dependency = "com.squareup.retrofit2:converter-scalars:$version"
+                }
             }
         }
 

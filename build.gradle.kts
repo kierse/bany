@@ -48,6 +48,9 @@ dependencies {
     implementation(Versions.Slf4j.dependency)
 
     kaptTest(Versions.Square.Moshi.KotlinCodegen.dependency)
+    testImplementation(Versions.KotlinX.Coroutines.Test.dependency)
+    testImplementation(Versions.Square.OkHttp.MockWebServer.dependency)
+    testImplementation(Versions.Square.Retrofit.Converters.Scalars.dependency)
     testImplementation(Versions.Junit.Jupiter.dependency)
     testImplementation(Versions.Junit.Jupiter.Api.dependency)
     testRuntimeOnly(Versions.Junit.Jupiter.Engine.dependency)

@@ -8,7 +8,7 @@ import com.pissiphany.bany.domain.repository.ConfigurationRepository
 class ConfigurationRepositoryImpl(
     private val ynabCredentials: List<YnabCredentials>, private val mapper: YnabBudgetAccountIdsMapper
 ) : ConfigurationRepository {
-    override fun getBudgetAccountIds(): List<BudgetAccountIds> {
+    override suspend fun getBudgetAccountIds(): List<BudgetAccountIds> {
         val budgetAccountIds = mutableListOf<BudgetAccountIds>()
         ynabCredentials
             .filter { it.enabled }

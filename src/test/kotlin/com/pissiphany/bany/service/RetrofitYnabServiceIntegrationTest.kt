@@ -7,6 +7,8 @@ import com.pissiphany.bany.factory.DataEnvelopeFactory
 import com.pissiphany.bany.factory.RetrofitFactory
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
@@ -15,6 +17,7 @@ private val CONFIG_DIR = File(System.getProperty("user.home"), ".bany")
 private val CONFIG_FILE = File(CONFIG_DIR, "ynab-integration.config")
 
 // See https://spin.atomicobject.com/2018/07/18/gradle-integration-tests/
+@OptIn(ExperimentalCoroutinesApi::class)
 class RetrofitYnabServiceIntegrationTest {
     companion object {
         private lateinit var config: YnabConfig
@@ -45,9 +48,8 @@ class RetrofitYnabServiceIntegrationTest {
     }
 
     @Test
-    fun getBudgets() {
-        val call = service.getBudgets()
-        val response = call.execute()
+    fun getBudgets() = runTest {
+        val response = service.getBudgets()
         val body = response.body()
 
         assertTrue(response.isSuccessful)
@@ -55,9 +57,8 @@ class RetrofitYnabServiceIntegrationTest {
     }
 
     @Test
-    fun getBudget() {
-        val call = service.getBudget(config.budgetId)
-        val response = call.execute()
+    fun getBudget() = runTest {
+        val response = service.getBudget(config.budgetId)
         val body = response.body()
 
         assertTrue(response.isSuccessful)
@@ -65,13 +66,11 @@ class RetrofitYnabServiceIntegrationTest {
     }
 
     @Test
-    fun getAccounts() {
-        val budgetsCall = service.getBudgets()
-        val budgetsResponse = budgetsCall.execute()
+    fun getAccounts() = runTest {
+        val budgetsResponse = service.getBudgets()
         val budget = budgetsResponse.body()?.budgets?.first() ?: fail("Unable to retrieve budgets")
 
-        val accountsCall = service.getAccounts(budget.id)
-        val accountsResponse = accountsCall.execute()
+        val accountsResponse = service.getAccounts(budget.id)
         val body = accountsResponse.body()
 
         assertTrue(accountsResponse.isSuccessful)
@@ -79,18 +78,16 @@ class RetrofitYnabServiceIntegrationTest {
     }
 
     @Test
-    fun getAccounts__unknown_budget() {
-        val accountsCall = service.getAccounts("fake-budget-id")
-        val accountsResponse = accountsCall.execute()
+    fun `getAccounts - unknown budget`() = runTest {
+        val accountsResponse = service.getAccounts("fake-budget-id")
 
         assertFalse(accountsResponse.isSuccessful)
         assertEquals(404, accountsResponse.code())
     }
 
     @Test
-    fun getAccount() {
-        val call = service.getAccount(config.budgetId, config.accountId)
-        val response = call.execute()
+    fun getAccount() = runTest {
+        val response = service.getAccount(config.budgetId, config.accountId)
         val account = response.body()
 
         assertTrue(response.isSuccessful)

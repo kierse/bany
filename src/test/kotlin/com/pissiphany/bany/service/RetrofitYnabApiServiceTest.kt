@@ -4,25 +4,26 @@ import com.pissiphany.bany.adapter.dataStructure.*
 import com.pissiphany.bany.dataStructure.*
 import com.pissiphany.bany.mapper.RetrofitAccountMapper
 import com.pissiphany.bany.mapper.RetrofitTransactionMapper
-import okhttp3.Request
-import okio.Timeout
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
+import okhttp3.ResponseBody.Companion.toResponseBody
+import okio.IOException
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
-import retrofit2.Call
-import retrofit2.Callback
+import org.junit.jupiter.api.assertThrows
 import retrofit2.Response
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-internal class RetrofitYnabApiServiceTest {
+@OptIn(ExperimentalCoroutinesApi::class)
+class RetrofitYnabApiServiceTest {
     @Test
-    fun getAccount() {
-        val ynabService = TestService(
-            budgetId = "budgetId", accountId = "accountId", account = RetrofitAccount("accountId", "name", false, 5, "checking")
-        )
+    fun getAccount() = runTest {
+        val account = RetrofitAccount("accountId", "name", false, 5, "checking")
+        val ynabService = TestService { Response.success(account) }
         val service = RetrofitYnabApiService(ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper())
 
         assertEquals(
@@ -32,7 +33,23 @@ internal class RetrofitYnabApiServiceTest {
     }
 
     @Test
-    fun getTransactions() {
+    fun `getAccount - null response body`() = runTest {
+        val ynabService = TestService { Response.success(null) }
+        val service = RetrofitYnabApiService(ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper())
+
+        assertNull(service.getAccount(YnabBudgetAccountIds("budgetId", "accountId")))
+    }
+
+    @Test
+    fun `getAccount - call fails with exception`() = runTest {
+        val ynabService = TestService { throw IOException("foo!") }
+        val service = RetrofitYnabApiService(ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper())
+
+        assertNull(service.getAccount(YnabBudgetAccountIds("budgetId", "accountId")))
+    }
+
+    @Test
+    fun getTransactions() = runTest {
         val now = LocalDate.now()
         val budgetAccountIds = YnabBudgetAccountIds("budgetId", "accountId")
         val transactionsWrapper = RetrofitTransactionsWrapper(
@@ -45,12 +62,7 @@ internal class RetrofitYnabApiServiceTest {
             10
         )
 
-        val ynabService = TestService(
-            budgetId = "budgetId",
-            accountId = "accountId",
-            lastKnowledgeOfServer = 10,
-            transactionsWrapper = transactionsWrapper
-        )
+        val ynabService = TestService { Response.success(transactionsWrapper) }
         val service = RetrofitYnabApiService(ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper())
 
         assertEquals(
@@ -60,14 +72,34 @@ internal class RetrofitYnabApiServiceTest {
     }
 
     @Test
-    fun saveTransactions() {
+    fun `getTransactions - call fails with exception`() = runTest {
+        val budgetAccountIds = YnabBudgetAccountIds("budgetId", "accountId")
+
+        val ynabService = TestService { throw IOException("foo!") }
+        val service = RetrofitYnabApiService(ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper())
+
+        assertThrows<IOException> { service.getTransactions(budgetAccountIds, 10) }
+    }
+
+    @Test
+    fun `getTransactions - null response body fails with exception`() = runTest {
+        val budgetAccountIds = YnabBudgetAccountIds("budgetId", "accountId")
+
+        val ynabService = TestService { Response.success(null) }
+        val service = RetrofitYnabApiService(ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper())
+
+        assertThrows<IllegalStateException> { service.getTransactions(budgetAccountIds, 10) }
+    }
+
+    @Test
+    fun saveTransactions() = runTest {
         val now = OffsetDateTime.now()
         val ids = YnabBudgetAccountIds(ynabBudgetId = "budgetId", ynabAccountId = "accountId")
         val ynabTransactions = listOf(
             YnabAccountTransaction("transactionId", "accountId", now, "payee", "memo", 10)
         )
 
-        val ynabService = TestService(budgetId = "budgetId")
+        val ynabService = TestService { Response.success(Unit) }
         val service = RetrofitYnabApiService(
             ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper()
         )
@@ -75,50 +107,55 @@ internal class RetrofitYnabApiServiceTest {
         assertTrue(service.saveTransactions(ids, ynabTransactions))
     }
 
-    private class TestService(
-        private val budgetId: String,
-        private val accountId: String = "",
-        private val lastKnowledgeOfServer: Int? = null,
-        private val budgetWrapper: RetrofitBudgetWrapper? = null,
-        private val account: RetrofitAccount? = null,
-        private val transactionsWrapper: RetrofitTransactionsWrapper? = null
-    ) : RetrofitYnabService {
-        override fun getTransactions(
-            budgetId: String, accountId: String, lastKnowledgeOfServer: Int?
-        ): Call<RetrofitTransactionsWrapper> {
-            val assertion = this.budgetId == budgetId
-                    && this.accountId == accountId
-                    && this.lastKnowledgeOfServer == lastKnowledgeOfServer
-            return TestCall(if (assertion) transactionsWrapper else null)
-        }
+    @Test
+    fun `saveTransactions - null response body`() = runTest {
+        val now = OffsetDateTime.now()
+        val ids = YnabBudgetAccountIds(ynabBudgetId = "budgetId", ynabAccountId = "accountId")
+        val ynabTransactions = listOf(
+            YnabAccountTransaction("transactionId", "accountId", now, "payee", "memo", 10)
+        )
 
-        override fun saveTransactions(budgetId: String, transactions: RetrofitTransactions): Call<Unit> {
-            return TestCall(if (this.budgetId == budgetId) Unit else null)
-        }
+        val ynabService = TestService { Response.error<Unit>(500, byteArrayOf().toResponseBody()) }
+        val service = RetrofitYnabApiService(
+            ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper()
+        )
 
-        override fun getBudget(budgetId: String): Call<RetrofitBudgetWrapper> {
-            return TestCall(if (this.budgetId == budgetId) budgetWrapper else null)
-        }
-
-        override fun getAccount(budgetId: String, accountId: String): Call<RetrofitAccount> {
-            return TestCall(if (budgetId == this.budgetId && accountId == this.accountId) account else null)
-        }
-
-        /** NOT NEEDED **/
-        override fun getBudgets(): Call<RetrofitBudgets> { TODO("not implemented") }
-        override fun getAccounts(budgetId: String): Call<RetrofitAccounts> { TODO("not implemented") }
+        assertFalse(service.saveTransactions(ids, ynabTransactions))
     }
 
-    private class TestCall<T>(private val obj: T?) : Call<T> {
-        override fun execute(): Response<T> = Response.success(obj)
+    @Test
+    fun `saveTransactions - call fails with exception`() = runTest {
+        val ids = YnabBudgetAccountIds(ynabBudgetId = "budgetId", ynabAccountId = "accountId")
+
+        val ynabService = TestService { throw IOException("foo!") }
+        val service = RetrofitYnabApiService(
+            ynabService, RetrofitAccountMapper(), RetrofitTransactionMapper()
+        )
+
+        assertFalse(service.saveTransactions(ids, emptyList()))
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private class TestService(private val response: () -> Response<*>) : RetrofitYnabService {
+        override suspend fun getAccount(budgetId: String, accountId: String): Response<RetrofitAccount> {
+            return response() as Response<RetrofitAccount>
+        }
+
+        override suspend fun getTransactions(
+            budgetId: String,
+            accountId: String,
+            lastKnowledgeOfServer: Int?
+        ): Response<RetrofitTransactionsWrapper> {
+            return response() as Response<RetrofitTransactionsWrapper>
+        }
+
+        override suspend fun saveTransactions(budgetId: String, transactions: RetrofitTransactions): Response<Unit> {
+            return response() as Response<Unit>
+        }
 
         /** NOT NEEDED **/
-        override fun enqueue(callback: Callback<T>) { TODO("not implemented") }
-        override fun isExecuted(): Boolean { TODO("not implemented") }
-        override fun clone(): Call<T> { TODO("not implemented") }
-        override fun isCanceled(): Boolean { TODO("not implemented") }
-        override fun cancel() { TODO("not implemented") }
-        override fun request(): Request { TODO("not implemented") }
-        override fun timeout(): Timeout { TODO("Not yet implemented") }
+        override suspend fun getBudgets(): Response<RetrofitBudgets> { TODO("not implemented") }
+        override suspend fun getBudget(budgetId: String): Response<RetrofitBudgetWrapper> { TODO("not implemented") }
+        override suspend fun getAccounts(budgetId: String): Response<RetrofitAccounts> { TODO("not implemented") }
     }
 }

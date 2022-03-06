@@ -27,6 +27,7 @@ allprojects {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
+    api(project(":shared"))
     implementation(project(":bany-plugin-api"))
     implementation(project(":domain"))
     implementation(project(":adapter"))

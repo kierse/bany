@@ -2,34 +2,40 @@ package com.pissiphany.bany.service
 
 import com.pissiphany.bany.annotation.DataEnvelope
 import com.pissiphany.bany.dataStructure.*
-import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.*
 
 interface RetrofitYnabService {
     @DataEnvelope
     @GET("/v1/budgets")
-    fun getBudgets(): Call<RetrofitBudgets>
+    suspend fun getBudgets(): Response<RetrofitBudgets>
 
     @DataEnvelope
     @GET("/v1/budgets/{budget_id}")
-    fun getBudget(@Path("budget_id") budgetId: String): Call<RetrofitBudgetWrapper>
+    suspend fun getBudget(@Path("budget_id") budgetId: String): Response<RetrofitBudgetWrapper>
 
     @DataEnvelope
     @GET("/v1/budgets/{budget_id}/accounts")
-    fun getAccounts(@Path("budget_id") budgetId: String): Call<RetrofitAccounts>
+    suspend fun getAccounts(@Path("budget_id") budgetId: String): Response<RetrofitAccounts>
 
     @DataEnvelope(wrappers = 2)
     @GET("/v1/budgets/{budget_id}/accounts/{account_id}")
-    fun getAccount(@Path("budget_id") budgetId: String, @Path("account_id") accountId: String): Call<RetrofitAccount>
+    suspend fun getAccount(
+        @Path("budget_id") budgetId: String,
+        @Path("account_id") accountId: String
+    ): Response<RetrofitAccount>
 
     @DataEnvelope
     @GET("/v1/budgets/{budget_id}/accounts/{account_id}/transactions")
-    fun getTransactions(
+    suspend fun getTransactions(
         @Path("budget_id") budgetId: String,
         @Path("account_id") accountId: String,
         @Query("last_knowledge_of_server") lastKnowledgeOfServer: Int? = null
-    ): Call<RetrofitTransactionsWrapper>
+    ): Response<RetrofitTransactionsWrapper>
 
     @POST("/v1/budgets/{budget_id}/transactions")
-    fun saveTransactions(@Path("budget_id") budgetId: String, @Body transactions: RetrofitTransactions): Call<Unit>
+    suspend fun saveTransactions(
+        @Path("budget_id") budgetId: String,
+        @Body transactions: RetrofitTransactions
+    ): Response<Unit>
 }

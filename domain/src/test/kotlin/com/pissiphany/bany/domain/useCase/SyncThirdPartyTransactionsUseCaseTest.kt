@@ -2,15 +2,18 @@ package com.pissiphany.bany.domain.useCase
 
 import com.pissiphany.bany.domain.dataStructure.*
 import com.pissiphany.bany.domain.repository.ConfigurationRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 import java.time.OffsetDateTime
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class SyncThirdPartyTransactionsUseCaseTest {
     @Test
-    fun sync() {
+    fun sync() = runTest {
         val budgetAccountIds = BudgetAccountIds(name = "name", budgetId = "budgetId", accountId = "accountId")
         val account = Account("accountId", "accountName", 1, false, Account.Type.CHECKING)
 
@@ -33,15 +36,13 @@ internal class SyncThirdPartyTransactionsUseCaseTest {
     }
 
     @Test
-    fun `sync - only zero dollar transactions`() {
+    fun `sync - only zero dollar transactions`() = runTest {
         val budgetAccountIds = BudgetAccountIds(name = "name", budgetId = "budgetId", accountId = "accountId")
         val account = Account("accountId", "accountName", 1, false, Account.Type.CHECKING)
 
         val lastTransaction = AccountTransaction("transactionId1", OffsetDateTime.now(), "payee", "memo", 2)
 
         val transactions = listOf(AccountTransaction("transactionId2", OffsetDateTime.now(), "payee", "memo", 3))
-
-        val results = listOf(SyncTransactionsResult(budgetAccountIds, lastTransaction.date, emptyList()))
 
         val repo = TestConfigRepo(listOf(budgetAccountIds))
         val step1 = Step1Test(AccountAndTransaction(account, lastTransaction))
@@ -60,19 +61,19 @@ internal class SyncThirdPartyTransactionsUseCaseTest {
 
         SyncThirdPartyTransactionsUseCase(repo, step1, step2, step3, step4, output).sync()
 
-        assertEquals(results, output.results)
+        assertEquals(emptyList<SyncTransactionsResult>(), output.results)
     }
 
     private class TestConfigRepo(private val budgetAccountIds: List<BudgetAccountIds>) : ConfigurationRepository {
-        override fun getBudgetAccountIds(): List<BudgetAccountIds> = budgetAccountIds
+        override suspend fun getBudgetAccountIds(): List<BudgetAccountIds> = budgetAccountIds
     }
 
     private class Step1Test(private val accountAndTransaction: AccountAndTransaction) : SyncThirdPartyTransactionsUseCase.Step1GetAccountDetails {
-        override fun getAccountAndLastTransaction(budgetAccountIds: BudgetAccountIds) = accountAndTransaction
+        override suspend fun getAccountAndLastTransaction(budgetAccountIds: BudgetAccountIds) = accountAndTransaction
     }
 
     private class Step2Test(private val transactions: List<Transaction>) : SyncThirdPartyTransactionsUseCase.Step2GetNewTransactions {
-        override fun getTransactions(budgetAccountIds: BudgetAccountIds, date: LocalDate?) = transactions
+        override suspend fun getTransactions(budgetAccountIds: BudgetAccountIds, date: LocalDate?) = transactions
     }
 
     private class Step3Test(
@@ -86,7 +87,7 @@ internal class SyncThirdPartyTransactionsUseCaseTest {
     private class Step4Test: SyncThirdPartyTransactionsUseCase.Step4SaveNewTransactions {
         var transactions = emptyList<Transaction>()
 
-        override fun saveTransactions(budgetAccountIds: BudgetAccountIds, transactions: List<AccountTransaction>) {
+        override suspend fun saveTransactions(budgetAccountIds: BudgetAccountIds, transactions: List<AccountTransaction>) {
             this.transactions = transactions
         }
     }

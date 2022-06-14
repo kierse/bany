@@ -3,8 +3,8 @@ package com.pissiphany.bany.domain.useCase
 import com.pissiphany.bany.domain.dataStructure.*
 import com.pissiphany.bany.domain.repository.ConfigurationRepository
 import com.pissiphany.bany.shared.logger
+import kotlinx.coroutines.*
 import java.time.LocalDate
-import java.time.OffsetDateTime
 
 class SyncThirdPartyTransactionsUseCase(
     private val repo: ConfigurationRepository,
@@ -33,30 +33,40 @@ class SyncThirdPartyTransactionsUseCase(
     private val logger by logger()
 
     suspend fun sync() {
-        val results = mutableListOf<SyncTransactionsResult>()
-        for (budgetAccountIds in repo.getBudgetAccountIds()) {
-            val (dateOfLastTransaction, transactions) = syncNewThirdPartyTransactions(budgetAccountIds)
+        val deferredResults = supervisorScope {
+            repo.getBudgetAccountIds()
+                .map { budgetAccountIds ->
+                    async {
+                        val (account, lastTransaction) = getAccountDetails.getAccountAndLastTransaction(budgetAccountIds)
 
-            results.add(SyncTransactionsResult(budgetAccountIds, dateOfLastTransaction, transactions))
+                        newThirdPartyTransactions
+                            .getTransactions(
+                                budgetAccountIds,
+                                lastTransaction?.date?.toLocalDate()
+                            )
+                            .map { processNewTransaction.processTransaction(account, it) }
+                            .filter { it.amountInCents != 0 }
+                            .takeIf(List<AccountTransaction>::isNotEmpty)
+                            ?.also { transactions ->
+                                logger.debug { "Saving the following to ${budgetAccountIds.name}: $transactions" }
+                                saveTransactions.saveTransactions(budgetAccountIds, transactions)
+                            }
+                            ?.let { transactions ->
+                                SyncTransactionsResult(budgetAccountIds, lastTransaction?.date, transactions)
+                            }
+                    }
+                }
+        }
+
+        val results = deferredResults.mapNotNull { deferred ->
+            try {
+                deferred.await()
+            } catch (e: Throwable) {
+                logger.error("Error encountered while syncing: ${e.message}")
+                null
+            }
         }
 
         outputBoundary.present(results)
-    }
-
-    private suspend fun syncNewThirdPartyTransactions(
-        budgetAccountIds: BudgetAccountIds
-    ): Pair<OffsetDateTime?, List<Transaction>> {
-        val (account, lastTransaction) = getAccountDetails.getAccountAndLastTransaction(budgetAccountIds)
-
-        val date = lastTransaction?.date
-        val newTransactions = newThirdPartyTransactions.getTransactions(budgetAccountIds, date?.toLocalDate())
-            .map { processNewTransaction.processTransaction(account, it) }
-            .filter { it.amountInCents != 0 }
-            .also { transactions ->
-                logger.debug { "Saving the following to ${budgetAccountIds.name}: $transactions" }
-                saveTransactions.saveTransactions(budgetAccountIds, transactions)
-            }
-
-        return Pair(date, newTransactions)
     }
 }

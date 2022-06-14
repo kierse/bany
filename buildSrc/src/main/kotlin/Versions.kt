@@ -48,6 +48,10 @@ object Versions {
             private const val version = "4.9.1"
             override val dependency = "com.squareup.okhttp3:okhttp:$version"
 
+            object LoggingInterceptor : Dependency {
+                override val dependency = "com.squareup.okhttp3:logging-interceptor:$version"
+            }
+
             object MockWebServer : Dependency {
                 override val dependency = "com.squareup.okhttp3:mockwebserver:$version"
             }

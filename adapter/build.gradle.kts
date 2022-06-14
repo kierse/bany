@@ -8,6 +8,7 @@ version = "1.0-SNAPSHOT"
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
+    implementation(project(":shared"))
     implementation(project(":bany-plugin-api"))
     implementation(project(":domain"))
 

@@ -3,15 +3,19 @@ package com.pissiphany.bany.service
 import com.pissiphany.bany.BASE_URL
 import com.pissiphany.bany.adapter.LocalDateAdapter
 import com.pissiphany.bany.adapter.OffsetDateTimeAdapter
+import com.pissiphany.bany.dataStructure.RetrofitTransaction
+import com.pissiphany.bany.dataStructure.RetrofitTransactions
 import com.pissiphany.bany.factory.DataEnvelopeFactory
 import com.pissiphany.bany.factory.RetrofitFactory
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import okhttp3.logging.HttpLoggingInterceptor
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
+import java.time.LocalDate
 
 private val CONFIG_DIR = File(System.getProperty("user.home"), ".bany")
 private val CONFIG_FILE = File(CONFIG_DIR, "ynab-integration.config")
@@ -40,7 +44,7 @@ class RetrofitYnabServiceIntegrationTest {
                 }
                 ?: throw UnknownError("unable to read config file! Does file exist at $CONFIG_FILE")
 
-            service = RetrofitFactory.create(BASE_URL, config.apiToken, moshi)
+            service = RetrofitFactory.create(BASE_URL, config.apiToken, moshi, HttpLoggingInterceptor.Level.BODY)
                 .run {
                     create(RetrofitYnabService::class.java)
                 }
@@ -92,6 +96,32 @@ class RetrofitYnabServiceIntegrationTest {
 
         assertTrue(response.isSuccessful)
         assertEquals(config.accountId, account?.id)
+    }
+
+    @Test
+    fun saveTransactions() = runTest {
+        val data = RetrofitTransactions(
+            transactions = listOf(
+                RetrofitTransaction(
+                    account_id = config.accountId,
+                    date = LocalDate.now().minusDays(2L),
+                    payee_name = "payee1",
+                    memo = "memo1",
+                    amount = 10
+                ),
+                RetrofitTransaction(
+                    account_id = config.accountId,
+                    date = LocalDate.now().minusDays(1L),
+                    payee_name = "payee2",
+                    memo = "memo2",
+                    amount = 20
+                )
+            )
+        )
+
+        val response = service.saveTransactions(config.budgetId, data)
+
+        assertTrue(response.isSuccessful)
     }
 
     @JsonClass(generateAdapter = true)

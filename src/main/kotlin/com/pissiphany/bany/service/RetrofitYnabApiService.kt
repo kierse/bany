@@ -68,7 +68,8 @@ class RetrofitYnabApiService(
         }
 
         if (!response.isSuccessful) {
-            logger.warn("Request unsuccessful: (HTTP ${response.code()}) ${response.message()}")
+            val errorBody = response.errorBody()?.string() ?: ""
+            logger.warn("Save transactions request unsuccessful: (HTTP ${response.code()}) ${response.message()} $errorBody")
             return false
         }
 

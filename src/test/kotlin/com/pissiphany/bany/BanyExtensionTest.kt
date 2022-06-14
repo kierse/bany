@@ -4,9 +4,6 @@ import com.pissiphany.bany.adapter.dataStructure.YnabConnection
 import com.pissiphany.bany.adapter.dataStructure.YnabCredentials
 import com.pissiphany.bany.dataStructure.ServiceConnection
 import com.pissiphany.bany.dataStructure.ServiceCredentials
-import com.pissiphany.bany.plugin.BanyConfigurablePlugin
-import com.pissiphany.bany.plugin.BanyPlugin
-import com.pissiphany.bany.plugin.BanyPluginFactory
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

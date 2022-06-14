@@ -5,6 +5,7 @@ import com.pissiphany.bany.domain.dataStructure.AccountBalance
 import com.pissiphany.bany.domain.dataStructure.AccountTransaction
 import com.pissiphany.bany.domain.dataStructure.SyncTransactionsResult
 import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsOutputBoundary
+import com.pissiphany.bany.shared.logger
 import java.math.BigDecimal
 import java.time.format.DateTimeFormatter
 
@@ -13,9 +14,16 @@ class Presenter(private val view: View) : SyncThirdPartyTransactionsOutputBounda
         fun display(model: ViewModel)
     }
 
+    private val logger by logger()
+
     override fun present(results: List<SyncTransactionsResult>) {
         val records = results.mapIndexed { index, result ->
             presentSyncAttempt(index, result)
+        }
+
+        if (records.isEmpty()) {
+            logger.info("No transaction results to display!")
+            return
         }
 
         view.display(ViewModel(records))

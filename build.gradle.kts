@@ -37,6 +37,7 @@ dependencies {
 
     implementation(Versions.KotlinX.Coroutines.Core.dependency)
 
+    implementation(Versions.Square.OkHttp.LoggingInterceptor.dependency)
     implementation(Versions.Square.Retrofit.dependency)
     implementation(Versions.Square.Retrofit.Converters.Moshi.dependency)
     implementation(Versions.Square.Moshi.dependency)

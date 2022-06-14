@@ -4,13 +4,16 @@ import com.pissiphany.bany.adapter.dataStructure.YnabConnection
 import com.pissiphany.bany.adapter.dataStructure.YnabCredentials
 import com.pissiphany.bany.adapter.mapper.YnabBudgetAccountIdsMapper
 import com.pissiphany.bany.domain.dataStructure.BudgetAccountIds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
 
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class ConfigurationRepositoryImplTest {
     @Test
-    fun getBudgetAccountIds() {
+    fun getBudgetAccountIds() = runTest {
         val budgetAccountId1 = BudgetAccountIds("name1", "ynabBudgetId1", "ynabAccountId1")
         val budgetAccountId2 = BudgetAccountIds("name2", "ynabBudgetId2", "ynabAccountId2")
         val credentials = listOf(

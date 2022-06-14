@@ -32,7 +32,7 @@ import com.pissiphany.bany.service.RetrofitYnabService
 import com.pissiphany.bany.service.RetrofitYnabApiService
 import com.pissiphany.bany.service.ThirdPartyTransactionServiceImpl
 import com.squareup.moshi.Moshi
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.pf4j.DefaultPluginManager
 
@@ -94,28 +94,42 @@ fun main() = runBlocking {
 
     val initializedPlugins = mutableListOf<ConfigurablePlugin>()
     try {
-        val initializedServices = mutableListOf<ThirdPartyTransactionService>()
-        for ((pluginName, serviceCredentialsList) in enabledPlugins) {
-            val factory = factoryMap[pluginName]
-            if (factory == null) {
-                logger.warn { "Unable to find plugin factory for '$pluginName', skipping!" }
-                continue
-            }
+        val deferredServices = supervisorScope {
+            buildList {
+                for ((pluginName, serviceCredentialsList) in enabledPlugins) {
+                    val factory = factoryMap[pluginName]
+                    if (factory == null) {
+                        logger.warn { "Unable to find plugin factory for '$pluginName', skipping!" }
+                        continue
+                    }
 
-            for (serviceCredentials in serviceCredentialsList) {
-                val plugin = factory.createPlugin(pluginName, credentialsMap.getValue(serviceCredentials))
-                if (!plugin.setup()) {
-                    logger.info("Skipping service credentials '${serviceCredentials.description}'. Failed to setup plugin")
-                    continue
+                    for (serviceCredentials in serviceCredentialsList) {
+                        val deferred = async {
+                            val plugin = factory.createPlugin(pluginName, credentialsMap.getValue(serviceCredentials))
+                            if (plugin.setup()) {
+                                logger.debug { "Initialized '$pluginName' plugin: '${serviceCredentials.description}'" }
+                                ThirdPartyTransactionServiceImpl(plugin, BanyPluginDataMapper())
+                            } else {
+                                logger.info("Skipping service credentials '${serviceCredentials.description}'. Failed to setup plugin")
+                                null
+                            }
+                        }
+                        add(deferred)
+                    }
                 }
-
-                logger.debug { "Initialized '$pluginName' plugin: '${serviceCredentials.description}'" }
-                initializedServices.add(ThirdPartyTransactionServiceImpl(plugin, BanyPluginDataMapper()))
-                initializedPlugins.add(plugin)
             }
         }
 
-        check(initializedServices.isNotEmpty()) { "No enabled plugins found!" }
+        val initializedServices = deferredServices
+            .fold(mutableListOf<ThirdPartyTransactionService>()) { acc, cur ->
+                try {
+                    val service = cur.await()
+                    if (service != null) acc += service
+                } catch (e: Throwable) {
+                    logger.error("Exception while configuring plugin: ${e.message}")
+                }
+                acc
+            }
 
         // Step2GetNewTransactions
         val gatewayFactory = ThirdPartyTransactionGatewayFactoryImpl(
@@ -138,12 +152,17 @@ fun main() = runBlocking {
         lastKnowledgeOfServerRepository.saveChanges()
     } finally {
         logger.info("Tearing down plugins")
-        initializedPlugins.forEach { it.tearDown() }
+        val jobs = supervisorScope {
+            initializedPlugins
+                .map { plugin -> launch { plugin.tearDown() } }
+        }
+        jobs.joinAll()
     }
 
     // stop all active plugins
-    logger.info("Stopping plugins")
+    logger.info("Stopping plugins...")
     pluginManager.stopPlugins()
+    logger.info("Done!")
 }
 
 internal fun <K,V> List<K>.associateWithNotNull(valueSelector: (K) -> V?): Map<K,V> {

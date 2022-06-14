@@ -3,11 +3,11 @@ interface Dependency {
 }
 
 object Versions {
-    const val kotlin = "1.6.10"
+    const val kotlin = "1.7.0"
 
     object KotlinX {
         object Coroutines {
-            private const val version = "1.6.0"
+            private const val version = "1.6.2"
 
             object Core : Dependency {
                 override val dependency = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$version"

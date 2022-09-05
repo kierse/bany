@@ -12,12 +12,12 @@ dependencies {
     implementation(project(":bany-plugin-api"))
     implementation(project(":domain"))
 
-    implementation(Versions.KotlinX.Coroutines.Core.dependency)
+    implementation(libs.kotlinx.coroutines.core)
 
-    testImplementation(Versions.KotlinX.Coroutines.Test.dependency)
-    testImplementation(Versions.Junit.Jupiter.dependency)
-    testImplementation(Versions.Junit.Jupiter.Api.dependency)
-    testRuntimeOnly(Versions.Junit.Jupiter.Engine.dependency)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 tasks.named<Test>("test") {

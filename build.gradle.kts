@@ -35,27 +35,27 @@ dependencies {
     implementation(project(":plugins:equitable"))
     implementation(project(":plugins:stock"))
 
-    implementation(Versions.KotlinX.Coroutines.Core.dependency)
+    implementation(libs.kotlinx.coroutines.core)
 
-    implementation(Versions.Square.OkHttp.LoggingInterceptor.dependency)
-    implementation(Versions.Square.Retrofit.dependency)
-    implementation(Versions.Square.Retrofit.Converters.Moshi.dependency)
-    implementation(Versions.Square.Moshi.dependency)
-    kapt(Versions.Square.Moshi.KotlinCodegen.dependency)
+    implementation(libs.square.okhttp.interceptor.logging)
+    implementation(libs.square.retrofit)
+    implementation(libs.square.retrofit.converters.moshi)
+    implementation(libs.square.moshi)
+    kapt(libs.square.moshi.codegen)
 
-    implementation(Versions.KotlinLogging.dependency)
+    implementation(libs.kotlin.logging)
 
     // pf4j
-    implementation(Versions.Pf4j.dependency)
-    implementation(Versions.Slf4j.dependency)
+    implementation(libs.pf4j)
+    implementation(libs.slf4j)
 
-    kaptTest(Versions.Square.Moshi.KotlinCodegen.dependency)
-    testImplementation(Versions.KotlinX.Coroutines.Test.dependency)
-    testImplementation(Versions.Square.OkHttp.MockWebServer.dependency)
-    testImplementation(Versions.Square.Retrofit.Converters.Scalars.dependency)
-    testImplementation(Versions.Junit.Jupiter.dependency)
-    testImplementation(Versions.Junit.Jupiter.Api.dependency)
-    testRuntimeOnly(Versions.Junit.Jupiter.Engine.dependency)
+    kaptTest(libs.square.moshi.codegen)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.square.okhttp.mock.webserver)
+    testImplementation(libs.square.retrofit.converters.scalars)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 tasks.named<Test>("test") {

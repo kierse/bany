@@ -8,16 +8,16 @@ version = "1.0-SNAPSHOT"
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
-    api(Versions.KotlinLogging.dependency)
-    implementation(Versions.Slf4j.dependency)
+    api(libs.kotlin.logging)
+    implementation(libs.slf4j)
 
-    implementation(Versions.Square.OkHttp.dependency)
+    implementation(libs.square.okhttp)
 
-    testImplementation(Versions.Square.OkHttp.MockWebServer.dependency)
-    testImplementation(Versions.KotlinX.Coroutines.Test.dependency)
-    testImplementation(Versions.Junit.Jupiter.dependency)
-    testImplementation(Versions.Junit.Jupiter.Api.dependency)
-    testRuntimeOnly(Versions.Junit.Jupiter.Engine.dependency)
+    testImplementation(libs.square.okhttp.mock.webserver)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 tasks.named<Test>("test") {

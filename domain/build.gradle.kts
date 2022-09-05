@@ -10,12 +10,12 @@ dependencies {
 
     implementation(project(":shared"))
 
-    implementation(Versions.KotlinX.Coroutines.Core.dependency)
+    implementation(libs.kotlinx.coroutines.core)
 
-    testImplementation(Versions.Junit.Jupiter.dependency)
-    testImplementation(Versions.Junit.Jupiter.Api.dependency)
-    testRuntimeOnly(Versions.Junit.Jupiter.Engine.dependency)
-    testImplementation(Versions.KotlinX.Coroutines.Test.dependency)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
 
 tasks.named<Test>("test") {

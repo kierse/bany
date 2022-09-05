@@ -16,7 +16,6 @@ import com.pissiphany.bany.domain.useCase.SyncThirdPartyTransactionsUseCase
 import com.pissiphany.bany.factory.DataEnvelopeFactory
 import com.pissiphany.bany.adapter.LocalDateAdapter
 import com.pissiphany.bany.adapter.OffsetDateTimeAdapter
-import com.pissiphany.bany.adapter.dataStructure.YnabConnection
 import com.pissiphany.bany.adapter.dataStructure.YnabCredentials
 import com.pissiphany.bany.adapter.service.ThirdPartyTransactionService
 import com.pissiphany.bany.dataStructure.ServiceCredentials
@@ -27,7 +26,6 @@ import com.pissiphany.bany.plugin.BanyPluginFactory
 import com.pissiphany.bany.factory.RetrofitFactory
 import com.pissiphany.bany.mapper.BanyPluginDataMapper
 import com.pissiphany.bany.plugin.ConfigurablePlugin
-import com.pissiphany.bany.plugin.PluginName
 import com.pissiphany.bany.service.RetrofitYnabService
 import com.pissiphany.bany.service.RetrofitYnabApiService
 import com.pissiphany.bany.service.ThirdPartyTransactionServiceImpl
@@ -52,9 +50,7 @@ fun main() = runBlocking {
         "Unable to parse and instantiate application config!"
     }
 
-    val enabledPlugins: Map<PluginName, List<ServiceCredentials>> = config.plugins
-        .mapValues { (_, credentialList) -> credentialList.filter(ServiceCredentials::enabled) }
-        .filter { it.value.isNotEmpty() }
+    val enabledPlugins = config.plugins.filterDisabledPlugins()
     check(enabledPlugins.isNotEmpty()) { "No enabled plugins found!" }
 
     logger.info { "Found plugin configuration for: ${enabledPlugins.keys.sorted().joinToString(", ")}" }
@@ -164,59 +160,3 @@ fun main() = runBlocking {
     pluginManager.stopPlugins()
     logger.info("Done!")
 }
-
-internal fun <K,V> List<K>.associateWithNotNull(valueSelector: (K) -> V?): Map<K,V> {
-    val result = mutableMapOf<K,V>()
-    for (key in this) {
-        val value = valueSelector(key) ?: continue
-        result[key] = value
-    }
-
-    return result
-}
-
-internal fun mapToYnabCredentials(credentials: ServiceCredentials): YnabCredentials? {
-    val connections = mutableListOf<YnabConnection>()
-    for ((budgetId, serviceConnections) in credentials.connections) {
-        for (serviceConnection in serviceConnections) {
-            if (!serviceConnection.enabled) continue
-            connections += with(serviceConnection) {
-                YnabConnection(
-                    name = name,
-                    ynabBudgetId = budgetId,
-                    ynabAccountId = ynabAccountId,
-                    thirdPartyAccountId = thirdPartyAccountId,
-                    data = data
-                )
-            }
-        }
-    }
-
-    if (connections.isEmpty()) return null
-
-    return YnabCredentials(
-        username = credentials.username,
-        password = credentials.password,
-        connections = connections,
-        data = credentials.data,
-        enabled = credentials.enabled,
-        description = credentials.description
-    )
-}
-
-private fun buildFactoryMap(factories: List<BanyPluginFactory>): Map<PluginName, BanyPluginFactory> {
-    val map = mutableMapOf<String, BanyPluginFactory>()
-    for (factory in factories) {
-        for (pluginName in factory.pluginNames) {
-            if (pluginName in map) {
-                throw DuplicatePluginConfigurationException("multiple factories report a plugin named '$pluginName'")
-            }
-
-            map[pluginName] = factory
-        }
-    }
-
-    return map
-}
-
-private class DuplicatePluginConfigurationException(message: String) : Throwable(message)

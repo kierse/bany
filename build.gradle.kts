@@ -2,8 +2,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
-    kotlin("jvm") version Versions.kotlin
-    kotlin("kapt") version Versions.kotlin
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.kapt)
 }
 
 // https://docs.gradle.org/current/userguide/application_plugin.html

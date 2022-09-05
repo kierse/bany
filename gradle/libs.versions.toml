@@ -33,3 +33,5 @@ kotlinx-coroutines-test= { module = "org.jetbrains.kotlinx:kotlinx-coroutines-te
 square-okhttp-mock-webserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "square-okhttp" }
 
 [plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }

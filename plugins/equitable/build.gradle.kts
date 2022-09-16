@@ -14,7 +14,7 @@ dependencies {
     api(project(":bany-plugin-api"))
 
     implementation(libs.square.okhttp)
-    implementation(Versions.Jsoup.dependency)
+    implementation(libs.jsoup)
 
     // pf4j
     implementation(libs.pf4j)

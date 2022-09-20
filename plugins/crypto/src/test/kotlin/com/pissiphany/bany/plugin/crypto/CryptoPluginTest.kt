@@ -93,7 +93,7 @@ class CryptoPluginTest {
 
     @Test
     fun `setup - required data and at least one valid connection`() = runTest {
-        assertTrue(CryptoPlugin(client, moshi, credentials).setup())
+        assertTrue(CryptoPlugin("crypto", client, moshi, credentials).setup())
     }
 
     @ParameterizedTest(name = "setup - [${ParameterizedTest.INDEX_PLACEHOLDER}] missing ${ParameterizedTest.ARGUMENTS_WITH_NAMES_PLACEHOLDER}")
@@ -102,13 +102,13 @@ class CryptoPluginTest {
         val connection = validConnection1.copy(data = validConnection1.data.minus(key))
         val credentials = credentials.copy(connections = listOf(connection))
 
-        assertFalse(CryptoPlugin(client, moshi, credentials).setup())
+        assertFalse(CryptoPlugin("crypto", client, moshi, credentials).setup())
     }
 
     @Test
     fun getBanyPluginBudgetAccountIds() = runTest {
         val credentials = credentials.copy(connections = listOf(validConnection1, validConnection2, validConnection3))
-        val results = CryptoPlugin(client, moshi, credentials).getBanyPluginBudgetAccountIds()
+        val results = CryptoPlugin("crypto", client, moshi, credentials).getBanyPluginBudgetAccountIds()
 
         assertEquals(
             listOf(
@@ -150,7 +150,7 @@ class CryptoPluginTest {
             }
             val expectedAmount = BigDecimal(data.getValue(AMOUNT)) * givenAmount
 
-            val results = with(CryptoPlugin(client, moshi, credentials, server.url("/"))) {
+            val results = with(CryptoPlugin("crypto", client, moshi, credentials, server.url("/"))) {
                 setup()
                 getNewBanyPluginTransactionsSince(
                     BanyPluginBudgetAccountIds(ynabBudgetId = ynabBudgetId, ynabAccountId = ynabAccountId), null

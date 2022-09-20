@@ -52,7 +52,7 @@ class EquitableLifePluginTest {
     @Test
     fun setup() = runTest {
         val client = TestClient(TestClientSession())
-        val plugin = EquitableLifePlugin(client, credentials)
+        val plugin = EquitableLifePlugin("equitable", client, credentials)
 
         assertTrue(plugin.setup())
         assertEquals(credentials.username, client.username)
@@ -63,7 +63,7 @@ class EquitableLifePluginTest {
     @Test
     fun tearDown() = runTest {
         val session = TestClientSession()
-        val plugin = EquitableLifePlugin(TestClient(session), credentials)
+        val plugin = EquitableLifePlugin("equitable", TestClient(session), credentials)
 
         plugin.setup()
         plugin.tearDown()
@@ -74,7 +74,7 @@ class EquitableLifePluginTest {
 
     @Test
     fun getBanyPluginBudgetAccountIds() = runTest {
-        val results = EquitableLifePlugin(TestClient(TestClientSession()), credentials)
+        val results = EquitableLifePlugin("equitable", TestClient(TestClientSession()), credentials)
             .getBanyPluginBudgetAccountIds()
 
         assertEquals(BanyPluginBudgetAccountIds("budget1", "account1"), results[0])
@@ -85,7 +85,7 @@ class EquitableLifePluginTest {
     @Test
     fun `getNewBanyPluginTransactionsSince - throw on unknown connection`() = runTest {
         assertThrows<NoSuchElementException> {
-            EquitableLifePlugin(TestClient(TestClientSession()), credentials).getNewBanyPluginTransactionsSince(
+            EquitableLifePlugin("equitable", TestClient(TestClientSession()), credentials).getNewBanyPluginTransactionsSince(
                 BanyPluginBudgetAccountIds(ynabBudgetId = "foo", ynabAccountId = "bar"), null
             )
         }
@@ -113,7 +113,7 @@ class EquitableLifePluginTest {
         )
 
         assertThrows<IllegalArgumentException> {
-            EquitableLifePlugin(TestClient(TestClientSession()), credentials).getNewBanyPluginTransactionsSince(
+            EquitableLifePlugin("equitable", TestClient(TestClientSession()), credentials).getNewBanyPluginTransactionsSince(
                 BanyPluginBudgetAccountIds(ynabBudgetId = "budget1", ynabAccountId = "account1"), null
             )
         }
@@ -127,7 +127,7 @@ class EquitableLifePluginTest {
     )
     fun `getNewBanyPluginTransactionsSince - throw on null session`(budgetId: String, accountId: String) = runTest {
         assertThrows<IllegalStateException> {
-            EquitableLifePlugin(TestClient(TestClientSession()), credentials).getNewBanyPluginTransactionsSince(
+            EquitableLifePlugin("equitable", TestClient(TestClientSession()), credentials).getNewBanyPluginTransactionsSince(
                 BanyPluginBudgetAccountIds(ynabBudgetId = budgetId, ynabAccountId = accountId), null
             )
         }
@@ -141,7 +141,7 @@ class EquitableLifePluginTest {
     )
     fun `getNewBanyPluginTransactionsSince - throw on invalid session`(budgetId: String, accountId: String) = runTest {
         assertThrows<IllegalStateException> {
-            with(EquitableLifePlugin(TestClient(TestClientSession()), credentials)) {
+            with(EquitableLifePlugin("equitable", TestClient(TestClientSession()), credentials)) {
                 setup()
                 getNewBanyPluginTransactionsSince(
                     BanyPluginBudgetAccountIds(ynabBudgetId = budgetId, ynabAccountId = accountId), null
@@ -162,7 +162,7 @@ class EquitableLifePluginTest {
             )
         )
 
-        with(EquitableLifePlugin(TestClient(session), credentials)) {
+        with(EquitableLifePlugin("equitable", TestClient(session), credentials)) {
             setup()
 
             val results = getNewBanyPluginTransactionsSince(
@@ -191,7 +191,7 @@ class EquitableLifePluginTest {
             )
         )
 
-        with(EquitableLifePlugin(TestClient(session), credentials)) {
+        with(EquitableLifePlugin("equitable", TestClient(session), credentials)) {
             setup()
 
             val results = getNewBanyPluginTransactionsSince(
@@ -216,7 +216,7 @@ class EquitableLifePluginTest {
             )
         )
 
-        with(EquitableLifePlugin(TestClient(session), credentials)) {
+        with(EquitableLifePlugin("equitable", TestClient(session), credentials)) {
             setup()
 
             val results = getNewBanyPluginTransactionsSince(

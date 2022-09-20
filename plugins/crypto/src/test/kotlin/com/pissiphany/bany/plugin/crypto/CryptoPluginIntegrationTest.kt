@@ -40,7 +40,7 @@ class CryptoPluginIntegrationTest {
 
     @Test
     fun integration() = runTest {
-        with(CryptoPlugin(client, moshi, credentials)) {
+        with(CryptoPlugin("crypto", client, moshi, credentials)) {
             setup()
             getNewBanyPluginTransactionsSince(BanyPluginBudgetAccountIds("budgetId", "bitcoin"), null)
                 .let { transactions ->

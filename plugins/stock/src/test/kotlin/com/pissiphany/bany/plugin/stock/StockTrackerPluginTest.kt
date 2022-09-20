@@ -85,7 +85,7 @@ class StockTrackerPluginTest {
     fun `setup - return false when connection missing required data param`(token: String) = runTest {
         val credentials = credentials.copy(data = credentials.data.minus(token))
 
-        assertFalse(StockTrackerPlugin(client, moshi, credentials).setup())
+        assertFalse(StockTrackerPlugin("stock", client, moshi, credentials).setup())
     }
 
     @Test
@@ -99,12 +99,12 @@ class StockTrackerPluginTest {
         val invalidConnections = listOf(invalid1, invalid2, invalid3, invalid4, invalid5)
         val credentials = credentials.copy(connections = invalidConnections)
 
-        assertFalse(StockTrackerPlugin(client, moshi, credentials).setup())
+        assertFalse(StockTrackerPlugin("stock", client, moshi, credentials).setup())
     }
 
     @Test
     fun `setup - required data and at least one valid connection`() = runTest {
-        assertTrue(StockTrackerPlugin(client, moshi, credentials).setup())
+        assertTrue(StockTrackerPlugin("stock", client, moshi, credentials).setup())
     }
 
     @Test
@@ -114,7 +114,7 @@ class StockTrackerPluginTest {
             ynabAccountId = validConnection.ynabAccountId,
         )
 
-        val plugin = StockTrackerPlugin(client, moshi, credentials)
+        val plugin = StockTrackerPlugin("stock", client, moshi, credentials)
             .apply { setup() }
 
         assertEquals(listOf(expected), plugin.getBanyPluginBudgetAccountIds())
@@ -137,6 +137,7 @@ class StockTrackerPluginTest {
 
         val results = with(
             StockTrackerPlugin(
+                "stock",
                 client,
                 moshi,
                 credentials,
@@ -183,6 +184,7 @@ class StockTrackerPluginTest {
 
         val results = with(
             StockTrackerPlugin(
+                "stock",
                 client,
                 moshi,
                 credentials,
@@ -215,6 +217,7 @@ class StockTrackerPluginTest {
 
         val results = with(
             StockTrackerPlugin(
+                "stock",
                 client,
                 moshi,
                 credentials,
@@ -247,6 +250,7 @@ class StockTrackerPluginTest {
 
         val results = with(
             StockTrackerPlugin(
+                "stock",
                 client,
                 moshi,
                 credentials,
@@ -279,6 +283,7 @@ class StockTrackerPluginTest {
 
         val results = with(
             StockTrackerPlugin(
+                "stock",
                 client,
                 moshi,
                 credentials,
@@ -313,6 +318,7 @@ class StockTrackerPluginTest {
 
         val results = with(
             StockTrackerPlugin(
+                "stock",
                 client,
                 moshi,
                 credentials,
@@ -347,6 +353,7 @@ class StockTrackerPluginTest {
 
         val results = with(
             StockTrackerPlugin(
+                "stock",
                 client,
                 moshi,
                 credentials,
@@ -381,6 +388,7 @@ class StockTrackerPluginTest {
 
         val results = with(
             StockTrackerPlugin(
+                "stock",
                 client,
                 moshi,
                 credentials,

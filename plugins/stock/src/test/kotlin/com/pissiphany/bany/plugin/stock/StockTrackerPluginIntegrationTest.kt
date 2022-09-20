@@ -39,7 +39,7 @@ class StockTrackerPluginIntegrationTest {
 
     @Test
     fun integration() = runTest {
-        StockTrackerPlugin(client, moshi, credentials).run {
+        StockTrackerPlugin("stock", client, moshi, credentials).run {
             setup()
             getNewBanyPluginTransactionsSince(BanyPluginBudgetAccountIds("budgetId", "accountId"), null)
                 .let { transactions ->

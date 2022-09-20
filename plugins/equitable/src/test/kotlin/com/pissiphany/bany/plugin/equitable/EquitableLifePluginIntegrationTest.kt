@@ -46,7 +46,7 @@ class EquitableLifePluginIntegrationTest {
         }
         val clientWrapper: OkHttpWrapper = OkHttpWrapperImpl(client, processor)
 
-        EquitableLifePlugin(EquitableClientImpl(clientWrapper, root), credentials)
+        EquitableLifePlugin("equitable", EquitableClientImpl(clientWrapper, root), credentials)
             .apply {
                 check(setup()) { "Unable to configure plugin!" }
 

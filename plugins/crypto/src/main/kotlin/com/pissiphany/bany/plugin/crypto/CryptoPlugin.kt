@@ -28,6 +28,7 @@ private const val ROOT_URL = "https://api.coingecko.com"
 private val supportedCoins = setOf("bitcoin", "bitcoin-cash", "ethereum")
 
 class CryptoPlugin(
+    override val name: String,
     private val client: Lazy<OkHttpClient>,
     private val moshi: Lazy<Moshi>,
     credentials: BanyPlugin.Credentials,

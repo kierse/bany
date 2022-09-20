@@ -29,6 +29,7 @@ interface BanyPlugin {
 interface BanyConfigurablePlugin : BanyPlugin, ConfigurablePlugin
 
 interface ConfigurablePlugin {
+    val name: String
     suspend fun setup(): Boolean = true
     suspend fun tearDown() = Unit
 }

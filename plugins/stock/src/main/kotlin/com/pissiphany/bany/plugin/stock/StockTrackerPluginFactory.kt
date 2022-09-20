@@ -4,6 +4,7 @@ import com.pissiphany.bany.plugin.BanyConfigurablePlugin
 import com.pissiphany.bany.plugin.BanyPlugin
 import com.pissiphany.bany.plugin.BanyPluginFactory
 import com.pissiphany.bany.plugin.stock.adapter.BigDecimalAdapter
+import com.pissiphany.bany.shared.logger
 import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
 import org.pf4j.Extension
@@ -13,6 +14,7 @@ private const val STOCK_TRACKER = "stock-tracker"
 @Extension
 class StockTrackerPluginFactory : BanyPluginFactory {
     override val pluginNames = setOf(STOCK_TRACKER)
+    private val logger by logger()
 
     override suspend fun createPlugin(
         pluginName: String,
@@ -25,6 +27,7 @@ class StockTrackerPluginFactory : BanyPluginFactory {
                 .build()
         }
 
-        return StockTrackerPlugin(client, moshi, credentials)
+        logger.debug("Creating StockTrackerPlugin: $pluginName")
+        return StockTrackerPlugin(pluginName, client, moshi, credentials)
     }
 }

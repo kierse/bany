@@ -29,7 +29,7 @@ class CryptoPluginFactory : BanyPluginFactory {
     }
 
     override suspend fun createPlugin(pluginName: String, credentials: BanyPlugin.Credentials): BanyConfigurablePlugin {
-        logger.debug("Creating CryptoPlugin")
-        return CryptoPlugin(client, moshi, credentials)
+        logger.debug("Creating CryptoPlugin: $pluginName")
+        return CryptoPlugin(pluginName, client, moshi, credentials)
     }
 }

@@ -6,6 +6,7 @@ import com.pissiphany.bany.plugin.BanyPluginFactory
 import com.pissiphany.bany.plugin.equitable.client.EquitableClientImpl
 import com.pissiphany.bany.plugin.equitable.client.OkHttpWrapper
 import com.pissiphany.bany.plugin.equitable.client.OkHttpWrapperImpl
+import com.pissiphany.bany.shared.logger
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
@@ -19,6 +20,7 @@ internal const val EQUITABLE_LIFE = "equitable-life"
 @Extension
 class EquitableLifePluginFactory : BanyPluginFactory {
     override val pluginNames = setOf(EQUITABLE_LIFE)
+    private val logger by logger()
 
     private val client = lazy {
         OkHttpClient
@@ -34,7 +36,8 @@ class EquitableLifePluginFactory : BanyPluginFactory {
     private val root = EQUITABLE_ROOT.toHttpUrl()
 
     override suspend fun createPlugin(pluginName: String, credentials: BanyPlugin.Credentials): BanyConfigurablePlugin {
+        logger.debug("Creating EquitableLifePlugin: $pluginName")
         val client = EquitableClientImpl(clientWrapper, root)
-        return EquitableLifePlugin(client, credentials)
+        return EquitableLifePlugin(pluginName, client, credentials)
     }
 }

@@ -17,6 +17,7 @@ private const val PAYEE = "Equitable Life of Canada"
 private fun checkSession(session: EquitableClient.EquitableClientSession?) = checkNotNull(session).apply { checkSession() }
 
 class EquitableLifePlugin(
+    override val name: String,
     private val client: EquitableClient,
     private val credentials: BanyPlugin.Credentials,
 ) : BanyConfigurablePlugin {

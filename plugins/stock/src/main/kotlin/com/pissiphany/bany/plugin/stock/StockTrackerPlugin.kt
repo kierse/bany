@@ -27,6 +27,7 @@ private const val ROOT_STOCK_URL = "https://apidojo-yahoo-finance-v1.p.rapidapi.
 private const val ROOT_CURRENCY_URL = "https://free.currconv.com"
 
 class StockTrackerPlugin(
+    override val name: String,
     private val client: Lazy<OkHttpClient>,
     private val moshi: Lazy<Moshi>,
     credentials: BanyPlugin.Credentials,

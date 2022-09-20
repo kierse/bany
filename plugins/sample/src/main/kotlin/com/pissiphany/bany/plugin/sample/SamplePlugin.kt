@@ -5,7 +5,7 @@ import com.pissiphany.bany.plugin.dataStructure.BanyPluginBudgetAccountIds
 import com.pissiphany.bany.plugin.dataStructure.BanyPluginTransaction
 import java.time.LocalDate
 
-class SamplePlugin : BanyConfigurablePlugin {
+class SamplePlugin(override val name: String) : BanyConfigurablePlugin {
     override suspend fun setup(): Boolean {
         println("sample plugin setup")
         return true

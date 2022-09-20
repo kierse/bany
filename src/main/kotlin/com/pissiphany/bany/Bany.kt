@@ -31,6 +31,8 @@ import com.pissiphany.bany.service.RetrofitYnabApiService
 import com.pissiphany.bany.service.ThirdPartyTransactionServiceImpl
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import mu.KotlinLogging
 import org.pf4j.DefaultPluginManager
 
@@ -88,6 +90,7 @@ fun main() = runBlocking {
     val pluginManager = DefaultPluginManager()
     val factoryMap = buildFactoryMap(pluginManager.getExtensions(BanyPluginFactory::class.java))
 
+    val mutex = Mutex()
     val initializedPlugins = mutableListOf<ConfigurablePlugin>()
     try {
         val deferredServices = supervisorScope {
@@ -103,6 +106,8 @@ fun main() = runBlocking {
                         val deferred = async {
                             val plugin = factory.createPlugin(pluginName, credentialsMap.getValue(serviceCredentials))
                             if (plugin.setup()) {
+                                mutex.withLock { initializedPlugins.add(plugin) }
+
                                 logger.debug { "Initialized '$pluginName' plugin: '${serviceCredentials.description}'" }
                                 ThirdPartyTransactionServiceImpl(plugin, BanyPluginDataMapper())
                             } else {
@@ -149,8 +154,12 @@ fun main() = runBlocking {
     } finally {
         logger.info("Tearing down plugins")
         val jobs = supervisorScope {
-            initializedPlugins
-                .map { plugin -> launch { plugin.tearDown() } }
+            initializedPlugins.map { plugin ->
+                launch {
+                    logger.debug("Tearing down ${plugin.name}")
+                    plugin.tearDown()
+                }
+            }
         }
         jobs.joinAll()
     }

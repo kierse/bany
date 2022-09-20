@@ -8,5 +8,5 @@ import org.pf4j.Extension
 @Extension
 class SamplePluginFactory : BanyPluginFactory {
     override val pluginNames = setOf("sample")
-    override suspend fun createPlugin(pluginName: String, credentials: BanyPlugin.Credentials): BanyConfigurablePlugin = SamplePlugin()
+    override suspend fun createPlugin(pluginName: String, credentials: BanyPlugin.Credentials): BanyConfigurablePlugin = SamplePlugin(pluginName)
 }

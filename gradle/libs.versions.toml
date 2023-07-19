@@ -1,8 +1,8 @@
 [versions]
 jsoup = "1.13.1"
 junit-jupiter = "5.7.0"
-kotlin = "1.7.10"
-kotlinx-coroutines = "1.6.2"
+kotlin = "1.8.20"
+kotlinx-coroutines = "1.7.2"
 kotlin-logging = "2.1.20"
 pf4j = "3.4.1"
 slf4j = "1.7.33"

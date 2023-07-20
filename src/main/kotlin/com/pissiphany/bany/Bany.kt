@@ -1,6 +1,5 @@
 package com.pissiphany.bany
 
-import com.pissiphany.bany.Constants.CONFIG_FILE
 import com.pissiphany.bany.Constants.LAST_KNOWLEDGE_OF_SERVER_FILE
 import com.pissiphany.bany.adapter.controller.SyncTransactionsWithYnabController
 import com.pissiphany.bany.adapter.factory.ThirdPartyTransactionGatewayFactoryImpl
@@ -18,6 +17,7 @@ import com.pissiphany.bany.adapter.LocalDateAdapter
 import com.pissiphany.bany.adapter.OffsetDateTimeAdapter
 import com.pissiphany.bany.adapter.dataStructure.YnabCredentials
 import com.pissiphany.bany.adapter.service.ThirdPartyTransactionService
+import com.pissiphany.bany.configApi.ConfigConstants.CONFIG_FILE
 import com.pissiphany.bany.configApi.ServiceCredentials
 import com.pissiphany.bany.domain.useCase.step.*
 import com.pissiphany.bany.mapper.RetrofitAccountMapper

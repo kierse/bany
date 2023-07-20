@@ -1,9 +1,9 @@
 package com.pissiphany.bany.configApi
 
-import com.pissiphany.bany.plugin.PluginName
 import com.squareup.moshi.JsonClass
 
 typealias YnabBudgetId = String
+typealias PluginName = String
 
 @JsonClass(generateAdapter = true)
 class BanyConfig(val ynabApiToken: String, val plugins: Map<PluginName, List<ServiceCredentials>>)

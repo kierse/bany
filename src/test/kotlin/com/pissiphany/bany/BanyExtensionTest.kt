@@ -2,8 +2,8 @@ package com.pissiphany.bany
 
 import com.pissiphany.bany.adapter.dataStructure.YnabConnection
 import com.pissiphany.bany.adapter.dataStructure.YnabCredentials
-import com.pissiphany.bany.dataStructure.ServiceConnection
-import com.pissiphany.bany.dataStructure.ServiceCredentials
+import com.pissiphany.bany.configApi.ServiceConnection
+import com.pissiphany.bany.configApi.ServiceCredentials
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

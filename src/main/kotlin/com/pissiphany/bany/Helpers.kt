@@ -2,7 +2,7 @@ package com.pissiphany.bany
 
 import com.pissiphany.bany.adapter.dataStructure.YnabConnection
 import com.pissiphany.bany.adapter.dataStructure.YnabCredentials
-import com.pissiphany.bany.dataStructure.ServiceCredentials
+import com.pissiphany.bany.configApi.ServiceCredentials
 import com.pissiphany.bany.plugin.BanyPluginFactory
 import com.pissiphany.bany.plugin.PluginName
 

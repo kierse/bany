@@ -1,4 +1,4 @@
-package com.pissiphany.bany.dataStructure
+package com.pissiphany.bany.configApi
 
 import com.pissiphany.bany.plugin.PluginName
 import com.squareup.moshi.JsonClass

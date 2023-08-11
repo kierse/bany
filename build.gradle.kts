@@ -29,6 +29,7 @@ dependencies {
 
     api(project(":shared"))
     implementation(project(":bany-plugin-api"))
+    implementation(project(":config-api"))
     implementation(project(":domain"))
     implementation(project(":adapter"))
     implementation(project(":plugins:crypto"))

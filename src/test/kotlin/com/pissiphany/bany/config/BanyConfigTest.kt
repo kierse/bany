@@ -1,6 +1,6 @@
 package com.pissiphany.bany.config
 
-import com.pissiphany.bany.dataStructure.BanyConfig
+import com.pissiphany.bany.configApi.BanyConfig
 import com.squareup.moshi.Moshi
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll

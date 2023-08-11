@@ -6,7 +6,7 @@ kotlinx-coroutines = "1.7.2"
 kotlin-logging = "2.1.20"
 pf4j = "3.9.0"
 slf4j = "1.7.33"
-square-moshi = "1.13.0"
+square-moshi = "1.14.0"
 square-okhttp = "4.9.1"
 square-retrofit = "2.9.0"
 

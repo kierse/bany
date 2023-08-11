@@ -7,11 +7,9 @@ import com.pissiphany.bany.plugin.crypto.adapter.BigDecimalAdapter
 import com.pissiphany.bany.shared.logger
 import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
-import org.pf4j.Extension
 
 internal const val CRYPTO_TRACKER = "crypto-tracker"
 
-@Extension
 class CryptoPluginFactory : BanyPluginFactory {
     override val pluginNames = setOf(CRYPTO_TRACKER)
     private val logger by logger()

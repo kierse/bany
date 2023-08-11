@@ -10,14 +10,12 @@ import com.pissiphany.bany.shared.logger
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
-import org.pf4j.Extension
 import java.io.InputStream
 import java.nio.charset.Charset
 
 internal const val EQUITABLE_ROOT = "https://client.equitable.ca"
 internal const val EQUITABLE_LIFE = "equitable-life"
 
-@Extension
 class EquitableLifePluginFactory : BanyPluginFactory {
     override val pluginNames = setOf(EQUITABLE_LIFE)
     private val logger by logger()

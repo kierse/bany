@@ -16,10 +16,6 @@ dependencies {
     implementation(libs.square.okhttp)
     implementation(libs.jsoup)
 
-    // pf4j
-    implementation(libs.pf4j)
-    kapt(libs.pf4j)
-
     kaptTest(libs.square.moshi.codegen)
     testImplementation(libs.square.moshi)
     testImplementation(libs.square.okhttp.mock.webserver)

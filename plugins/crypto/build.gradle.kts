@@ -17,10 +17,6 @@ dependencies {
     implementation(libs.square.moshi)
     kapt(libs.square.moshi.codegen)
 
-    // pf4j
-    implementation(libs.pf4j)
-    kapt(libs.pf4j)
-
     kaptTest(libs.square.moshi.codegen)
     testImplementation(libs.square.okhttp.mock.webserver)
     testImplementation(libs.kotlinx.coroutines.test)

@@ -22,7 +22,6 @@ import com.pissiphany.bany.configApi.ServiceCredentials
 import com.pissiphany.bany.domain.useCase.step.*
 import com.pissiphany.bany.mapper.RetrofitAccountMapper
 import com.pissiphany.bany.mapper.RetrofitTransactionMapper
-import com.pissiphany.bany.plugin.BanyPluginFactory
 import com.pissiphany.bany.factory.RetrofitFactory
 import com.pissiphany.bany.mapper.BanyPluginDataMapper
 import com.pissiphany.bany.plugin.ConfigurablePlugin
@@ -34,7 +33,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import mu.KotlinLogging
-import org.pf4j.DefaultPluginManager
 
 fun main() = runBlocking {
     val logger = KotlinLogging.logger {}
@@ -87,8 +85,7 @@ fun main() = runBlocking {
     val presenter = Presenter(ConsoleView())
 
     // plugins
-    val pluginManager = DefaultPluginManager()
-    val factoryMap = buildFactoryMap(pluginManager.getExtensions(BanyPluginFactory::class.java))
+    val factoryMap = buildFactoryMap(PluginFactoryManager.plugins)
 
     val mutex = Mutex()
     val initializedPlugins = mutableListOf<ConfigurablePlugin>()
@@ -164,8 +161,5 @@ fun main() = runBlocking {
         jobs.joinAll()
     }
 
-    // stop all active plugins
-    logger.info("Stopping plugins...")
-    pluginManager.stopPlugins()
     logger.info("Done!")
 }

@@ -46,8 +46,6 @@ dependencies {
 
     implementation(libs.kotlin.logging)
 
-    // pf4j
-    implementation(libs.pf4j)
     implementation(libs.slf4j)
 
     kaptTest(libs.square.moshi.codegen)

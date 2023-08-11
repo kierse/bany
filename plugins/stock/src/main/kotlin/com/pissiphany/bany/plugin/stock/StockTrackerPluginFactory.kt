@@ -7,11 +7,9 @@ import com.pissiphany.bany.plugin.stock.adapter.BigDecimalAdapter
 import com.pissiphany.bany.shared.logger
 import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
-import org.pf4j.Extension
 
 private const val STOCK_TRACKER = "stock-tracker"
 
-@Extension
 class StockTrackerPluginFactory : BanyPluginFactory {
     override val pluginNames = setOf(STOCK_TRACKER)
     private val logger by logger()
